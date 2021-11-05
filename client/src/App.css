@@ -1,0 +1,14 @@
+.app {
+  padding: 30px;
+}
+
+.todo {
+  align-items: center;
+  display: flex;
+  font-size: 18px;
+  justify-content: space-between;
+}
+
+.submit {
+  margin-top: 1rem;
+}
