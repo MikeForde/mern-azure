@@ -32,6 +32,13 @@ jobs:
         npm run build
         #npm install nodemon
 
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_FEFFC229E70E4819B2030E977457E422 }}
+        tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F38663BF3DA4F7E8ACA7D218B0A5EDD }}
+        subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_52AECFD2157F471BB126FF80634D0BB4 }}
+
     - name: 'Deploy to Azure Web App'
       uses: azure/webapps-deploy@v2
       id: deploy-to-webapp
