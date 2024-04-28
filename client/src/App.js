@@ -150,7 +150,7 @@ function App() {
   return (
     <div className="app">
       <div className="container">
-        <h1 className="text-center mb-4">Todo List with MERN on Github+Azure</h1>
+        <h1 className="text-center mb-4">Work-Home accessible MERN Test using CI Github+Azure</h1>
         <FormTodo add={add} />
         <div>
           {todos.map((todo) => (
