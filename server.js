@@ -4,6 +4,7 @@ const ReadPreference = require("mongodb").ReadPreference;
 const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
+const { IPSModel } = require("./models/IPSModel");
 
 const { DB_CONN } = process.env;
 
@@ -17,70 +18,61 @@ mongoose
     .then(() => console.log("DB connection successful"))
     .catch(console.error);
 
-const ToDoModel = mongoose.model(
-    "todo",
-    new mongoose.Schema({
-        isDone: Boolean,
-        text: String,
-    })
-);
-
-api.get("/todo/all", (req, res) => {
-    ToDoModel.find({})
+api.get("/ips/all", (req, res) => {
+    IPSModel.find({})
         .read(ReadPreference.NEAREST)
         .exec()
-        .then((todos) => {
-            res.json(todos);
+        .then((ipss) => {
+            res.json(ipss);
         })
         .catch((err) => {
             res.status(400).send(err);
         });
 });
 
-api.post("/todo", (req, res) => {
-    const { todo } = req.body;
+api.post("/ips", (req, res) => {
+    console.log("req.body", req.body);
 
-    todo._id = new mongoose.Types.ObjectId();
-    const newTodo = new ToDoModel(todo);
+    const newIPS = new IPSModel(req.body);
 
-    newTodo
+    newIPS
         .save()
-        .then((newTodo) => {
-            res.json(newTodo);
+        .then((newIPS) => {
+            res.json(newIPS);
         })
         .catch((err) => {
             res.status(400).send(err);
         });
 });
 
-api.put("/todo/:id", (req, res) => {
+api.put("/ips/:id", (req, res) => {
     const { id } = req.params;
 
     if (id) {
-        ToDoModel.findById(id)
+        IPSModel.findById(id)
             .read(ReadPreference.NEAREST)
             .exec()
-            .then((todo) => {
-                todo.isDone = !todo.isDone;
-                todo.save().then((updatedTodo) => {
-                    res.json(updatedTodo);
+            .then((ips) => {
+                //ips.isDone = !ips.isDone;
+                ips.save().then((updatedIPS) => {
+                    res.json(updatedIPS);
                 });
             })
             .catch((err) => {
                 res.status(400).send(err);
             });
     } else {
-        res.status(404).send("ToDo not found.");
+        res.status(404).send("IPS not found.");
     }
 });
 
-api.delete("/todo/:id", (req, res) => {
+api.delete("/ips/:id", (req, res) => {
     const { id } = req.params;
 
     if (id) {
-        ToDoModel.findByIdAndRemove(id)
-            .then((todo) => {
-                res.json(todo._id);
+        IPSModel.findByIdAndRemove(id)
+            .then((ips) => {
+                res.json(ips._id);
             })
             .catch((err) => {
                 res.status(400).send(err);
@@ -94,4 +86,6 @@ api.get("/*", (req, res) => {
 });
 
 const port = process.env.PORT || 5000;
-api.listen(port);
+api.listen(port, () => {
+    console.log(`Server is running on port: ${port}`)
+  })
