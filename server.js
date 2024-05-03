@@ -5,7 +5,8 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
 const { IPSModel } = require("./models/IPSModel");
-const uuidv4 = require('uuid').v4;
+const { getIPSBundle } = require('./servercontrollers/ipsBundleFormat');
+const { getIPSRaw, getAllIPS } = require('./servercontrollers/ipsDatabaseFormats');
 
 const { DB_CONN } = process.env;
 
@@ -19,150 +20,13 @@ mongoose
     .then(() => console.log("DB connection successful"))
     .catch(console.error);
 
-api.get("/ips/all", (req, res) => {
-    IPSModel.find({})
-        .read(ReadPreference.NEAREST)
-        .exec()
-        .then((ipss) => {
-            res.json(ipss);
-        })
-        .catch((err) => {
-            res.status(400).send(err);
-        });
-});
+api.get("/ips/all", getAllIPS);
 
-api.get("/ipsraw/:id", (req, res) => {
-    const id = req.params.id;
-    IPSModel.findById(id)
-      .exec()
-      .then((ips) => {
-        if (!ips) {
-          return res.status(404).json({ message: "IPS record not found" });
-        }
-        if (req.query.pretty === 'true') {
-            // Return formatted JSON with indentation for readability
-            const formattedJson = JSON.stringify(ips, null, "\t");
-            res.send(formattedJson);
-        } else {
-            // Return JSON without formatting
-            res.json(ips);
-        }
-      })
-      .catch((err) => {
-        res.status(400).send(err);
-      });
-  });
+api.get("/ipsraw/:id", getIPSRaw);
 
-  api.get("/ips/:id", (req, res) => {
-    const id = req.params.id;
-    IPSModel.findById(id)
-      .exec()
-      .then((ips) => {
-        if (!ips) {
-          return res.status(404).json({ message: "IPS record not found" });
-        }
-  
-        // Constructing the JSON structure
-        const bundle = {
-          resourceType: "Bundle",
-          id: ips.packageUUID, // First ID is the packageUUID
-          type: "collection",
-          total: 2 + (ips.medication.length * 2) + ips.allergies.length, // Total resources
-          entry: [
-            {
-              resource: {
-                resourceType: "Patient",
-                id: uuidv4(), // Generate UUID for patient ID
-                name: [
-                  {
-                    family: ips.patient.name,
-                    text: `${ips.patient.given} ${ips.patient.name}`,
-                    given: [ips.patient.given, ips.patient.given.charAt(0)],
-                  },
-                ],
-                gender: "female",
-                birthDate: ips.patient.dob, // Date of birth
-                address: [
-                  {
-                    country: ips.patient.nationality, // Nationality
-                  },
-                ],
-              },
-            },
-            {
-              resource: {
-                resourceType: "Practitioner",
-                id: uuidv4(), // Generate UUID for practitioner ID
-                name: [
-                  {
-                    text: ips.patient.practitioner, // Practitioner name
-                  },
-                ],
-              },
-            },
-            // Medication entries
-            ...ips.medication.flatMap((med) => [
-              {
-                resource: {
-                  resourceType: "MedicationRequest",
-                  id: uuidv4(), // Generate UUID for medication request ID
-                  intent: "order",
-                  medicationReference: {
-                    reference: `urn:uuid:${uuidv4()}`, // Generate UUID for medication reference
-                    display: med.name, // Medication name
-                  },
-                  authoredOn: med.date, // Date
-                  dosageInstruction: [
-                    {
-                      text: med.dosage, // Dosage
-                      // Other dosage instructions
-                    },
-                  ],
-                },
-              },
-              {
-                resource: {
-                  resourceType: "Medication",
-                  id: uuidv4(), // Generate UUID for medication request ID
-                  code: {
-                    coding: [
-                      {
-                        display: med.name, // Medication name
-                      },
-                    ],
-                  },
-                },
-              },
-            ]),
-            // Allergy entries
-            ...ips.allergies.map((allergy) => ({
-              resource: {
-                resourceType: "AllergyIntolerance",
-                id: uuidv4(), // Generate UUID for allergy ID
-                category: ["medication"],
-                criticality: "high",
-                code: {
-                  coding: [
-                    {
-                      display: allergy.name, // Allergy name
-                    },
-                  ],
-                },
-                onsetDateTime: allergy.date, // Onset date
-              },
-            })),
-          ],
-        };
-  
-        res.json(bundle);
-      })
-      .catch((err) => {
-        res.status(400).send(err);
-      });
-  });
+api.get("/ips/:id", getIPSBundle);
   
   
-
 api.post("/ips", (req, res) => {
     console.log("req.body", req.body);
 
