@@ -6,7 +6,7 @@ import './HomePage.css';
 import { Button } from 'react-bootstrap';
 
 function QRPage() {
-    const { id } = useParams();
+    //const { id } = useParams();
     const [ipsRecords, setIPSRecords] = useState([]);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [qrData, setQRData] = useState('');
