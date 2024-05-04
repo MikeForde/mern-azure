@@ -7,6 +7,7 @@ const path = require("path");
 const { IPSModel } = require("./models/IPSModel");
 const { getIPSBundle } = require('./servercontrollers/ipsBundleFormat');
 const { getIPSRaw, getAllIPS } = require('./servercontrollers/ipsDatabaseFormats');
+const getIPSBasic = require("./servercontrollers/ipsBasicFormat");
 
 const { DB_CONN } = process.env;
 
@@ -25,6 +26,8 @@ api.get("/ips/all", getAllIPS);
 api.get("/ipsraw/:id", getIPSRaw);
 
 api.get("/ips/:id", getIPSBundle);
+
+api.get("/ipsbasic/:id", getIPSBasic);
   
   
 api.post("/ips", (req, res) => {

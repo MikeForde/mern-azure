@@ -18,7 +18,7 @@ function DataUploadPage() {
   return (
     <div className="app">
       <div className="container">
-        <h1>Bulk Upload of DMICP Data for IPS</h1>
+        <h3>Bulk Upload of DMICP Data for IPS</h3>
         <textarea
           rows="10"
           cols="50"

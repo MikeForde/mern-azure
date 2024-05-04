@@ -1,28 +1,37 @@
 import React, { useState, useEffect } from 'react';
-//import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import QRCode from 'qrcode.react';
 import axios from 'axios';
 import './HomePage.css'; 
 import { Button } from 'react-bootstrap';
 
 function QRPage() {
-    //const { id } = useParams();
+    const { id } = useParams();
     const [ipsRecords, setIPSRecords] = useState([]);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [qrData, setQRData] = useState('');
     const [mode, setMode] = useState('ips');
+
+    console.log("id", id);
 
     useEffect(() => {
         // Fetch IPS records
         axios.get('/ips/all')
             .then(response => {
                 setIPSRecords(response.data);
-                setSelectedRecord(response.data[0]); // Select the first record by default
+                // Find the record matching the ID parameter
+                let record;
+                if (id) {
+                    record = response.data.find(record => record._id === id);
+                } else {
+                    record = response.data[0]; // Select the first record if no ID is provided
+                }
+                setSelectedRecord(record);
             })
             .catch(error => {
                 console.error('Error fetching IPS records:', error);
             });
-    }, []);
+    }, [id]);
 
     const handleRecordChange = (e) => {
         const selectedId = e.target.value;
@@ -62,9 +71,9 @@ function QRPage() {
     return (
         <div className="app">
             <div className="container">
-                <h1>Generate QR Code</h1>
+                <h3>Generate QR Code</h3>
                 <div>
-                    <label>Select Record:</label>
+                    <label>Select Record: </label>
                     <select value={selectedRecord ? selectedRecord._id : ''} onChange={handleRecordChange}>
                         {ipsRecords.map(record => (
                             <option key={record._id} value={record._id}>{record.packageUUID}</option>
@@ -72,10 +81,10 @@ function QRPage() {
                     </select>
                 </div>
                 <div>
-                    <label>Select Mode:</label>
+                    <label>Select Mode: </label>
                     <select value={mode} onChange={handleModeChange}>
-                        <option value="ips">IPS</option>
-                        <option value="ipsraw">IPS Raw</option>
+                        <option value="ips">IPS JSON Bundle</option>
+                        <option value="ipsraw">IPS MongoDb Record</option>
                     </select>
                 </div>
                 <div style={{ width: '400px', height: '400px' }}>

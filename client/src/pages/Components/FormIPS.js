@@ -86,7 +86,7 @@ export function FormIPS({ add }) {
     <Form onSubmit={handleSubmit}>
       <Form.Group>
         <Form.Label>
-          <b>Add IPS Entry</b>
+          <h3>Add IPS Entry</h3>
         </Form.Label>
         <Form.Group className="row">
           <Form.Label className="col-sm-2"><b>Package UUID</b></Form.Label>

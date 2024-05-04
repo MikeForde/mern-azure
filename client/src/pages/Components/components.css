@@ -1,0 +1,19 @@
+.qr-button {
+    border: 1px solid #6c757d;
+    background-color: #f8f9fa; /* Light background color */
+    transition: background-color 0.3s ease;
+  }
+  
+  .qr-button:hover {
+    background-color: #343a40; /* Dark background color */
+  }
+  
+  .qr-button .svg-inline--fa {
+    color: #343a40; /* Dark icon color */
+  }
+  
+  .qr-button:hover .svg-inline--fa {
+    color: #ffffff; /* White icon color on hover */
+  }
+  
+  

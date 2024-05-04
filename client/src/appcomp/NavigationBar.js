@@ -22,9 +22,13 @@ function NavigationBar() {
             </Nav.Link>
           </Nav>
         </Navbar.Collapse>
+        <Navbar.Brand className="mx-auto" href="/">
+          IPS MERN Prototype 0_4
+        </Navbar.Brand>
       </Container>
     </Navbar>
   );
 }
 
 export default NavigationBar;
+

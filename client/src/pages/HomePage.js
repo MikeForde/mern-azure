@@ -74,8 +74,8 @@ function HomePage() {
   return (
     <div className="app">
       <div className="container">
-        <h1 className="text-center mb-4">IPS MERN Prototype v0_3</h1>
         <FormIPS add={add} />
+        <h3> </h3>
         <div>
           {ipss.map((ips) => (
             <Card key={ips._id}>

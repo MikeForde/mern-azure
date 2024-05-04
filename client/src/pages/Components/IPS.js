@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import { Button, Modal } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import { faQrcode } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import "./components.css";
 
 export function IPS({ ips, remove }) {
   const [expanded, setExpanded] = useState(false);
@@ -31,7 +35,6 @@ export function IPS({ ips, remove }) {
               Show More
             </Button>
           </>
-          
         )}
         {expanded && (
           <>
@@ -64,6 +67,11 @@ export function IPS({ ips, remove }) {
         )}
       </div>
       <div>
+        <Link to={`/qr/${ips._id}`}>
+          <Button variant="outline-secondary" className="qr-button">
+            <FontAwesomeIcon icon={faQrcode} />
+          </Button>
+        </Link>
         <Button variant="outline-danger" onClick={handleRemove}>
           🗑️
         </Button>

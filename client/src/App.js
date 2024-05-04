@@ -11,7 +11,7 @@ function App() {
       <NavigationBar />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/qr" element={<QRPage />} />
+        <Route path="/qr/:id?" element={<QRPage />} />
         <Route path="/bulkupload" element={<DataUploadPage />} />
       </Routes>
     </Router>
