@@ -16,13 +16,6 @@ export function FormIPS({ add }) {
     allergies: [{ name: "", severity: "", date: "" }],
   });
 
-  // const handleChange = (e) => {
-  //   const { name, value } = e.target;
-  //   setFormData({
-  //     ...formData,
-  //     [name]: value,
-  //   });
-  // };
   const handlePatientChange = (e) => {
     const { name, value } = e.target;
     setFormData({
