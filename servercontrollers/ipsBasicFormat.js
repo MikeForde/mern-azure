@@ -12,22 +12,21 @@ const getIPSBasic = (req, res) => {
 
         // Construct the plain text response format
         let basicInfo = '';
-        basicInfo += `${ipsRecord.packageUUID}\n`;
-        basicInfo += `${ipsRecord.patient.name}\n`;
-        basicInfo += `${ipsRecord.patient.given}\n`;
-        basicInfo += `female\n`;
-        basicInfo += `${ipsRecord.patient.dob}\n`;
-        basicInfo += `${ipsRecord.patient.nationality}\n`;
-        basicInfo += `${ipsRecord.patient.practitioner}\n`;
+        basicInfo += `${ipsRecord.packageUUID}\r\n`;
+        basicInfo += `${ipsRecord.patient.name}\r\n`;
+        basicInfo += `${ipsRecord.patient.given}\r\n`;
+        basicInfo += `${ipsRecord.patient.dob}\r\n`;
+        basicInfo += `${ipsRecord.patient.nationality}\r\n`;
+        basicInfo += `${ipsRecord.patient.practitioner}\r\n`;
 
         // Append medication information
         ipsRecord.medication.forEach((med) => {
-            basicInfo += `M:\n${med.name}\n${med.date}\n${med.dosage}\n`;
+            basicInfo += `M:\r\n${med.name}\r\n${med.date}\r\n${med.dosage}\r\n`;
         });
 
         // Append allergy information
         ipsRecord.allergies.forEach((allergy) => {
-            basicInfo += `A:\n${allergy.name}\n${allergy.severity}\n${allergy.date}\n`;
+            basicInfo += `A:\r\n${allergy.name}\r\n${allergy.severity}\r\n${allergy.date}\r\n`;
         });
 
         // Send the plain text response

@@ -28,7 +28,7 @@ function getIPSBundle(req, res) {
                                     given: [ips.patient.given, ips.patient.given.charAt(0)],
                                 },
                             ],
-                            gender: "female",
+                            gender: "Unknown",
                             birthDate: ips.patient.dob, // Date of birth
                             address: [
                                 {

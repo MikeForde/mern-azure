@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import QRCode from 'qrcode.react';
 import axios from 'axios';
-import './HomePage.css'; 
+import './HomePage.css';
 import { Button } from 'react-bootstrap';
 
 function QRPage() {
@@ -11,8 +11,6 @@ function QRPage() {
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [qrData, setQRData] = useState('');
     const [mode, setMode] = useState('ips');
-
-    console.log("id", id);
 
     useEffect(() => {
         // Fetch IPS records
@@ -42,14 +40,33 @@ function QRPage() {
     // Fetch QR data based on selected record and mode
     useEffect(() => {
         if (selectedRecord) {
-            const endpoint = mode === 'ips' ? `/ips/${selectedRecord._id}` : `/ipsraw/${selectedRecord._id}`;
-            axios.get(endpoint)
+            let endpoint;
+            if (mode === 'ips') {
+                endpoint = `/ips/${selectedRecord._id}`;
+            } else if (mode === 'ipsraw') {
+                endpoint = `/ipsraw/${selectedRecord._id}`;
+            } else if (mode === 'ipsminimal') {
+                endpoint = `/ipsbasic/${selectedRecord._id}`;
+            }
+
+            if (mode === 'ipsurl') {
+                const baseUrl = window.location.origin; // Get the base URL of the application
+                const url = `${baseUrl}/ips/${selectedRecord._id}`;
+                setQRData(url);
+            } else {
+                axios.get(endpoint)
                 .then(response => {
-                    setQRData(JSON.stringify(response.data));
+                    if (mode === 'ipsminimal') {
+                        setQRData(response.data);
+                    } else {
+                        setQRData(JSON.stringify(response.data));
+                    }
                 })
                 .catch(error => {
                     console.error('Error fetching IPS record:', error);
                 });
+            }
+
         }
     }, [selectedRecord, mode]);
 
@@ -84,7 +101,9 @@ function QRPage() {
                     <label>Select Mode: </label>
                     <select value={mode} onChange={handleModeChange}>
                         <option value="ips">IPS JSON Bundle</option>
-                        <option value="ipsraw">IPS MongoDb Record</option>
+                        <option value="ipsraw">IPS MongoDB Record</option>
+                        <option value="ipsminimal">IPS Minimal</option>
+                        <option value="ipsurl">IPS URL for Patient</option>
                     </select>
                 </div>
                 <div style={{ width: '400px', height: '400px' }}>
