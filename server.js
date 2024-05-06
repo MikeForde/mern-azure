@@ -45,6 +45,21 @@ api.post("/ips", (req, res) => {
         });
 });
 
+api.post("/ipsmany", (req, res) => {
+    console.log("req.body", req.body);
+
+    const ipsRecords = req.body; // Array of IPS records
+
+    // Insert all IPS records into the database
+    IPSModel.insertMany(ipsRecords)
+        .then((newIPS) => {
+            res.json(newIPS);
+        })
+        .catch((err) => {
+            res.status(400).send(err);
+        });
+});
+
 api.put("/ips/:id", (req, res) => {
     const { id } = req.params;
 

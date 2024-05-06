@@ -58,9 +58,12 @@ function QRPage() {
                 .then(response => {
                     if (mode === 'ipsminimal') {
                         setQRData(response.data);
+                        console.log('QR Data:', response.data);
                     } else {
                         setQRData(JSON.stringify(response.data));
+                        console.log('QR Data:', JSON.stringify(response.data));
                     }
+
                 })
                 .catch(error => {
                     console.error('Error fetching IPS record:', error);

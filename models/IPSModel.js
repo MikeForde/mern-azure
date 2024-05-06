@@ -1,30 +1,49 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const IPSModel = mongoose.model(
     "ips",
     new mongoose.Schema({
-        packageUUID: String,
+        packageUUID: {
+            type: String,
+            required: true
+        },
         patient: {
-            name: String,
-            given: String,
-            dob: String,
-            nationality: String,
-            practitioner: String,
+            name: {
+                type: String,
+                required: true
+            },
+            given: {
+                type: String,
+                required: true
+            },
+            dob: {
+                type: Date,
+                required: true
+            },
+            nationality: {
+                type: String,
+                required: true
+            },
+            practitioner: {
+                type: String,
+                required: true
+            }
         },
         medication: [
-                {
-                    name: String,
-                    date: String,
-                    dosage: String,
-                }
+            {
+                name: String,
+                date: Date,
+                dosage: String,
+            }
         ],
         allergies: [
             {
                 name: String,
                 severity: String,
-                date: String,
+                date: Date
             }
         ],
-        })
+    })
 );
+
 exports.IPSModel = IPSModel;

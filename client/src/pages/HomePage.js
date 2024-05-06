@@ -14,9 +14,28 @@ function HomePage() {
   const [ipss, setIPS] = useState([]);
 
   const add = (formData) => {
-    console.log(JSON.stringify(formData, null, 2));
+    // Remove medication array entries with blank values for all three items
+    const cleanedMedication = formData.medication.filter(item => {
+      return item.name.trim() !== "" || item.date.trim() !== "" || item.dosage.trim() !== "";
+    });
+  
+    // Remove allergies array entries with blank values for all three items
+    const cleanedAllergies = formData.allergies.filter(item => {
+      return item.name.trim() !== "" || item.severity.trim() !== "" || item.date.trim() !== "";
+    });
+  
+    // Create a new formData object with cleaned medication and allergies arrays
+    const cleanedFormData = {
+      ...formData,
+      medication: cleanedMedication,
+      allergies: cleanedAllergies
+    };
+  
+    console.log("Form Data", cleanedFormData);
+    console.log(JSON.stringify(cleanedFormData, null, 2));
+  
     server
-      .post("/ips", formData)
+      .post("/ips", cleanedFormData)
       .then((response) => {
         return response.data;
       })
@@ -30,6 +49,8 @@ function HomePage() {
         console.log("Error", error);
       });
   };
+  
+  
 
   const remove = (id) => {
     server
