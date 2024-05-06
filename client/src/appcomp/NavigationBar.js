@@ -5,9 +5,18 @@ import { faHome, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
 
 function NavigationBar() {
   return (
-      <Navbar expand="lg" bg="dark" variant="dark">
+      <Navbar expand="lg" bg="dark" variant="dark" fixed="top">
       <Container>
-        <Navbar.Brand href="#home">IPS MERN Prototype 0_8</Navbar.Brand>
+        <Navbar.Brand href="#home">
+        <img
+            src="/ipsnavbar.ico" // Assuming ips.ico is in the public directory
+            width="25"
+            height="25"
+            className="d-inline-block align-center"
+            alt="IPS Logo"
+            style={{ marginRight: '10px' }}
+          />
+          IPS MERN Prototype 0_9</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">

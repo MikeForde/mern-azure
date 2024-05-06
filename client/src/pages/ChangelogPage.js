@@ -83,6 +83,14 @@ function ChangeLogPage() {
                                 <li>Separate message if no supplied records pass validation</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_9</h5>
+                            <ul>
+                                <li><strong>Logo and Navbar Changes</strong></li>
+                                <li>Added new logo to replace stock React App one</li>
+                                <li>Navbar is now fixed at top</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

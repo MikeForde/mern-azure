@@ -11,15 +11,17 @@ import AboutWebAppPage from './pages/AboutWebappPage';
 function App() {
   return (
     <Router>
-      <NavigationBar />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/qr/:id?" element={<QRPage />} />
-        <Route path="/bulkupload" element={<DataUploadPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/changelog" element={<ChangeLogPage />} />
-        <Route path="/aboutwebapp" element={<AboutWebAppPage />} />
-      </Routes>
+     <div style={{ paddingTop: '56px' }}> {/* Adjust the padding-top value based on your Navbar height */}
+        <NavigationBar />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/qr/:id?" element={<QRPage />} />
+          <Route path="/bulkupload" element={<DataUploadPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/changelog" element={<ChangeLogPage />} />
+          <Route path="/aboutwebapp" element={<AboutWebAppPage />} />
+        </Routes>
+      </div>
     </Router>
   );
 }
