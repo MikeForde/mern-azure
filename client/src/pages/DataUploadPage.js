@@ -7,6 +7,7 @@ function DataUploadPage() {
   const [data, setData] = useState('');
   const [validatedRecords, setValidatedRecords] = useState([]);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [showNoRecordsPassed, setShowNoRecordsPassed] = useState(false);
 
   const handleUpload = () => {
     // Check if data is empty
@@ -18,27 +19,33 @@ function DataUploadPage() {
     const records = data.split('\n'); // Split data into individual records
     const ipsRecords = records.map(record => {
       const fields = record.split(',');// Split record into fields
-    
+
       // Validate number of fields
       if (fields.length !== 8) {
         console.error('Invalid number of fields:', fields);
         return null; // Skip record if number of fields is not 7
       }
-    
+
       const [packageUUID, name, given, dob, nationality, practitioner, ...rest] = fields;
-      
+
       // Validate required fields
-      if (!name || !given || !dob || !nationality || !practitioner) {
+      if (!packageUUID || !name || !given || !dob || !nationality || !practitioner) {
         console.error('Missing required fields:', fields);
         return null; // Skip record if any required field is missing
       }
-    
+
+      // Validate UUID format for packageUUID
+      if (!isValidUUID(packageUUID)) {
+        console.error('Invalid UUID format for packageUUID:', packageUUID);
+        return null; // Skip record if packageUUID is not in a valid UUID format
+      }
+
       // Validate date format for dob
       if (!/^\d{4}-\d{2}-\d{2}$/.test(dob)) {
         console.error('Invalid date format for dob:', dob);
         return null; // Skip record if dob is not in yyyy-mm-dd format
       }
-    
+
       // Create medication array
       const medication = [];
       if (rest[0]) {
@@ -64,7 +71,7 @@ function DataUploadPage() {
           });
         }
       }
-      
+
       // Create allergies array
       const allergies = [];
       if (rest[1]) {
@@ -90,7 +97,7 @@ function DataUploadPage() {
           });
         }
       }
-      
+
       return {
         packageUUID,
         patient: {
@@ -104,17 +111,30 @@ function DataUploadPage() {
         allergies
       };
     }).filter(record => record !== null); // Remove null records (failed validation)
-    
+
 
     console.log('IPS Records:', ipsRecords);
     console.log(JSON.stringify(ipsRecords, null, 2));
 
-    setValidatedRecords(ipsRecords.filter(record => record !== null));
-    setShowConfirmationModal(true);
+    if (ipsRecords.length === 0) {
+      // No records passed validation, show a message to the user
+      setShowNoRecordsPassed(true);
+    } else {
+      // Records passed validation, set them for confirmation and show the confirmation modal
+      setValidatedRecords(ipsRecords);
+      setShowConfirmationModal(true);
+    }
   };
 
   const handleChange = (e) => {
     setData(e.target.value);
+  };
+
+  // Function to validate UUID format
+  // Simple regex - this is isn't a proper validation for UUIDs but will do for this context
+  const isValidUUID = (uuid) => {
+    const UUIDPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return UUIDPattern.test(uuid);
   };
 
   const handleSubmit = () => {
@@ -131,8 +151,8 @@ function DataUploadPage() {
         // Add your logic here to handle errors
       });
 
-      // Clear the data entry textbox
-      setData('');
+    // Clear the data entry textbox
+    setData('');
   };
 
   return (
@@ -149,10 +169,21 @@ function DataUploadPage() {
         <br />
         <Button className="mb-3" onClick={handleUpload}>Convert Pasted Data into IPS Records</Button>
       </div>
+      <Modal show={showNoRecordsPassed} onHide={() => setShowNoRecordsPassed(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>IPS Import Error</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>No records passed validation. Please check your data and try again.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => setShowNoRecordsPassed(false)}>Close</Button>
+        </Modal.Footer>
+      </Modal>
 
       <Modal show={showConfirmationModal} onHide={() => setShowConfirmationModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Confirmation</Modal.Title>
+          <Modal.Title>IPS Record Submission Confirmation</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {validatedRecords.length > 0 && (
