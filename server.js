@@ -8,6 +8,8 @@ const { IPSModel } = require("./models/IPSModel");
 const { getIPSBundle } = require('./servercontrollers/ipsBundleFormat');
 const { getIPSRaw, getAllIPS } = require('./servercontrollers/ipsDatabaseFormats');
 const getIPSBasic = require("./servercontrollers/ipsBasicFormat");
+const { addIPS, addIPSMany } = require('./servercontrollers/ipsNewRecord');
+const { updateIPS, deleteIPS } = require('./servercontrollers/ipsCRUD_UD');
 
 const { DB_CONN } = process.env;
 
@@ -21,79 +23,21 @@ mongoose
     .then(() => console.log("DB connection successful"))
     .catch(console.error);
 
+// API POST - CRUD Create
+api.post("/ips", addIPS);
+api.post("/ipsmany", addIPSMany);
+
+// API GET - CRUD Read
 api.get("/ips/all", getAllIPS);
-
 api.get("/ipsraw/:id", getIPSRaw);
-
 api.get("/ips/:id", getIPSBundle);
-
 api.get("/ipsbasic/:id", getIPSBasic);
   
-  
-api.post("/ips", (req, res) => {
-    console.log("req.body", req.body);
+// API PUT - CRUD Update
+api.put("/ips/:id", updateIPS);
 
-    const newIPS = new IPSModel(req.body);
-
-    newIPS
-        .save()
-        .then((newIPS) => {
-            res.json(newIPS);
-        })
-        .catch((err) => {
-            res.status(400).send(err);
-        });
-});
-
-api.post("/ipsmany", (req, res) => {
-    console.log("req.body", req.body);
-
-    const ipsRecords = req.body; // Array of IPS records
-
-    // Insert all IPS records into the database
-    IPSModel.insertMany(ipsRecords)
-        .then((newIPS) => {
-            res.json(newIPS);
-        })
-        .catch((err) => {
-            res.status(400).send(err);
-        });
-});
-
-api.put("/ips/:id", (req, res) => {
-    const { id } = req.params;
-
-    if (id) {
-        IPSModel.findById(id)
-            .read(ReadPreference.NEAREST)
-            .exec()
-            .then((ips) => {
-                //ips.isDone = !ips.isDone;
-                ips.save().then((updatedIPS) => {
-                    res.json(updatedIPS);
-                });
-            })
-            .catch((err) => {
-                res.status(400).send(err);
-            });
-    } else {
-        res.status(404).send("IPS not found.");
-    }
-});
-
-api.delete("/ips/:id", (req, res) => {
-    const { id } = req.params;
-
-    if (id) {
-        IPSModel.findByIdAndRemove(id)
-            .then((ips) => {
-                res.json(ips._id);
-            })
-            .catch((err) => {
-                res.status(400).send(err);
-            });
-    }
-});
+// API DELETE - CRUD Delete
+api.delete("/ips/:id", deleteIPS);
 
 api.use(express.static(path.join(__dirname, "client", "build")));
 api.get("/*", (req, res) => {

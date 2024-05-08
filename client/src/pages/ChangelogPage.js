@@ -91,6 +91,14 @@ function ChangeLogPage() {
                                 <li>Navbar is now fixed at top</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_10</h5>
+                            <ul>
+                                <li><strong>QR Code Size Check</strong></li>
+                                <li>QR Code data size check - and user feedback - to avoid display errors</li>
+                                <li>Threshold set to 3000 but most codes at this size unreadable except on most recent SmartPhones</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

@@ -3,14 +3,15 @@ import { useParams } from 'react-router-dom';
 import QRCode from 'qrcode.react';
 import axios from 'axios';
 import './HomePage.css';
-import { Button } from 'react-bootstrap';
+import { Button, Alert } from 'react-bootstrap';
 
 function QRPage() {
     const { id } = useParams();
     const [ipsRecords, setIPSRecords] = useState([]);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [qrData, setQRData] = useState('');
-    const [mode, setMode] = useState('ips');
+    const [mode, setMode] = useState('ipsurl');
+    const [showNotification, setShowNotification] = useState(false);
 
     useEffect(() => {
         // Fetch IPS records
@@ -37,6 +38,8 @@ function QRPage() {
         setSelectedRecord(record);
     };
 
+    const THRESHOLD = 3000;
+
     // Fetch QR data based on selected record and mode
     useEffect(() => {
         if (selectedRecord) {
@@ -53,21 +56,30 @@ function QRPage() {
                 const baseUrl = window.location.origin; // Get the base URL of the application
                 const url = `${baseUrl}/ips/${selectedRecord._id}`;
                 setQRData(url);
+                setShowNotification(false);
             } else {
                 axios.get(endpoint)
-                .then(response => {
-                    if (mode === 'ipsminimal') {
-                        setQRData(response.data);
-                        console.log('QR Data:', response.data);
-                    } else {
-                        setQRData(JSON.stringify(response.data));
-                        console.log('QR Data:', JSON.stringify(response.data));
-                    }
+                    .then(response => {
+                        let responseData;
+                        if (mode === 'ipsminimal') {
+                            responseData = response.data;
+                        } else {
+                            responseData = JSON.stringify(response.data);
+                        }
 
-                })
-                .catch(error => {
-                    console.error('Error fetching IPS record:', error);
-                });
+                        console.log('Response data length:', responseData.length);
+
+                        if (responseData.length > THRESHOLD) {
+                            setShowNotification(true);
+                        } else {
+                            setQRData(responseData);
+                            console.log('QR Data:', responseData);
+                            setShowNotification(false);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching IPS record:', error);
+                    });
             }
 
         }
@@ -109,11 +121,15 @@ function QRPage() {
                         <option value="ipsurl">IPS URL for Patient</option>
                     </select>
                 </div>
-                <div style={{ width: '400px', height: '400px' }}>
-                    {qrData && (
-                        <QRCode id="qr-canvas" value={qrData} size={400} />
-                    )}
-                </div>
+                {showNotification ? (
+                    <Alert variant="danger">QR data is too large to display. Please try a different mode.</Alert>
+                ) : (
+                    <div style={{ width: '400px', height: '400px' }}>
+                        {qrData && (
+                            <QRCode id="qr-canvas" value={qrData} size={400} />
+                        )}
+                    </div>
+                )}
                 <br />
                 <Button className="mb-3" onClick={handleDownloadQR}>Download QR Code</Button>
             </div>
