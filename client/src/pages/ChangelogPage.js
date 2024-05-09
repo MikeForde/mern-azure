@@ -99,6 +99,17 @@ function ChangeLogPage() {
                                 <li>Threshold set to 3000 but most codes at this size unreadable except on most recent SmartPhones</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_11</h5>
+                            <ul>
+                                <li><strong>New XML Format and IPS JSON Format change</strong></li>
+                                <li>IPS Bundle format now compatible with the IPS Viewer</li>
+                                <li>This is closer to the 'official' samples and examples</li>
+                                <li>In particular it leads with a Composition resource</li>
+                                <li>XML format added to QR Generator - modelled on JSON format</li>
+                                <li>API GET is /ipsxml/:id</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

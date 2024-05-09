@@ -6,6 +6,7 @@ const cors = require("cors");
 const path = require("path");
 const { IPSModel } = require("./models/IPSModel");
 const { getIPSBundle } = require('./servercontrollers/ipsBundleFormat');
+const { getIPSXMLBundle } = require('./servercontrollers/ipsXMLBundleFormat');
 const { getIPSRaw, getAllIPS } = require('./servercontrollers/ipsDatabaseFormats');
 const getIPSBasic = require("./servercontrollers/ipsBasicFormat");
 const { addIPS, addIPSMany } = require('./servercontrollers/ipsNewRecord');
@@ -32,6 +33,7 @@ api.get("/ips/all", getAllIPS);
 api.get("/ipsraw/:id", getIPSRaw);
 api.get("/ips/:id", getIPSBundle);
 api.get("/ipsbasic/:id", getIPSBasic);
+api.get("/ipsxml/:id", getIPSXMLBundle);
   
 // API PUT - CRUD Update
 api.put("/ips/:id", updateIPS);
