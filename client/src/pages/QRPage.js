@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import QRCode from 'qrcode.react';
 import axios from 'axios';
+import { Button, Alert, DropdownButton, Dropdown } from 'react-bootstrap';
 import './HomePage.css';
-import { Button, Alert } from 'react-bootstrap';
 
 function QRPage() {
     const { id } = useParams();
@@ -32,9 +32,8 @@ function QRPage() {
             });
     }, [id]);
 
-    const handleRecordChange = (e) => {
-        const selectedId = e.target.value;
-        const record = ipsRecords.find(record => record._id === selectedId);
+    const handleRecordChange = (recordId) => {
+        const record = ipsRecords.find(record => record._id === recordId);
         setSelectedRecord(record);
     };
 
@@ -81,7 +80,6 @@ function QRPage() {
                         console.error('Error fetching IPS record:', error);
                     });
             }
-
         }
     }, [selectedRecord, mode]);
 
@@ -96,8 +94,8 @@ function QRPage() {
         document.body.removeChild(downloadLink);
     };
 
-    const handleModeChange = (e) => {
-        setMode(e.target.value);
+    const handleModeChange = (selectedMode) => {
+        setMode(selectedMode);
     };
 
     return (
@@ -106,20 +104,22 @@ function QRPage() {
                 <h3>Generate QR Code</h3>
                 <div>
                     <label>Select Record: </label>
-                    <select value={selectedRecord ? selectedRecord._id : ''} onChange={handleRecordChange}>
+                    <DropdownButton id="dropdown-record" title="Select Record" onSelect={handleRecordChange}>
                         {ipsRecords.map(record => (
-                            <option key={record._id} value={record._id}>{record.packageUUID}</option>
+                            <Dropdown.Item key={record._id} eventKey={record._id} active={selectedRecord && selectedRecord._id === record._id}>
+                                {record.packageUUID}
+                            </Dropdown.Item>
                         ))}
-                    </select>
+                    </DropdownButton>
                 </div>
                 <div>
                     <label>Select Mode: </label>
-                    <select value={mode} onChange={handleModeChange}>
-                        <option value="ips">IPS JSON Bundle</option>
-                        <option value="ipsraw">IPS MongoDB Record</option>
-                        <option value="ipsminimal">IPS Minimal</option>
-                        <option value="ipsurl">IPS URL for Patient</option>
-                    </select>
+                    <DropdownButton id="dropdown-mode" title={`Select Mode: ${mode}`} onSelect={handleModeChange}>
+                        <Dropdown.Item eventKey="ips">IPS JSON Bundle</Dropdown.Item>
+                        <Dropdown.Item eventKey="ipsraw">IPS MongoDB Record</Dropdown.Item>
+                        <Dropdown.Item eventKey="ipsminimal">IPS Minimal</Dropdown.Item>
+                        <Dropdown.Item eventKey="ipsurl">IPS URL for Patient</Dropdown.Item>
+                    </DropdownButton>
                 </div>
                 {showNotification ? (
                     <Alert variant="danger">QR data is too large to display. Please try a different mode.</Alert>

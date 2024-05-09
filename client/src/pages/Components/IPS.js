@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Button, Modal } from "react-bootstrap";
+import { Button, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { faQrcode } from '@fortawesome/free-solid-svg-icons';
+import { faFileMedical, faQrcode } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import "./components.css";
 
@@ -21,6 +21,14 @@ export function IPS({ ips, remove }) {
   const handleCancelDelete = () => {
     setShowConfirmModal(false);
   };
+
+
+  const renderTooltip = (text) => (
+      <Tooltip id={`tooltip-${text}`}>
+          {text}
+      </Tooltip>
+  );
+  
 
   return (
     <div className="ips">
@@ -67,14 +75,38 @@ export function IPS({ ips, remove }) {
         )}
       </div>
       <div>
-        <Link to={`/qr/${ips._id}`}>
-          <Button variant="outline-secondary" className="qr-button">
-            <FontAwesomeIcon icon={faQrcode} />
-          </Button>
-        </Link>
-        <Button variant="outline-danger" onClick={handleRemove}>
-          🗑️
-        </Button>
+      <OverlayTrigger
+                placement="top"
+                overlay={renderTooltip('View IPS API')}
+            >
+                <Link to={`/api/${ips._id}`}>
+                    <Button variant="outline-secondary" className="qr-button">
+                        <FontAwesomeIcon icon={faFileMedical} />
+                    </Button>
+                </Link>
+            </OverlayTrigger>
+
+            {/* Button to navigate to QR page */}
+            <OverlayTrigger
+                placement="top"
+                overlay={renderTooltip('View QR Code')}
+            >
+                <Link to={`/qr/${ips._id}`}>
+                    <Button variant="outline-secondary" className="qr-button">
+                        <FontAwesomeIcon icon={faQrcode} />
+                    </Button>
+                </Link>
+            </OverlayTrigger>
+
+            {/* Button to handle removal */}
+            <OverlayTrigger
+                placement="top"
+                overlay={renderTooltip('Remove')}
+            >
+                <Button variant="outline-danger" onClick={handleRemove}>
+                    🗑️
+                </Button>
+            </OverlayTrigger>
       </div>
 
       <Modal show={showConfirmModal} onHide={handleCancelDelete}>

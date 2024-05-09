@@ -106,8 +106,16 @@ function ChangeLogPage() {
                                 <li>IPS Bundle format now compatible with the IPS Viewer</li>
                                 <li>This is closer to the 'official' samples and examples</li>
                                 <li>In particular it leads with a Composition resource</li>
-                                <li>XML format added to QR Generator - modelled on JSON format</li>
+                                <li>XML format added to API - modelled on JSON format</li>
                                 <li>API GET is /ipsxml/:id</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <h5>Version 0_12</h5>
+                            <ul>
+                                <li><strong>Added API GET Data Viewer</strong></li>
+                                <li>Allows more convient viewing of data formats returned by the various API GET endpoints</li>
+                                <li>API Button added to individual records on HomePage as quick link</li>
                             </ul>
                         </li>
                     </ul>

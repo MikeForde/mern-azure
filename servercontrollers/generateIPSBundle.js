@@ -126,7 +126,7 @@ function generateIPSBundle(ipsRecord) {
                         ]
                     },
                     "entry": medicationStatements.map((medStatement) => ({
-                        "reference": medStatement.fullUrl
+                        "reference": `MedicationStatement/${medStatement.resource.id}`
                     }))
                 },
                 {
@@ -141,7 +141,7 @@ function generateIPSBundle(ipsRecord) {
                         ]
                     },
                     "entry": allergyIntolerances.map((allergyIntolerance) => ({
-                        "reference": allergyIntolerance.fullUrl
+                        "reference": `AllergyIntolerance/${allergyIntolerance.resource.id}`
                     }))
                 }
             ]
