@@ -1,7 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const { IPSModel } = require('../models/IPSModel');
 
-function getIPSBundle(req, res) {
+function getIPSLegacyBundle(req, res) {
     const id = req.params.id;
     IPSModel.findById(id)
         .exec()
@@ -109,4 +109,4 @@ function getIPSBundle(req, res) {
         });
 }
 
-module.exports = { getIPSBundle };
+module.exports = { getIPSLegacyBundle };

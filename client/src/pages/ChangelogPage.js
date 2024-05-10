@@ -118,6 +118,16 @@ function ChangeLogPage() {
                                 <li>API Button added to individual records on HomePage as quick link</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_13</h5>
+                            <ul>
+                                <li><strong>Legacy IPS JSON and Screen Realestate</strong></li>
+                                <li>Added IPS Legacy format to API endpoints and API Page - based on version 2 of bundle</li>
+                                <li>For illustration purposes only - as comparison to 'regular' version.</li>
+                                <li>API GET is /ipslegacy/:id</li>
+                                <li>Various Screen realestate improvements for QR and API pages</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

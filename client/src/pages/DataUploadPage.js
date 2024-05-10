@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import axios from 'axios';
-import './HomePage.css';
+import './Page.css';
 
 function DataUploadPage() {
   const [data, setData] = useState('');

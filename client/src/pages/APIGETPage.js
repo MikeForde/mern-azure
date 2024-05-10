@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Button, Alert, Form, DropdownButton, Dropdown } from 'react-bootstrap';
-import './HomePage.css';
+import './Page.css';
 
-function QRPage() {
+function APIGETPage() {
     const { id } = useParams();
     const [ipsRecords, setIPSRecords] = useState([]);
     const [selectedRecord, setSelectedRecord] = useState(null);
@@ -38,16 +38,7 @@ function QRPage() {
 
     useEffect(() => {
         if (selectedRecord) {
-            let endpoint;
-            if (mode === 'ips') {
-                endpoint = `/ips/${selectedRecord._id}`;
-            } else if (mode === 'ipsraw') {
-                endpoint = `/ipsraw/${selectedRecord._id}`;
-            } else if (mode === 'ipsbasic') {
-                endpoint = `/ipsbasic/${selectedRecord._id}`;
-            } else if (mode === 'ipsxml') {
-                endpoint = `/ipsxml/${selectedRecord._id}`;
-            }
+            const endpoint = `/${mode}/${selectedRecord._id}`;
 
             axios.get(endpoint)
                 .then(response => {
@@ -98,8 +89,8 @@ function QRPage() {
         <div className="app">
             <div className="container">
                 <h3>API GET - IPS Data</h3>
-                <div>
-                    <DropdownButton id="dropdown-record" title="Select Record" onSelect={handleRecordChange}>
+                <div className="dropdown-container">
+                    <DropdownButton id="dropdown-record" title="Select Record" onSelect={handleRecordChange} className="dropdown-button">
                         {ipsRecords.map(record => (
                             <Dropdown.Item key={record._id} eventKey={record._id} active={selectedRecord && selectedRecord._id === record._id}>
                                 {record.packageUUID}
@@ -107,12 +98,13 @@ function QRPage() {
                         ))}
                     </DropdownButton>
                 </div>
-                <div>
-                    <DropdownButton id="dropdown-mode" title={`Select Mode: ${mode}`} onSelect={handleModeChange}>
+                <div className="dropdown-container">
+                    <DropdownButton id="dropdown-mode" title={`Select Mode: ${mode}`} onSelect={handleModeChange} className="dropdown-button">
                         <Dropdown.Item eventKey="ips">IPS JSON Bundle - /ips/:id</Dropdown.Item>
+                        <Dropdown.Item eventKey="ipsxml">IPS XML Bundle - /ipsxml/:id</Dropdown.Item>
+                        <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle - /ipslegacy/:id</Dropdown.Item>
                         <Dropdown.Item eventKey="ipsraw">IPS MongoDB Record - /ipsraw/:id</Dropdown.Item>
                         <Dropdown.Item eventKey="ipsbasic">IPS Minimal - /ipsbasic/:id</Dropdown.Item>
-                        <Dropdown.Item eventKey="ipsxml">IPS XML Bundle - /ipsxml/:id</Dropdown.Item>
                     </DropdownButton>
                 </div>
                 {showNotification ? (
@@ -129,4 +121,4 @@ function QRPage() {
     );
 }
 
-export default QRPage;
+export default APIGETPage;

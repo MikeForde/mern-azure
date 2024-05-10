@@ -1,0 +1,38 @@
+.app {
+  padding: 30px;
+}
+
+.ips {
+  align-items: center;
+  display: flex;
+  font-size: 18px;
+  justify-content: space-between;
+}
+
+.submit {
+  margin-top: 1rem;
+}
+
+
+.text-area {
+  width: 100%;
+  height: calc(100vh - 300px); 
+}
+
+.text-area textarea {
+  width: 100%;
+  height: 100%;
+}
+
+/* Adjust the height and padding for dropdown buttons */
+.dropdown-container {
+  padding-bottom: 5px; 
+}
+
+.dropdown-button {
+  height: 30px; 
+  margin-bottom: 5px; 
+}
+
+
+

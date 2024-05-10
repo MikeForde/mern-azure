@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import QRCode from 'qrcode.react';
 import axios from 'axios';
 import { Button, Alert, DropdownButton, Dropdown } from 'react-bootstrap';
-import './HomePage.css';
+import './Page.css';
 
 function QRPage() {
     const { id } = useParams();
@@ -98,13 +98,17 @@ function QRPage() {
         setMode(selectedMode);
     };
 
+    const maxQRSize = 600; // QR code canvas Max Size
+
+    const qrSize = Math.min(window.innerWidth * 0.8, window.innerHeight * 0.8, maxQRSize);
+
+
     return (
         <div className="app">
             <div className="container">
                 <h3>Generate QR Code</h3>
-                <div>
-                    <label>Select Record: </label>
-                    <DropdownButton id="dropdown-record" title="Select Record" onSelect={handleRecordChange}>
+                <div className="dropdown-container">
+                    <DropdownButton id="dropdown-record" title="Select Record" onSelect={handleRecordChange} className="dropdown-button">
                         {ipsRecords.map(record => (
                             <Dropdown.Item key={record._id} eventKey={record._id} active={selectedRecord && selectedRecord._id === record._id}>
                                 {record.packageUUID}
@@ -112,9 +116,8 @@ function QRPage() {
                         ))}
                     </DropdownButton>
                 </div>
-                <div>
-                    <label>Select Mode: </label>
-                    <DropdownButton id="dropdown-mode" title={`Select Mode: ${mode}`} onSelect={handleModeChange}>
+                <div className="dropdown-container">
+                    <DropdownButton id="dropdown-mode" title={`Select Mode: ${mode}`} onSelect={handleModeChange} className="dropdown-button">
                         <Dropdown.Item eventKey="ips">IPS JSON Bundle</Dropdown.Item>
                         <Dropdown.Item eventKey="ipsraw">IPS MongoDB Record</Dropdown.Item>
                         <Dropdown.Item eventKey="ipsminimal">IPS Minimal</Dropdown.Item>
@@ -124,9 +127,9 @@ function QRPage() {
                 {showNotification ? (
                     <Alert variant="danger">QR data is too large to display. Please try a different mode.</Alert>
                 ) : (
-                    <div style={{ width: '400px', height: '400px' }}>
+                    <div style={{ width: qrSize, height: qrSize }}>
                         {qrData && (
-                            <QRCode id="qr-canvas" value={qrData} size={400} />
+                            <QRCode id="qr-canvas" value={qrData} size={qrSize} />
                         )}
                     </div>
                 )}

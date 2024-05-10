@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "./HomePage.css";
+import "./Page.css";
 import { Card } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
