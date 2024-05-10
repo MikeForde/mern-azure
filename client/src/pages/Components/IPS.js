@@ -80,7 +80,7 @@ export function IPS({ ips, remove }) {
                 overlay={renderTooltip('View IPS API')}
             >
                 <Link to={`/api/${ips._id}`}>
-                    <Button variant="outline-secondary" className="qr-button">
+                    <Button variant="outline-secondary" className="qr-button custom-button">
                         <FontAwesomeIcon icon={faFileMedical} />
                     </Button>
                 </Link>
@@ -92,7 +92,7 @@ export function IPS({ ips, remove }) {
                 overlay={renderTooltip('View QR Code')}
             >
                 <Link to={`/qr/${ips._id}`}>
-                    <Button variant="outline-secondary" className="qr-button">
+                    <Button variant="outline-secondary" className="qr-button custom-button">
                         <FontAwesomeIcon icon={faQrcode} />
                     </Button>
                 </Link>
@@ -103,7 +103,7 @@ export function IPS({ ips, remove }) {
                 placement="top"
                 overlay={renderTooltip('Remove')}
             >
-                <Button variant="outline-danger" onClick={handleRemove}>
+                <Button variant="outline-danger" className="custom-button" onClick={handleRemove}>
                     🗑️
                 </Button>
             </OverlayTrigger>

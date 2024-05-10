@@ -15,5 +15,11 @@
   .qr-button:hover .svg-inline--fa {
     color: #ffffff; /* White icon color on hover */
   }
+
+  .custom-button {
+    width: 40px; /* Adjust as needed */
+    height: 40px; /* Adjust as needed */
+}
+
   
   

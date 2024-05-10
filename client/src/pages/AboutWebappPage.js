@@ -8,7 +8,7 @@ function AboutWebAppPage() {
                 <Col>
                     <h2>About This Web Application</h2>
                     <p>
-                        Built using the MERN stack. MERN stands for MongoDB, Express.js, React, and Node.js.
+                        Built using the <a href="https://www.mongodb.com/resources/languages/mern-stack" target="_blank" rel="noopener noreferrer">MERN Stack</a>. MERN stands for MongoDB, Express.js, React, and Node.js.
                     </p>
                 </Col>
             </Row>
@@ -20,7 +20,7 @@ function AboutWebAppPage() {
                             <Card.Text>
                                 The development pipeline involves the following steps:
                                 <ol>
-                                    <li>Development Environment: Linux ubuntu-like distribution (Bodhi) running on a virtual machine (VM).</li>
+                                    <li>Development Environment: Linux ubuntu-like distribution (<a href="https://www.bodhilinux.com" target="_blank" rel="noopener noreferrer">Bodhi</a>) running on a virtual machine (VM).</li>
                                     <li>Version Control: GitHub.</li>
                                     <li>Continuous Deployment: GitHub Actions, which automates the deployment process whenever changes are pushed to the GitHub repository.</li>
                                     <li>Hosting: The application is hosted on Microsoft Azure.</li>

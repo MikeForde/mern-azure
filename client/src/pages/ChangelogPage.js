@@ -103,8 +103,8 @@ function ChangeLogPage() {
                             <h5>Version 0_11</h5>
                             <ul>
                                 <li><strong>New XML Format and IPS JSON Format change</strong></li>
-                                <li>IPS Bundle format now compatible with the IPS Viewer</li>
-                                <li>This is closer to the 'official' samples and examples</li>
+                                <li>IPS Bundle format now compatible with the <a href="https://ipsviewer.com" target="_blank" rel="noopener noreferrer">IPS Viewer</a></li>
+                                <li>This is closer to the IPS.net <a href="https://github.com/jddamore/IPSviewer/tree/main/samples" target="_blank" rel="noopener noreferrer">samples and examples</a></li>
                                 <li>In particular it leads with a Composition resource</li>
                                 <li>XML format added to API - modelled on JSON format</li>
                                 <li>API GET is /ipsxml/:id</li>
@@ -126,6 +126,13 @@ function ChangeLogPage() {
                                 <li>For illustration purposes only - as comparison to 'regular' version.</li>
                                 <li>API GET is /ipslegacy/:id</li>
                                 <li>Various Screen realestate improvements for QR and API pages</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <h5>Version 0_14</h5>
+                            <ul>
+                                <li><strong>Cosmetic changes and hyperlinks</strong></li>
+                                <li>Links in various places to aide testing</li>
                             </ul>
                         </li>
                     </ul>
