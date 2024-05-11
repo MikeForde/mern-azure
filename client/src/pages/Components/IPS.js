@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { faFileMedical, faQrcode } from '@fortawesome/free-solid-svg-icons';
+import { faFileMedical, faQrcode, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import "./components.css";
 
@@ -104,7 +104,7 @@ export function IPS({ ips, remove }) {
                 overlay={renderTooltip('Remove')}
             >
                 <Button variant="outline-danger" className="custom-button" onClick={handleRemove}>
-                    🗑️
+                    <FontAwesomeIcon icon={faTrash} />
                 </Button>
             </OverlayTrigger>
       </div>

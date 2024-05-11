@@ -17,8 +17,9 @@
   }
 
   .custom-button {
-    width: 40px; /* Adjust as needed */
-    height: 40px; /* Adjust as needed */
+    width: 40px; 
+    height: 40px;
+    align-items: center;
 }
 
   

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Modal } from 'react-bootstrap';
+import { Button, Modal, Form } from 'react-bootstrap';
 import axios from 'axios';
 import './Page.css';
 
@@ -159,13 +159,19 @@ function DataUploadPage() {
     <div className="app">
       <div className="container">
         <h3>Bulk Upload of DMICP Data for IPS</h3>
-        <textarea
+        {/* <textarea
           rows="10"
           cols="50"
           value={data}
           onChange={handleChange}
           placeholder="Paste your SmartDoc DMICP data here..."
-        />
+        /> */}
+        <div className="text-area">
+                        <Form.Control as="textarea" 
+                        rows={10} value={data} 
+                        onChange={handleChange} 
+                        placeholder="Paste your DMICP data here...&#13;&#10;(This should be the CSV format created using the IPS SmartDoc)" />
+                    </div>
         <br />
         <Button className="mb-3" onClick={handleUpload}>Convert Pasted Data into IPS Records</Button>
       </div>
