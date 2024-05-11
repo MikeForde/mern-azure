@@ -64,6 +64,14 @@ function APIGETPage() {
         }
     }, [selectedRecord, mode]);
 
+    useEffect(() => {
+        if (data && mode === 'ips') {
+            navigator.clipboard.writeText(data)
+                .then(() => console.log('Data copied to clipboard:', data))
+                .catch(error => console.error('Error copying data to clipboard:', error));
+        }
+    }, [data, mode]);
+
     const handleDownloadData = () => {
         const blob = new Blob([data], { type: 'text/plain' });
         const url = window.URL.createObjectURL(blob);
@@ -115,7 +123,14 @@ function APIGETPage() {
                     </div>
                 )}
                 <br />
-                <Button className="mb-3" onClick={handleDownloadData}>Download Data</Button>
+                <div className="button-container">
+                    <Button className="mb-3" onClick={handleDownloadData}>Download Data</Button>
+                    {mode === 'ips' && (
+                        <Button variant="primary" className="mb-3" onClick={() => window.open('https://ipsviewer.com', '_blank')}>
+                            Open IPS Viewer and Paste Data
+                        </Button>
+                    )}
+                </div>
             </div>
         </div>
     );
