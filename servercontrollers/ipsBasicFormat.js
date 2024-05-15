@@ -15,18 +15,26 @@ const getIPSBasic = (req, res) => {
         basicInfo += `${ipsRecord.packageUUID}\r\n`;
         basicInfo += `${ipsRecord.patient.name}\r\n`;
         basicInfo += `${ipsRecord.patient.given}\r\n`;
-        basicInfo += `${ipsRecord.patient.dob}\r\n`;
+        
+        // Format date of birth to yyyy-mm-dd
+        const dob = ipsRecord.patient.dob.toISOString().substring(0, 10);
+        basicInfo += `${dob}\r\n`;
+
         basicInfo += `${ipsRecord.patient.nationality}\r\n`;
         basicInfo += `${ipsRecord.patient.practitioner}\r\n`;
 
         // Append medication information
         ipsRecord.medication.forEach((med) => {
-            basicInfo += `M:\r\n${med.name}\r\n${med.date}\r\n${med.dosage}\r\n`;
+            // Format medication date to yyyy-mm-dd
+            const medDate = med.date.toISOString().substring(0, 10);
+            basicInfo += `M:\r\n${med.name}\r\n${medDate}\r\n${med.dosage}\r\n`;
         });
 
         // Append allergy information
         ipsRecord.allergies.forEach((allergy) => {
-            basicInfo += `A:\r\n${allergy.name}\r\n${allergy.severity}\r\n${allergy.date}\r\n`;
+            // Format allergy date to yyyy-mm-dd
+            const allergyDate = allergy.date.toISOString().substring(0, 10);
+            basicInfo += `A:\r\n${allergy.name}\r\n${allergy.severity}\r\n${allergyDate}\r\n`;
         });
 
         // Send the plain text response
