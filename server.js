@@ -6,12 +6,15 @@ const cors = require("cors");
 const path = require("path");
 const { IPSModel } = require("./models/IPSModel");
 const { getIPSBundle } = require('./servercontrollers/ipsBundleFormat');
+const { getIPSBundleByName } = require('./servercontrollers/ipsBundleByName');
 const { getIPSLegacyBundle } = require('./servercontrollers/ipsBundleFormat_old');
 const { getIPSXMLBundle } = require('./servercontrollers/ipsXMLBundleFormat');
 const { getIPSRaw, getAllIPS } = require('./servercontrollers/ipsDatabaseFormats');
 const getIPSBasic = require("./servercontrollers/ipsBasicFormat");
 const { addIPS, addIPSMany } = require('./servercontrollers/ipsNewRecord');
+const { addIPSFromBundle } = require("./servercontrollers/ipsNewRecordFromBundle");
 const { updateIPS, deleteIPS } = require('./servercontrollers/ipsCRUD_UD');
+
 
 const { DB_CONN } = process.env;
 
@@ -28,6 +31,7 @@ mongoose
 // API POST - CRUD Create
 api.post("/ips", addIPS);
 api.post("/ipsmany", addIPSMany);
+api.post("/ipsbundle", addIPSFromBundle);
 
 // API GET - CRUD Read
 api.get("/ips/all", getAllIPS);
@@ -36,6 +40,7 @@ api.get("/ips/:id", getIPSBundle);
 api.get("/ipsbasic/:id", getIPSBasic);
 api.get("/ipsxml/:id", getIPSXMLBundle);
 api.get("/ipslegacy/:id", getIPSLegacyBundle);
+api.get("/ipsbyname/:name/:given", getIPSBundleByName);
   
 // API PUT - CRUD Update
 api.put("/ips/:id", updateIPS);

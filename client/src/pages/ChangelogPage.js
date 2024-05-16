@@ -135,6 +135,14 @@ function ChangeLogPage() {
                                 <li>Links in various places to aide testing</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_15</h5>
+                            <ul>
+                                <li><strong>Added API GET and POST</strong></li>
+                                <li>API GET allows the return of an IPS Bundle using the endpoint /ipsbyname/:name/:given</li>
+                                <li>API POST allows the creation of a new entry in the database from an IPS JSON Bundle</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>
