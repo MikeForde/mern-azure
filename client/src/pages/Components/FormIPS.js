@@ -230,14 +230,14 @@ export function FormIPS({ add }) {
                 </div>
               </Form.Group>
               <Form.Group className="row">
-                <Form.Label className="col-sm-2">Severity</Form.Label>
+                <Form.Label className="col-sm-2">Criticality</Form.Label>
                 <div className="col-sm-10">
                   <Form.Control
                     type="text"
                     name="severity"
                     value={allergy.severity}
                     onChange={(e) => handleAllergyChange(index, e)}
-                    placeholder="Severity" />
+                    placeholder="Criticality" />
                 </div>
               </Form.Group>
               <Form.Group className="row">

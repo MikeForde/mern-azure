@@ -48,6 +48,25 @@ function convertIPSBundleToSchema(ipsBundle) {
                     dosage: dosage    
                 });
                 break;
+            case "MedicationRequest":
+                if(resource.dosageInstruction[0].text !== undefined){
+                    dosage = resource.dosageInstruction[0].text;
+                } else {
+                    dosage = "unknown";
+                }
+                // } else {
+                //     dosage = resource.dosage[0].doseAndRate[0].doseQuantity.value + " " + resource.dosage[0].doseAndRate[0].doseQuantity.unit;
+                //     if(resource.dosage[0].timing !== undefined){
+                //         dosage += " " + resource.dosage[0].timing.repeat.frequency + resource.dosage[0].timing.repeat.periodUnit;
+                //     console.log("not undefined");   
+                //     }
+                // }
+                medication.push({
+                    name: resource.medicationReference.display,
+                    date: new Date(resource.authoredOn).toISOString(),
+                    dosage: dosage    
+                });
+                break;
             case "AllergyIntolerance":
                 allergies.push({
                     name: resource.code.coding[0].display,

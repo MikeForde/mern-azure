@@ -64,7 +64,7 @@ export function IPS({ ips, remove }) {
             <ul>
               {ips.allergies.map((allergy, index) => (
                 <li key={index}>
-                  Allergy: {allergy.name} - Severity: {allergy.severity} - Date: {allergy.date}
+                  Allergy: {allergy.name} - Criticality: {allergy.severity} - Date: {allergy.date}
                 </li>
               ))}
             </ul>
