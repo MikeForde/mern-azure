@@ -5,6 +5,7 @@ function convertIPSBundleToSchema(ipsBundle) {
     // Initialize variables to store patient and practitioner information
     let patient = {};
     let practitioner = {};
+    let dosage = "";
 
     // Initialize arrays to store medication and allergy information
     let medication = [];
@@ -23,20 +24,35 @@ function convertIPSBundleToSchema(ipsBundle) {
                 patient.nationality = resource.address[0].country;
                 break;
             case "Practitioner":
-                patient.practitioner = resource.name[0].text;
+                if(resource.name[0].text !== undefined){
+                    patient.practitioner = resource.name[0].text;
+                } else if (resource.name[0].family !== undefined) {
+                    patient.practitioner = resource.name[0].family + ", " + resource.name[0].given[0];
+                } else {
+                    patient.practitioner = "unknown";
+                }
                 break;
             case "MedicationStatement":
+                if(resource.dosage[0].text !== undefined){
+                    dosage = resource.dosage[0].text;
+                } else {
+                    dosage = resource.dosage[0].doseAndRate[0].doseQuantity.value + " " + resource.dosage[0].doseAndRate[0].doseQuantity.unit;
+                    if(resource.dosage[0].timing !== undefined){
+                        dosage += " " + resource.dosage[0].timing.repeat.frequency + resource.dosage[0].timing.repeat.periodUnit;
+                    console.log("not undefined");   
+                    }
+                }
                 medication.push({
                     name: resource.medicationReference.display,
-                    date: new Date(resource.effectivePeriod.start).toISOString().split('T')[0],
-                    dosage: resource.dosage[0].text
+                    date: new Date(resource.effectivePeriod.start).toISOString(),
+                    dosage: dosage    
                 });
                 break;
             case "AllergyIntolerance":
                 allergies.push({
                     name: resource.code.coding[0].display,
                     severity: resource.criticality,
-                    date: new Date(resource.onsetDateTime).toISOString().split('T')[0]
+                    date: new Date(resource.onsetDateTime).toISOString()
                 });
                 break;
             default:

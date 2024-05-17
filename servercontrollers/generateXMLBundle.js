@@ -104,7 +104,7 @@ function generateXMLBundle(ipsRecord) {
                     <given value="${ipsRecord.patient.given}"/>
                 </name>
                 <gender value="unknown"/>
-                <birthDate value="${ipsRecord.patient.dob.toISOString()}"/>
+                <birthDate value="${ipsRecord.patient.dob.toISOString().split('T')[0]}"/>
                 <address>
                     <country value="${ipsRecord.patient.nationality}"/>
                 </address>

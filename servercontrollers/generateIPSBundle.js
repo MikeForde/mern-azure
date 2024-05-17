@@ -171,7 +171,7 @@ function generateIPSBundle(ipsRecord) {
                         }
                     ],
                     "gender": "unknown",
-                    "birthDate": ipsRecord.patient.dob,
+                    "birthDate": ipsRecord.patient.dob.toISOString().split('T')[0],
                     "address": [
                         {
                             "country": ipsRecord.patient.nationality
