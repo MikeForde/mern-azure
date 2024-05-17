@@ -28,7 +28,7 @@ function getIPSLegacyBundle(req, res) {
                                     given: [ips.patient.given, ips.patient.given.charAt(0)],
                                 },
                             ],
-                            gender: "Unknown",
+                            gender: ips.patient.gender,
                             birthDate: ips.patient.dob, // Date of birth
                             address: [
                                 {
@@ -97,6 +97,21 @@ function getIPSLegacyBundle(req, res) {
                                 ],
                             },
                             onsetDateTime: allergy.date, // Onset date
+                        },
+                    })),
+                    // Condition entries
+                    ...ips.conditions.map((condition) => ({
+                        resource: {
+                            resourceType: "Condition",
+                            id: uuidv4(), // Generate UUID for condition ID
+                            code: {
+                                coding: [
+                                    {
+                                        display: condition.name, // Condition name
+                                    },
+                                ],
+                            },
+                            onsetDateTime: condition.date, // Onset date
                         },
                     })),
                 ],

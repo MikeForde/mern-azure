@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const IPSModel = mongoose.model(
-    "ips",
+    "ipsAlt",
     new mongoose.Schema({
         packageUUID: {
             type: String,
@@ -20,7 +20,11 @@ const IPSModel = mongoose.model(
                 type: Date,
                 required: true
             },
-            nationality: {
+            gender: {
+                type: String,
+                required: false
+            },
+            nation: {
                 type: String,
                 required: true
             },
@@ -39,7 +43,13 @@ const IPSModel = mongoose.model(
         allergies: [
             {
                 name: String,
-                severity: String,
+                criticality: String,
+                date: Date
+            }
+        ],
+        conditions: [
+            {
+                name: String,
                 date: Date
             }
         ],

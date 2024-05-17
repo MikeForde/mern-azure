@@ -10,6 +10,7 @@ function convertIPSBundleToSchema(ipsBundle) {
     // Initialize arrays to store medication and allergy information
     let medication = [];
     let allergies = [];
+    let conditions = [];
 
     // Iterate over each entry in the IPS Bundle
     for (const entryItem of entry) {
@@ -21,7 +22,8 @@ function convertIPSBundleToSchema(ipsBundle) {
                 patient.name = resource.name[0].family;
                 patient.given = resource.name[0].given[0];
                 patient.dob = new Date(resource.birthDate).toISOString().split('T')[0];
-                patient.nationality = resource.address[0].country;
+                patient.gender = (resource.gender !== undefined) ? resource.gender : "Unknown";
+                patient.nation = resource.address[0].country;
                 break;
             case "Practitioner":
                 if(resource.name[0].text !== undefined){
@@ -70,7 +72,13 @@ function convertIPSBundleToSchema(ipsBundle) {
             case "AllergyIntolerance":
                 allergies.push({
                     name: resource.code.coding[0].display,
-                    severity: resource.criticality,
+                    criticality: resource.criticality,
+                    date: new Date(resource.onsetDateTime).toISOString()
+                });
+                break;
+            case "Condition":
+                conditions.push({
+                    name: resource.code.coding[0].display,
                     date: new Date(resource.onsetDateTime).toISOString()
                 });
                 break;
@@ -79,7 +87,7 @@ function convertIPSBundleToSchema(ipsBundle) {
         }
     }
 
-    return { packageUUID, patient, practitioner, medication, allergies };
+    return { packageUUID, patient, practitioner, medication, allergies, conditions };
 }
 
 module.exports = { convertIPSBundleToSchema };

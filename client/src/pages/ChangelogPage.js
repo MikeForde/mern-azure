@@ -143,6 +143,17 @@ function ChangeLogPage() {
                                 <li>API POST allows the creation of a new entry in the database from an IPS JSON Bundle</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_16</h5>
+                            <ul>
+                                <li><strong>Added Gender and Conditions</strong></li>
+                                <li>Large update as entire schema changed</li>
+                                <li>All input, import, export and generation code changed</li>
+                                <li>Old entries against previous schema no longer valid as two fields have changed name</li>
+                                <li>nationality to nation, and severity to criticality</li>
+                                <li>Old database will be deleted</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

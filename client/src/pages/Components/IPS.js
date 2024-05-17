@@ -50,6 +50,7 @@ export function IPS({ ips, remove }) {
             <p>Patient Name: {ips.patient.name}</p>
             <p>Patient Given: {ips.patient.given}</p>
             <p>Patient DOB: {ips.patient.dob}</p>
+            <p>Patient Gender: {ips.patient.gender}</p>
             <p>Patient Nationality: {ips.patient.nationality}</p>
             <p>Patient Practitioner: {ips.patient.practitioner}</p>
             <h4>Medications:</h4>
@@ -64,7 +65,15 @@ export function IPS({ ips, remove }) {
             <ul>
               {ips.allergies.map((allergy, index) => (
                 <li key={index}>
-                  Allergy: {allergy.name} - Criticality: {allergy.severity} - Date: {allergy.date}
+                  Allergy: {allergy.name} - Criticality: {allergy.criticality} - Date: {allergy.date}
+                </li>
+              ))}
+            </ul>
+            <h4>Conditions:</h4>
+            <ul>
+              {ips.conditions.map((condition, index) => (
+                <li key={index}>
+                  Condition: {condition.name} - Date: {condition.date}
                 </li>
               ))}
             </ul>

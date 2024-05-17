@@ -10,11 +10,13 @@ export function FormIPS({ add }) {
       name: "",
       given: "",
       dob: "",
+      gender: "",
       nationality: "",
       practitioner: "",
     },
     medication: [{ name: "", date: "", dosage: "" }],
-    allergies: [{ name: "", severity: "", date: "" }],
+    allergies: [{ name: "", criticality: "", date: "" }],
+    conditions: [{ name: "", date: "" }],
   });
 
   const [showAlert, setShowAlert] = useState(false);
@@ -50,6 +52,16 @@ export function FormIPS({ add }) {
     });
   };
 
+  const handleConditionChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedConditions = [...formData.conditions];
+    updatedConditions[index][name] = value;
+    setFormData({
+      ...formData,
+      conditions: updatedConditions,
+    });
+  };
+
   const handleAddMedication = () => {
     setFormData({
       ...formData,
@@ -60,7 +72,14 @@ export function FormIPS({ add }) {
   const handleAddAllergy = () => {
     setFormData({
       ...formData,
-      allergies: [...formData.allergies, { name: "", severity: "", date: "" }],
+      allergies: [...formData.allergies, { name: "", criticality: "", date: "" }],
+    });
+  };
+
+  const handleAddCondition = () => {
+    setFormData({
+      ...formData,
+      conditions: [...formData.conditions, { name: "", date: "" }],
     });
   };
 
@@ -68,7 +87,7 @@ export function FormIPS({ add }) {
     e.preventDefault();
 
     // Check if any of the required fields are missing
-    if (!formData.patient.name || !formData.patient.given || !formData.patient.dob || !formData.patient.nationality || !formData.patient.practitioner) {
+    if (!formData.patient.name || !formData.patient.given || !formData.patient.dob) {
       // If any required field is missing, show the alert
       setShowAlert(true);
 
@@ -80,6 +99,10 @@ export function FormIPS({ add }) {
       return;
     }
 
+    if (!formData.patient.gender) { formData.patient.gender = "Unknown"; }
+    if (!formData.patient.nation) { formData.patient.nation = "UK"; }
+    if (!formData.patient.practitioner) { formData.patient.practitioner = "Dr No"; }
+
     // Proceed with the submission if all required fields are filled
     if (!formData.packageUUID) return;
     add(formData);
@@ -89,11 +112,13 @@ export function FormIPS({ add }) {
         name: "",
         given: "",
         dob: "",
-        nationality: "",
+        gender: "",
+        nation: "",
         practitioner: "",
       },
       medication: [{ name: "", date: "", dosage: "" }],
-      allergies: [{ name: "", severity: "", date: "" }],
+      allergies: [{ name: "", criticality: "", date: "" }],
+      conditions: [{ name: "", date: "" }],
     });
   };
 
@@ -157,14 +182,25 @@ export function FormIPS({ add }) {
               </div>
             </Form.Group>
             <Form.Group className="row">
-              <Form.Label className="col-sm-2">Nationality</Form.Label>
+              <Form.Label className="col-sm-2">Gender</Form.Label>
+              <div className="col-sm-10">
+                <Form.Control
+                  type="text"
+                  name="gender"
+                  value={formData.patient.gender}
+                  onChange={handlePatientChange} 
+                  placeholder="Gender"/>
+              </div>
+            </Form.Group>
+            <Form.Group className="row">
+              <Form.Label className="col-sm-2">Nation</Form.Label>
               <div className="col-sm-4">
                 <Form.Control
                   type="text"
-                  name="nationality"
-                  value={formData.patient.nationality}
+                  name="nation"
+                  value={formData.patient.nation}
                   onChange={handlePatientChange}
-                  placeholder="Nationality" />
+                  placeholder="Nation" />
               </div>
               <Form.Label className="col-sm-2">Practitioner</Form.Label>
               <div className="col-sm-4">
@@ -234,8 +270,8 @@ export function FormIPS({ add }) {
                 <div className="col-sm-10">
                   <Form.Control
                     type="text"
-                    name="severity"
-                    value={allergy.severity}
+                    name="criticality"
+                    value={allergy.criticality}
                     onChange={(e) => handleAllergyChange(index, e)}
                     placeholder="Criticality" />
                 </div>
@@ -248,6 +284,33 @@ export function FormIPS({ add }) {
                     name="date"
                     value={allergy.date}
                     onChange={(e) => handleAllergyChange(index, e)}
+                    placeholder="Date" />
+                </div>
+              </Form.Group>
+            </div>
+          ))}
+          <Button className="mb-3" onClick={handleAddCondition}>Add Condition</Button>
+          {formData.conditions.map((condition, index) => (
+            <div key={index}>
+              <Form.Group className="row">
+                <Form.Label className="col-sm-2">Condition</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="text"
+                    name="name"
+                    value={condition.name}
+                    onChange={(e) => handleConditionChange(index, e)}
+                    placeholder="Condition/Problem Name" />
+                </div>
+              </Form.Group>
+              <Form.Group className="row">
+                <Form.Label className="col-sm-2">Date</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="date"
+                    name="date"
+                    value={condition.date}
+                    onChange={(e) => handleConditionChange(index, e)}
                     placeholder="Date" />
                 </div>
               </Form.Group>

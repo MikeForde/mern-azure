@@ -11,6 +11,7 @@ function generateXMLBundle(ipsRecord) {
     const medicationStatementUUIDs = ipsRecord.medication.map(() => uuidv4());
     const medicationUUIDs = ipsRecord.medication.map(() => uuidv4());
     const allergyIntoleranceUUIDs = ipsRecord.allergies.map(() => uuidv4());
+    const conditionUUIDs = ipsRecord.conditions.map(() => uuidv4());
 
     // Get current date/time
     const currentDateTime = new Date().toISOString();
@@ -83,9 +84,30 @@ function generateXMLBundle(ipsRecord) {
         xml += `
                     <entry>
                         <reference value="AllergyIntolerance/${allergyIntoleranceUUID}"/>
-                    </entry>`;
+                    </entry>`;              
     });
 
+    // Close Allergies section and start Conditions section
+    xml += `
+                </section>
+                <section>
+                    <title value="Conditions"/>
+                    <code>
+                        <coding>
+                            <system value="http://loinc.org"/>
+                            <code value="11348-0"/>
+                            <display value="Problem List"/>
+                        </coding>
+                    </code>`;
+
+    // Add Condition entries to Composition section
+    conditionUUIDs.forEach((conditionUUID) => {
+        xml += `
+                    <entry>
+                        <reference value="Condition/${conditionUUID}"/>
+                    </entry>`;
+    });
+    
     // Close Composition resource
     xml += `
                 </section>
@@ -103,10 +125,10 @@ function generateXMLBundle(ipsRecord) {
                     <family value="${ipsRecord.patient.name}"/>
                     <given value="${ipsRecord.patient.given}"/>
                 </name>
-                <gender value="unknown"/>
+                <gender value="${ipsRecord.patient.gender}"/>
                 <birthDate value="${ipsRecord.patient.dob.toISOString().split('T')[0]}"/>
                 <address>
-                    <country value="${ipsRecord.patient.nationality}"/>
+                    <country value="${ipsRecord.patient.nation}"/>
                 </address>
             </Patient>
         </resource>
@@ -183,7 +205,7 @@ function generateXMLBundle(ipsRecord) {
                 <id value="${allergyIntoleranceUUIDs[index]}"/>
                 <type value="allergy"/>
                 <category value="medication"/>
-                <criticality value="${allergy.severity}"/>
+                <criticality value="${allergy.criticality}"/>
                 <code>
                     <coding>
                         <display value="${allergy.name}"/>
@@ -194,6 +216,27 @@ function generateXMLBundle(ipsRecord) {
                 </patient>
                 <onsetDateTime value="${allergy.date.toISOString()}"/>
             </AllergyIntolerance>
+        </resource>
+    </entry>`;
+    });
+
+    // Add Condition entries
+    ipsRecord.conditions.forEach((condition, index) => {
+        xml += `
+    <entry>
+        <resource>
+            <Condition>
+                <id value="${conditionUUIDs[index]}"/>
+                <code>
+                    <coding>
+                        <display value="${condition.name}"/>
+                    </coding>
+                </code>
+                <subject>
+                    <reference value="Patient/${patientUUID}"/>
+                </subject>
+                <onsetDateTime value="${condition.date.toISOString()}"/>
+            </Condition>
         </resource>
     </entry>`;
     });

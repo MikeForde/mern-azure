@@ -20,7 +20,7 @@ const getIPSBasic = (req, res) => {
         const dob = ipsRecord.patient.dob.toISOString().substring(0, 10);
         basicInfo += `${dob}\r\n`;
 
-        basicInfo += `${ipsRecord.patient.nationality}\r\n`;
+        basicInfo += `${ipsRecord.patient.nation}\r\n`;
         basicInfo += `${ipsRecord.patient.practitioner}\r\n`;
 
         // Append medication information
@@ -35,6 +35,13 @@ const getIPSBasic = (req, res) => {
             // Format allergy date to yyyy-mm-dd
             const allergyDate = allergy.date.toISOString().substring(0, 10);
             basicInfo += `A:\r\n${allergy.name}\r\n${allergy.severity}\r\n${allergyDate}\r\n`;
+        });
+
+        // Append condition information
+        ipsRecord.conditions.forEach((condition) => {
+            // Format condition date to yyyy-mm-dd
+            const conditionDate = condition.date.toISOString().substring(0, 10);
+            basicInfo += `C:\r\n${condition.name}\r\n${conditionDate}\r\n`;
         });
 
         // Send the plain text response

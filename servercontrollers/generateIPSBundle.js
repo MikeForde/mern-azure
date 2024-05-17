@@ -69,7 +69,7 @@ function generateIPSBundle(ipsRecord) {
                 "id": allergyIntoleranceUUID,
                 "type": "allergy",
                 "category": ["medication"],
-                "criticality": allergy.severity,
+                "criticality": allergy.criticality,
                 "code": {
                     "coding": [
                         {
@@ -81,6 +81,30 @@ function generateIPSBundle(ipsRecord) {
                     "reference": `Patient/${patientUUID}`
                 },
                 "onsetDateTime": allergy.date
+            }
+        };
+    });
+
+    // Construct Condition resource
+    const conditions = ipsRecord.conditions.map((condition, index) => {
+        const conditionUUID = uuidv4();
+
+        return {
+            "fullUrl": `urn:uuid:${conditionUUID}`,
+            "resource": {
+                "resourceType": "Condition",
+                "id": conditionUUID,
+                "code": {
+                    "coding": [
+                        {
+                            "display": condition.name
+                        }
+                    ]
+                },
+                "subject": {
+                    "reference": `Patient/${patientUUID}`
+                },
+                "onsetDateTime": condition.date
             }
         };
     });
@@ -143,6 +167,21 @@ function generateIPSBundle(ipsRecord) {
                     "entry": allergyIntolerances.map((allergyIntolerance) => ({
                         "reference": `AllergyIntolerance/${allergyIntolerance.resource.id}`
                     }))
+                },
+                {
+                    "title": "Conditions",
+                    "code": {
+                        "coding": [
+                            {
+                                "system": "http://loinc.org",
+                                "code": "11450-4",
+                                "display": "Problem List"
+                            }
+                        ]
+                    },
+                    "entry": conditions.map((condition) => ({
+                        "reference": `Condition/${condition.resource.id}`
+                    }))
                 }
             ]
         }
@@ -170,11 +209,11 @@ function generateIPSBundle(ipsRecord) {
                             "given": [ipsRecord.patient.given]
                         }
                     ],
-                    "gender": "unknown",
+                    "gender": ipsRecord.patient.gender,
                     "birthDate": ipsRecord.patient.dob.toISOString().split('T')[0],
                     "address": [
                         {
-                            "country": ipsRecord.patient.nationality
+                            "country": ipsRecord.patient.nation
                         }
                     ]
                 }
@@ -203,7 +242,8 @@ function generateIPSBundle(ipsRecord) {
             // MedicationStatement plus Medication constitutes a Medication Summary 'entry'
             ...medicationStatements,
             ...medications,
-            ...allergyIntolerances
+            ...allergyIntolerances,
+            ...conditions
         ]
     };
 
