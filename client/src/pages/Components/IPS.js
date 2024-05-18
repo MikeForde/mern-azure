@@ -47,17 +47,17 @@ export function IPS({ ips, remove }) {
         {expanded && (
           <>
             <h4>Patient Details:</h4>
-            <p>Patient Name: {ips.patient.name}</p>
-            <p>Patient Given: {ips.patient.given}</p>
-            <p>Patient DOB: {ips.patient.dob}</p>
-            <p>Patient Gender: {ips.patient.gender}</p>
-            <p>Patient Nationality: {ips.patient.nationality}</p>
-            <p>Patient Practitioner: {ips.patient.practitioner}</p>
+            <p>Name: {ips.patient.name}</p>
+            <p>Given Name: {ips.patient.given}</p>
+            <p>DOB: {ips.patient.dob}</p>
+            <p>Gender: {ips.patient.gender}</p>
+            <p>Country: {ips.patient.nation}</p>
+            <p>Practitioner: {ips.patient.practitioner}</p>
             <h4>Medications:</h4>
             <ul>
               {ips.medication.map((med, index) => (
                 <li key={index}>
-                  Med: {med.name} - Date: {med.date} - Dosage: {med.dosage}
+                  M: {med.name} - Date: {med.date} - Dosage: {med.dosage}
                 </li>
               ))}
             </ul>
@@ -65,7 +65,7 @@ export function IPS({ ips, remove }) {
             <ul>
               {ips.allergies.map((allergy, index) => (
                 <li key={index}>
-                  Allergy: {allergy.name} - Criticality: {allergy.criticality} - Date: {allergy.date}
+                  A: {allergy.name} - Criticality: {allergy.criticality} - Date: {allergy.date}
                 </li>
               ))}
             </ul>
@@ -73,7 +73,7 @@ export function IPS({ ips, remove }) {
             <ul>
               {ips.conditions.map((condition, index) => (
                 <li key={index}>
-                  Condition: {condition.name} - Date: {condition.date}
+                  C: {condition.name} - Date: {condition.date}
                 </li>
               ))}
             </ul>

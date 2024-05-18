@@ -34,7 +34,7 @@ const getIPSBasic = (req, res) => {
         ipsRecord.allergies.forEach((allergy) => {
             // Format allergy date to yyyy-mm-dd
             const allergyDate = allergy.date.toISOString().substring(0, 10);
-            basicInfo += `A:\r\n${allergy.name}\r\n${allergy.severity}\r\n${allergyDate}\r\n`;
+            basicInfo += `A:\r\n${allergy.name}\r\n${allergy.criticality}\r\n${allergyDate}\r\n`;
         });
 
         // Append condition information

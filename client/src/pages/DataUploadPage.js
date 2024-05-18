@@ -21,15 +21,15 @@ function DataUploadPage() {
       const fields = record.split(',');// Split record into fields
 
       // Validate number of fields
-      if (fields.length !== 8) {
+      if (fields.length !== 10) {
         console.error('Invalid number of fields:', fields);
         return null; // Skip record if number of fields is not 7
       }
 
-      const [packageUUID, name, given, dob, nationality, practitioner, ...rest] = fields;
+      const [packageUUID, name, given, dob, gender, nation, practitioner, ...rest] = fields;
 
       // Validate required fields
-      if (!packageUUID || !name || !given || !dob || !nationality || !practitioner) {
+      if (!packageUUID || !name || !given || !dob || !gender || !nation || !practitioner) {
         console.error('Missing required fields:', fields);
         return null; // Skip record if any required field is missing
       }
@@ -45,6 +45,20 @@ function DataUploadPage() {
         console.error('Invalid date format for dob:', dob);
         return null; // Skip record if dob is not in yyyy-mm-dd format
       }
+
+      // Check if gender is just single letter and if so make full work e.g. f --> Female, m-->Male, u--->Unknown, o--->Other
+      let genderFinal = gender;
+
+      const genderMap = {
+        f: 'Female',
+        m: 'Male',
+        u: 'Unknown',
+        o: 'Other'
+      };
+      const genderFull = genderMap[
+        gender.toLowerCase() // Convert to lowercase to handle both upper and lower case
+      ];
+      if (genderFull) { genderFinal = genderFull; }
 
       // Create medication array
       const medication = [];
@@ -81,8 +95,8 @@ function DataUploadPage() {
           return null; // Skip record if allergies data is not in multiples of three
         }
         for (let i = 0; i < allergiesData.length; i += 3) {
-          const [allergyName, allergySeverity, allergyDate] = allergiesData.slice(i, i + 3);
-          if (!allergyName || !allergySeverity || !allergyDate) {
+          const [allergyName, allergyCriticality, allergyDate] = allergiesData.slice(i, i + 3);
+          if (!allergyName || !allergyCriticality || !allergyDate) {
             console.error('Missing allergy field:', allergiesData.slice(i, i + 3));
             return null; // Skip record if any allergy field is missing
           }
@@ -90,11 +104,54 @@ function DataUploadPage() {
             console.error('Invalid date format for allergy date:', allergyDate);
             return null; // Skip record if allergy date is not in yyyy-mm-dd format
           }
-          allergies.push({
-            name: allergyName,
-            severity: allergySeverity,
-            date: allergyDate
-          });
+          // As we are only interested in active allergies
+          // The data is already sorted in reverse chronological order
+          // So we can just keep the first occurrence of each allergy
+          // We need to trim the allergy name as there are leading/trailing spaces in the data
+          const allergyTrimName = allergyName.trim();
+
+          const existingAllergy = allergies.find(allergy => allergy.name === allergyTrimName);
+          if (!existingAllergy)  {
+            allergies.push({
+              name: allergyTrimName,
+              criticality: allergyCriticality,
+              date: allergyDate
+            });
+          }
+        }
+      }
+
+      // Create Conditions array
+      const conditions = [];
+      if (rest[2]) {
+        const conditionsData = rest[2].split(';');
+        if (conditionsData.length % 2 !== 0) {
+          console.error('Invalid conditions data:', rest[2]);
+          return null; // Skip record if conditions data is not in multiples of two
+        }
+        for (let i = 0; i < conditionsData.length; i += 2) {
+          const [conditionName, conditionDate] = conditionsData.slice(i, i + 2);
+          if (!conditionName || !conditionDate) {
+            console.error('Missing condition field:', conditionsData.slice(i, i + 2));
+            return null; // Skip record if any condition field is missing
+          }
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(conditionDate)) {
+            console.error('Invalid date format for condition date:', conditionDate);
+            return null; // Skip record if condition date is not in yyyy-mm-dd format
+          }
+          // As we are only interested in active conditions
+          // The data is already sorted in reverse chronological order
+          // So we can just keep the first occurrence of each condition
+          // We need to trim the condition name as there are leading/trailing spaces in the data
+          const conditionTrimName = conditionName.trim();
+          
+          const existingCondition = conditions.find(condition => condition.name === conditionTrimName);
+          if (!existingCondition) {
+            conditions.push({
+              name: conditionTrimName,
+              date: conditionDate
+            });
+          }
         }
       }
 
@@ -104,11 +161,13 @@ function DataUploadPage() {
           name,
           given,
           dob,
-          nationality,
+          gender: genderFinal,
+          nation,
           practitioner
         },
         medication,
-        allergies
+        allergies,
+        conditions
       };
     }).filter(record => record !== null); // Remove null records (failed validation)
 
@@ -167,11 +226,11 @@ function DataUploadPage() {
           placeholder="Paste your SmartDoc DMICP data here..."
         /> */}
         <div className="text-area">
-                        <Form.Control as="textarea" 
-                        rows={10} value={data} 
-                        onChange={handleChange} 
-                        placeholder="Paste your DMICP data here...&#13;&#10;(This should be the CSV format created using the IPS SmartDoc)" />
-                    </div>
+          <Form.Control as="textarea"
+            rows={10} value={data}
+            onChange={handleChange}
+            placeholder="Paste your DMICP data here...&#13;&#10;(This should be the CSV format created using the IPS SmartDoc)" />
+        </div>
         <br />
         <Button className="mb-3" onClick={handleUpload}>Convert Pasted Data into IPS Records</Button>
       </div>
