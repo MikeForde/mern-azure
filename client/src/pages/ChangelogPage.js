@@ -154,6 +154,14 @@ function ChangeLogPage() {
                                 <li>Old database will be deleted</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_17</h5>
+                            <ul>
+                                <li><strong>Replaced 'Display All' with Search Functionality</strong></li>
+                                <li>Search for IPS records based on patient's name</li>
+                                <li>API GET call is /ips/search/:name</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

@@ -14,6 +14,7 @@ const getIPSBasic = require("./servercontrollers/ipsBasicFormat");
 const { addIPS, addIPSMany } = require('./servercontrollers/ipsNewRecord');
 const { addIPSFromBundle } = require("./servercontrollers/ipsNewRecordFromBundle");
 const { updateIPS, deleteIPS } = require('./servercontrollers/ipsCRUD_UD');
+const { getIPSSearch } = require('./servercontrollers/ipsRecordSearch');
 
 
 const { DB_CONN } = process.env;
@@ -41,6 +42,7 @@ api.get("/ipsbasic/:id", getIPSBasic);
 api.get("/ipsxml/:id", getIPSXMLBundle);
 api.get("/ipslegacy/:id", getIPSLegacyBundle);
 api.get("/ipsbyname/:name/:given", getIPSBundleByName);
+api.get("/ips/search/:name", getIPSSearch);
   
 // API PUT - CRUD Update
 api.put("/ips/:id", updateIPS);
