@@ -9,7 +9,7 @@ import { PatientContext } from '../PatientContext';
 
 function QRPage() {
     const { id } = useParams();
-    const { selectedPatients, setSelectedPatients } = useContext(PatientContext);
+    const { selectedPatients } = useContext(PatientContext);
     const [ipsRecords, setIPSRecords] = useState([]);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [qrData, setQRData] = useState('');
