@@ -1,10 +1,20 @@
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4, validate: isValidUUID } = require('uuid');
 const { IPSModel } = require('../models/IPSModel');
 
 function getIPSLegacyBundle(req, res) {
     const id = req.params.id;
-    IPSModel.findById(id)
-        .exec()
+    let query;
+
+    // Check if the provided ID is a valid UUID
+    if (isValidUUID(id)) {
+        // Search using packageUUID if it is a valid UUID
+        query = IPSModel.findOne({ packageUUID: id });
+    } else {
+        // Otherwise, assume it is a MongoDB ObjectId
+        query = IPSModel.findById(id);
+    }
+
+    query.exec()
         .then((ips) => {
             if (!ips) {
                 return res.status(404).json({ message: "IPS record not found" });

@@ -1,10 +1,22 @@
-// Import necessary modules
 const { IPSModel } = require('../models/IPSModel');
+const { validate: isValidUUID } = require('uuid');
 
 // Define the getIPSBasic function
 const getIPSBasic = (req, res) => {
-    // Retrieve IPS record from the database based on the provided ID
-    IPSModel.findById(req.params.id).exec().then((ipsRecord) => {
+    const id = req.params.id;
+    let query;
+
+    // Check if the provided ID is a valid UUID
+    if (isValidUUID(id)) {
+        // Search using packageUUID if it is a valid UUID
+        query = IPSModel.findOne({ packageUUID: id });
+    } else {
+        // Otherwise, assume it is a MongoDB ObjectId
+        query = IPSModel.findById(id);
+    }
+
+    // Execute the query
+    query.exec().then((ipsRecord) => {
         // If the record is not found, return a 404 error
         if (!ipsRecord) {
             return res.status(404).send('IPS record not found');
@@ -15,7 +27,7 @@ const getIPSBasic = (req, res) => {
         basicInfo += `${ipsRecord.packageUUID}\r\n`;
         basicInfo += `${ipsRecord.patient.name}\r\n`;
         basicInfo += `${ipsRecord.patient.given}\r\n`;
-        
+
         // Format date of birth to yyyy-mm-dd
         const dob = ipsRecord.patient.dob.toISOString().substring(0, 10);
         basicInfo += `${dob}\r\n`;

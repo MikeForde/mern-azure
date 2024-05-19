@@ -171,6 +171,14 @@ function ChangeLogPage() {
                                 <li>'Select Records' dropdown is now confined to only those records returned by search</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_19</h5>
+                            <ul>
+                                <li><strong>Optional :id endpoints</strong></li>
+                                <li>API GET endpoints that use /:id will now accept both MongoDB internal _id and IPS id (packageUUID)</li>
+                                <li>Improvements to 'Active' Patient functionality throughout app</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

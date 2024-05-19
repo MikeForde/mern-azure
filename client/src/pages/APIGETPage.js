@@ -10,6 +10,7 @@ function APIGETPage() {
   const { selectedPatients, selectedPatient, setSelectedPatient } = useContext(PatientContext);
   const [data, setData] = useState('');
   const [mode, setMode] = useState('ips');
+  const [modeText, setModeText] = useState('IPS JSON Bundle - /ips/:id or /ipsbyname/:name/:given');
   const [showNotification, setShowNotification] = useState(false);
 
   useEffect(() => {
@@ -75,6 +76,25 @@ function APIGETPage() {
 
   const handleModeChange = (selectedMode) => {
     setMode(selectedMode);
+    switch (selectedMode) {
+      case 'ips':
+        setModeText('IPS JSON Bundle - /ips/:id or /ipsbyname/:name/:given');
+        break;
+      case 'ipsxml':
+        setModeText('IPS XML Bundle - /ipsxml/:id');
+        break;
+      case 'ipslegacy':
+        setModeText('IPS Legacy JSON Bundle - /ipslegacy/:id');
+        break;
+      case 'ipsraw':
+        setModeText('IPS MongoDB Record - /ipsraw/:id');
+        break;
+      case 'ipsbasic':
+        setModeText('IPS Minimal - /ipsbasic/:id');
+        break;
+      default:
+        setModeText('IPS JSON Bundle - /ips/:id');
+    }
   };
 
   const formatXML = (xml) => {
@@ -85,25 +105,27 @@ function APIGETPage() {
   return (
     <div className="app">
       <div className="container">
-        <h3>API GET - IPS Data</h3>
-        <div className="dropdown-container">
-          <DropdownButton id="dropdown-record" title={`Patient: ${selectedPatient.patient.given} ${selectedPatient.patient.name}`} onSelect={handleRecordChange} className="dropdown-button">
-            {selectedPatients.map(record => (
-              <Dropdown.Item key={record._id} eventKey={record._id} active={selectedPatient && selectedPatient._id === record._id}>
-                {record.patient.given} {record.patient.name}
-              </Dropdown.Item>
-            ))}
-          </DropdownButton>
-        </div>
-        <div className="dropdown-container">
-          <DropdownButton id="dropdown-mode" title={`Mode: ${mode}`} onSelect={handleModeChange} className="dropdown-button">
-            <Dropdown.Item eventKey="ips">IPS JSON Bundle - /ips/:id</Dropdown.Item>
-            <Dropdown.Item eventKey="ipsxml">IPS XML Bundle - /ipsxml/:id</Dropdown.Item>
-            <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle - /ipslegacy/:id</Dropdown.Item>
-            <Dropdown.Item eventKey="ipsraw">IPS MongoDB Record - /ipsraw/:id</Dropdown.Item>
-            <Dropdown.Item eventKey="ipsbasic">IPS Minimal - /ipsbasic/:id</Dropdown.Item>
-          </DropdownButton>
-        </div>
+        <h3>API GET - IPS Data <div className="noteFont">- /:id can be the IPS id (the main UUID) or the internal MongoDB _id</div></h3>
+        {selectedPatients.length > 0 && <>
+          <div className="dropdown-container">
+            <DropdownButton id="dropdown-record" title={`Patient: ${selectedPatient.patient.given} ${selectedPatient.patient.name}`} onSelect={handleRecordChange} className="dropdown-button">
+              {selectedPatients.map(record => (
+                <Dropdown.Item key={record._id} eventKey={record._id} active={selectedPatient && selectedPatient._id === record._id}>
+                  {record.patient.given} {record.patient.name}
+                </Dropdown.Item>
+              ))}
+            </DropdownButton>
+          </div>
+          <div className="dropdown-container">
+            <DropdownButton id="dropdown-mode" title={`API: ${modeText}`} onSelect={handleModeChange} className="dropdown-button">
+              <Dropdown.Item eventKey="ips">IPS JSON Bundle - /ips/:id or /ipsbyname/:name/:given</Dropdown.Item>
+              <Dropdown.Item eventKey="ipsxml">IPS XML Bundle - /ipsxml/:id</Dropdown.Item>
+              <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle - /ipslegacy/:id</Dropdown.Item>
+              <Dropdown.Item eventKey="ipsraw">IPS MongoDB Record - /ipsraw/:id</Dropdown.Item>
+              <Dropdown.Item eventKey="ipsbasic">IPS Minimal - /ipsbasic/:id</Dropdown.Item>
+            </DropdownButton>
+          </div>
+        </> }
         {showNotification ? (
           <Alert variant="danger">Data is too large to display. Please try a different mode.</Alert>
         ) : (
