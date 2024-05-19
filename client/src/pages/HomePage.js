@@ -1,4 +1,3 @@
-// src/HomePage.js
 import React, { useState, useContext } from "react";
 import "./Page.css";
 import { Card, Form, Button } from "react-bootstrap";
@@ -6,15 +5,15 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
 import { FormIPS } from "./Components/FormIPS";
 import { IPS } from "./Components/IPS";
-import { PatientContext } from "../PatientContext";
+import { PatientContext } from '../PatientContext';
 
 const server = process.env.REACT_APP_API_BASE_URL
   ? axios.create({ baseURL: process.env.REACT_APP_API_BASE_URL })
   : axios.create({});
 
 function HomePage() {
-  const { selectedPatients, setSelectedPatients } = useContext(PatientContext);
   const [searchTerm, setSearchTerm] = useState("");
+  const { selectedPatients, setSelectedPatients, setSelectedPatient } = useContext(PatientContext);
 
   const add = (formData) => {
     const cleanedMedication = formData.medication.filter(item => {
@@ -36,11 +35,14 @@ function HomePage() {
 
     server
       .post("/ips", cleanedFormData)
-      .then((response) => response.data)
+      .then((response) => {
+        return response.data;
+      })
       .then((createdIPS) => {
         if (createdIPS) {
           const newIPS = [...selectedPatients, createdIPS];
           setSelectedPatients(newIPS);
+          setSelectedPatient(createdIPS);
         }
       })
       .catch((error) => {
@@ -51,10 +53,17 @@ function HomePage() {
   const remove = (id) => {
     server
       .delete(`/ips/${id}`)
-      .then((response) => response.data)
+      .then((response) => {
+        return response.data;
+      })
       .then((removedId) => {
-        const newIPS = selectedPatients.filter((ips) => ips._id !== removedId);
-        setSelectedPatients(newIPS);
+        const newIPS = [...selectedPatients];
+
+        let index = selectedPatients.findIndex((c) => c._id === removedId);
+        if (index !== -1) {
+          newIPS.splice(index, 1);
+          setSelectedPatients(newIPS);
+        }
       })
       .catch((error) => {
         console.log("Error", error);
@@ -64,10 +73,15 @@ function HomePage() {
   const searchPatients = () => {
     server
       .get(`/ips/search/${searchTerm}`)
-      .then((response) => response.data)
+      .then((response) => {
+        return response.data;
+      })
       .then((ipss) => {
         if (ipss) {
           setSelectedPatients(ipss);
+          if (ipss.length > 0) {
+            setSelectedPatient(ipss[0]);  // Set the first patient as the selected patient
+          }
         }
       })
       .catch((error) => {
@@ -106,7 +120,7 @@ function HomePage() {
         <h3>Matching Patients</h3>
         <div>
           {selectedPatients.map((ips) => (
-            <Card key={ips._id}>
+            <Card key={ips._id} onClick={() => setSelectedPatient(ips)}>
               <Card.Body>
                 <IPS ips={ips} remove={remove} />
               </Card.Body>
