@@ -6,7 +6,11 @@ import { faFileMedical, faHome, faQrcode, faUpload } from '@fortawesome/free-sol
 import { PatientContext } from '../PatientContext';
 
 function NavigationBar() {
-  const { selectedPatients } = useContext(PatientContext);
+  const { selectedPatients, setSelectedPatient, selectedPatient } = useContext(PatientContext);
+
+  const handlePatientSelect = (patient) => {
+    setSelectedPatient(patient);
+  };
 
   return (
     <Navbar expand="lg" bg="dark" variant="dark" fixed="top">
@@ -38,10 +42,18 @@ function NavigationBar() {
           </Nav>
           {selectedPatients.length > 0 && (
             <Nav>
-              <NavDropdown title="Selected Patients" id="selected-patients-dropdown">
+              <NavDropdown 
+                title={selectedPatient ? `Patient: ${selectedPatient.patient.given} ${selectedPatient.patient.name}` : "Selected Patients"} 
+                id="selected-patients-dropdown"
+              >
                 {selectedPatients.map((patient) => (
-                  <NavDropdown.Item key={patient._id} as={Link} to={`/api/${patient._id}`}>
-                    {patient.patient.name} {patient.patient.given}
+                  <NavDropdown.Item 
+                    key={patient._id} 
+                    onClick={() => handlePatientSelect(patient)} // Set selectedPatient
+                    as={Link} 
+                    to="/api" // Navigate to /api without specifying ID
+                  >
+                    {patient.patient.given} {patient.patient.name}
                   </NavDropdown.Item>
                 ))}
               </NavDropdown>

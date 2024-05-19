@@ -87,16 +87,16 @@ function APIGETPage() {
       <div className="container">
         <h3>API GET - IPS Data</h3>
         <div className="dropdown-container">
-          <DropdownButton id="dropdown-record" title="Select Record" onSelect={handleRecordChange} className="dropdown-button">
+          <DropdownButton id="dropdown-record" title={`Patient: ${selectedPatient.patient.given} ${selectedPatient.patient.name}`} onSelect={handleRecordChange} className="dropdown-button">
             {selectedPatients.map(record => (
               <Dropdown.Item key={record._id} eventKey={record._id} active={selectedPatient && selectedPatient._id === record._id}>
-                {record.patient.name} {record.patient.given}
+                {record.patient.given} {record.patient.name}
               </Dropdown.Item>
             ))}
           </DropdownButton>
         </div>
         <div className="dropdown-container">
-          <DropdownButton id="dropdown-mode" title={`Select Mode: ${mode}`} onSelect={handleModeChange} className="dropdown-button">
+          <DropdownButton id="dropdown-mode" title={`Mode: ${mode}`} onSelect={handleModeChange} className="dropdown-button">
             <Dropdown.Item eventKey="ips">IPS JSON Bundle - /ips/:id</Dropdown.Item>
             <Dropdown.Item eventKey="ipsxml">IPS XML Bundle - /ipsxml/:id</Dropdown.Item>
             <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle - /ipslegacy/:id</Dropdown.Item>
