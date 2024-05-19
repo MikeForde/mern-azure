@@ -1,17 +1,19 @@
-import React, { useState } from "react";
+// src/HomePage.js
+import React, { useState, useContext } from "react";
 import "./Page.css";
 import { Card, Form, Button } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
 import { FormIPS } from "./Components/FormIPS";
 import { IPS } from "./Components/IPS";
+import { PatientContext } from "../PatientContext";
 
 const server = process.env.REACT_APP_API_BASE_URL
   ? axios.create({ baseURL: process.env.REACT_APP_API_BASE_URL })
   : axios.create({});
 
 function HomePage() {
-  const [ipss, setIPS] = useState([]);
+  const { selectedPatients, setSelectedPatients } = useContext(PatientContext);
   const [searchTerm, setSearchTerm] = useState("");
 
   const add = (formData) => {
@@ -34,13 +36,11 @@ function HomePage() {
 
     server
       .post("/ips", cleanedFormData)
-      .then((response) => {
-        return response.data;
-      })
+      .then((response) => response.data)
       .then((createdIPS) => {
         if (createdIPS) {
-          const newIPS = [...ipss, createdIPS];
-          setIPS(newIPS);
+          const newIPS = [...selectedPatients, createdIPS];
+          setSelectedPatients(newIPS);
         }
       })
       .catch((error) => {
@@ -51,17 +51,10 @@ function HomePage() {
   const remove = (id) => {
     server
       .delete(`/ips/${id}`)
-      .then((response) => {
-        return response.data;
-      })
+      .then((response) => response.data)
       .then((removedId) => {
-        const newIPS = [...ipss];
-
-        let index = ipss.findIndex((c) => c._id === removedId);
-        if (index !== -1) {
-          newIPS.splice(index, 1);
-          setIPS(newIPS);
-        }
+        const newIPS = selectedPatients.filter((ips) => ips._id !== removedId);
+        setSelectedPatients(newIPS);
       })
       .catch((error) => {
         console.log("Error", error);
@@ -71,12 +64,10 @@ function HomePage() {
   const searchPatients = () => {
     server
       .get(`/ips/search/${searchTerm}`)
-      .then((response) => {
-        return response.data;
-      })
+      .then((response) => response.data)
       .then((ipss) => {
         if (ipss) {
-          setIPS(ipss);
+          setSelectedPatients(ipss);
         }
       })
       .catch((error) => {
@@ -114,7 +105,7 @@ function HomePage() {
         </Form>
         <h3>Matching Patients</h3>
         <div>
-          {ipss.map((ips) => (
+          {selectedPatients.map((ips) => (
             <Card key={ips._id}>
               <Card.Body>
                 <IPS ips={ips} remove={remove} />

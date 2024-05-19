@@ -8,10 +8,12 @@ import NavigationBar from './appcomp/NavigationBar';
 import ChangeLogPage from './pages/ChangelogPage';
 import AboutWebAppPage from './pages/AboutWebappPage';
 import APIGETPage from './pages/APIGETPage';
+import { PatientProvider } from './PatientContext';
 
 function App() {
   return (
-    <Router>
+    <PatientProvider>
+      <Router>
      <div style={{ paddingTop: '56px' }}> {/* Adjust the padding-top value based on your Navbar height */}
         <NavigationBar />
         <Routes>
@@ -25,6 +27,7 @@ function App() {
         </Routes>
       </div>
     </Router>
+    </PatientProvider>
   );
 }
 

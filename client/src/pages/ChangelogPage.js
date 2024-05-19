@@ -162,6 +162,15 @@ function ChangeLogPage() {
                                 <li>API GET call is /ips/search/:name</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_18</h5>
+                            <ul>
+                                <li><strong>Patient Selection Preservation</strong></li>
+                                <li>Selected patients are preserved across the App</li>
+                                <li>At least one patient needs to be selected to display anything on QR and API pages</li>
+                                <li>'Select Records' dropdown is now confined to only those records returned by search</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

@@ -1,38 +1,34 @@
-import React, { useState, useEffect } from 'react';
+// src/APIGETPage.js
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Button, Alert, Form, DropdownButton, Dropdown } from 'react-bootstrap';
 import './Page.css';
+import { PatientContext } from '../PatientContext';
 
 function APIGETPage() {
     const { id } = useParams();
-    const [ipsRecords, setIPSRecords] = useState([]);
+    const { selectedPatients } = useContext(PatientContext);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [data, setData] = useState('');
     const [mode, setMode] = useState('ips');
     const [showNotification, setShowNotification] = useState(false);
 
     useEffect(() => {
-        // Fetch IPS records
-        axios.get('/ips/all')
-            .then(response => {
-                setIPSRecords(response.data);
-                // Find the record matching the ID parameter
-                let record;
-                if (id) {
-                    record = response.data.find(record => record._id === id);
-                } else {
-                    record = response.data[0]; // Select the first record if no ID is provided
-                }
-                setSelectedRecord(record);
-            })
-            .catch(error => {
-                console.error('Error fetching IPS records:', error);
-            });
-    }, [id]);
+        // Use selected patients from context instead of fetching all records
+        if (selectedPatients.length > 0) {
+            let record;
+            if (id) {
+                record = selectedPatients.find(record => record._id === id);
+            } else {
+                record = selectedPatients[0]; // Select the first record if no ID is provided
+            }
+            setSelectedRecord(record);
+        }
+    }, [id, selectedPatients]);
 
     const handleRecordChange = (recordId) => {
-        const record = ipsRecords.find(record => record._id === recordId);
+        const record = selectedPatients.find(record => record._id === recordId);
         setSelectedRecord(record);
     };
 
@@ -51,7 +47,6 @@ function APIGETPage() {
                     } else {
                         responseData = JSON.stringify(response.data, null, 2);
                     }
-
 
                     setData(responseData);
                     console.log('Data:', responseData);
@@ -99,9 +94,9 @@ function APIGETPage() {
                 <h3>API GET - IPS Data</h3>
                 <div className="dropdown-container">
                     <DropdownButton id="dropdown-record" title="Select Record" onSelect={handleRecordChange} className="dropdown-button">
-                        {ipsRecords.map(record => (
+                        {selectedPatients.map(record => (
                             <Dropdown.Item key={record._id} eventKey={record._id} active={selectedRecord && selectedRecord._id === record._id}>
-                                {record.packageUUID}
+                                {record.patient.name} {record.patient.given}
                             </Dropdown.Item>
                         ))}
                     </DropdownButton>

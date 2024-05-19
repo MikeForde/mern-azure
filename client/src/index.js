@@ -2,10 +2,11 @@ import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
 import App from "./App";
+import { PatientProvider } from './PatientContext';
 
 ReactDOM.render(
-  <React.StrictMode>
+  <PatientProvider>
     <App />
-  </React.StrictMode>,
-  document.getElementById("root")
+  </PatientProvider>,
+  document.getElementById('root')
 );

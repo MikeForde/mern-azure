@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+// src/QRPage.js
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import QRCode from 'qrcode.react';
 import axios from 'axios';
 import { Button, Alert, DropdownButton, Dropdown } from 'react-bootstrap';
 import './Page.css';
+import { PatientContext } from '../PatientContext';
 
 function QRPage() {
     const { id } = useParams();
+    const { selectedPatients, setSelectedPatients } = useContext(PatientContext);
     const [ipsRecords, setIPSRecords] = useState([]);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [qrData, setQRData] = useState('');
@@ -14,23 +17,18 @@ function QRPage() {
     const [showNotification, setShowNotification] = useState(false);
 
     useEffect(() => {
-        // Fetch IPS records
-        axios.get('/ips/all')
-            .then(response => {
-                setIPSRecords(response.data);
-                // Find the record matching the ID parameter
-                let record;
-                if (id) {
-                    record = response.data.find(record => record._id === id);
-                } else {
-                    record = response.data[0]; // Select the first record if no ID is provided
-                }
-                setSelectedRecord(record);
-            })
-            .catch(error => {
-                console.error('Error fetching IPS records:', error);
-            });
-    }, [id]);
+        // Use selected patients from context instead of fetching all records
+        if (selectedPatients.length > 0) {
+            setIPSRecords(selectedPatients);
+            let record;
+            if (id) {
+                record = selectedPatients.find(record => record._id === id);
+            } else {
+                record = selectedPatients[0]; // Select the first record if no ID is provided
+            }
+            setSelectedRecord(record);
+        }
+    }, [id, selectedPatients]);
 
     const handleRecordChange = (recordId) => {
         const record = ipsRecords.find(record => record._id === recordId);
@@ -102,7 +100,6 @@ function QRPage() {
 
     const qrSize = Math.min(window.innerWidth * 0.8, window.innerHeight * 0.8, maxQRSize);
 
-
     return (
         <div className="app">
             <div className="container">
@@ -111,7 +108,7 @@ function QRPage() {
                     <DropdownButton id="dropdown-record" title="Select Record" onSelect={handleRecordChange} className="dropdown-button">
                         {ipsRecords.map(record => (
                             <Dropdown.Item key={record._id} eventKey={record._id} active={selectedRecord && selectedRecord._id === record._id}>
-                                {record.packageUUID}
+                                {record.patient.name} {record.patient.given}
                             </Dropdown.Item>
                         ))}
                     </DropdownButton>
