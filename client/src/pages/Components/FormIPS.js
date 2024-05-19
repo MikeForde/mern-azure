@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button, Form, Toast } from "react-bootstrap";
 import { v4 as uuidv4 } from 'uuid';
+import "./components.css";
 
 export function FormIPS({ add }) {
   const [showForm, setShowForm] = useState(false);
@@ -193,14 +194,14 @@ export function FormIPS({ add }) {
               </div>
             </Form.Group>
             <Form.Group className="row">
-              <Form.Label className="col-sm-2">Nation</Form.Label>
+              <Form.Label className="col-sm-2">Country</Form.Label>
               <div className="col-sm-4">
                 <Form.Control
                   type="text"
                   name="nation"
                   value={formData.patient.nation}
                   onChange={handlePatientChange}
-                  placeholder="Nation" />
+                  placeholder="Country" />
               </div>
               <Form.Label className="col-sm-2">Practitioner</Form.Label>
               <div className="col-sm-4">
@@ -213,7 +214,7 @@ export function FormIPS({ add }) {
               </div>
             </Form.Group>
           </Form.Group>
-          <Button className="mb-3" onClick={handleAddMedication}>Add Medication</Button>
+          <Button className="mb-3 minor-button" onClick={handleAddMedication}>Add Medication</Button>
           {formData.medication.map((med, index) => (
             <div key={index}>
               <Form.Group className="row">
@@ -251,7 +252,7 @@ export function FormIPS({ add }) {
               </Form.Group>
             </div>
           ))}
-          <Button className="mb-3" onClick={handleAddAllergy}>Add Allergy</Button>
+          <Button className="mb-3 minor-button" onClick={handleAddAllergy}>Add Allergy</Button>
           {formData.allergies.map((allergy, index) => (
             <div key={index}>
               <Form.Group className="row">
@@ -289,7 +290,7 @@ export function FormIPS({ add }) {
               </Form.Group>
             </div>
           ))}
-          <Button className="mb-3" onClick={handleAddCondition}>Add Condition</Button>
+          <Button className="mb-3 minor-button" onClick={handleAddCondition}>Add Condition</Button>
           {formData.conditions.map((condition, index) => (
             <div key={index}>
               <Form.Group className="row">

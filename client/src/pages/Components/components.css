@@ -22,5 +22,19 @@
     align-items: center;
 }
 
+small {
+  font-size: 8px;
+}
+
+ul {
+  list-style-type: none;
+}
+
+.minor-button {
+  margin-top: 3px;
+  height: 34px; 
+  margin-bottom: 3px; 
+}
+
   
   

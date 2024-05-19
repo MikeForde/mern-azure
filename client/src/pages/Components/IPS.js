@@ -57,7 +57,7 @@ export function IPS({ ips, remove }) {
             <ul>
               {ips.medication.map((med, index) => (
                 <li key={index}>
-                  M: {med.name} - Date: {med.date} - Dosage: {med.dosage}
+                  <small>M:</small> {med.name} - Date: {med.date} - Dosage: {med.dosage}
                 </li>
               ))}
             </ul>
@@ -65,7 +65,7 @@ export function IPS({ ips, remove }) {
             <ul>
               {ips.allergies.map((allergy, index) => (
                 <li key={index}>
-                  A: {allergy.name} - Criticality: {allergy.criticality} - Date: {allergy.date}
+                  <small>A:</small> {allergy.name} - Criticality: {allergy.criticality} - Date: {allergy.date}
                 </li>
               ))}
             </ul>
@@ -73,7 +73,7 @@ export function IPS({ ips, remove }) {
             <ul>
               {ips.conditions.map((condition, index) => (
                 <li key={index}>
-                  C: {condition.name} - Date: {condition.date}
+                  <small>C:</small> {condition.name} - Date: {condition.date}
                 </li>
               ))}
             </ul>

@@ -108,7 +108,7 @@ function HomePage() {
               onChange={handleSearchChange}
             />
           </Form.Group>
-          <Button variant="primary" type="submit">
+          <Button variant="primary" type="submit" className="mb-3">
             Search
           </Button>
         </Form>
