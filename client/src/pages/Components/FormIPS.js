@@ -190,7 +190,7 @@ export function FormIPS({ add }) {
                   name="gender"
                   value={formData.patient.gender}
                   onChange={handlePatientChange} 
-                  placeholder="Gender"/>
+                  placeholder="Gender - if blank then defaults to Unknown"/>
               </div>
             </Form.Group>
             <Form.Group className="row">
@@ -199,9 +199,10 @@ export function FormIPS({ add }) {
                 <Form.Control
                   type="text"
                   name="nation"
+                  defaultValue="UK"
                   value={formData.patient.nation}
                   onChange={handlePatientChange}
-                  placeholder="Country" />
+                  placeholder="Country - if blank then defaults to UK" />
               </div>
               <Form.Label className="col-sm-2">Practitioner</Form.Label>
               <div className="col-sm-4">
@@ -210,7 +211,7 @@ export function FormIPS({ add }) {
                   name="practitioner"
                   value={formData.patient.practitioner}
                   onChange={handlePatientChange}
-                  placeholder="Practitioner" />
+                  placeholder="Practitioner - if blank then defaults to Dr No" />
               </div>
             </Form.Group>
           </Form.Group>
@@ -323,6 +324,7 @@ export function FormIPS({ add }) {
           </Toast>
         </Form>
       )}
+      <br />
     </div>
   );
 }

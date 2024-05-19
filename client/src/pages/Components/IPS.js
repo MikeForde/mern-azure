@@ -1,13 +1,26 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Button, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { faFileMedical, faQrcode, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { PatientContext } from '../../PatientContext'; // Import PatientContext
 import "./components.css";
+
+// Dates will be formatted as YYYY-MM-DD HH:MM:SS unless the time is 00:00:00
+// In which case, only the date will be displayed as YYYY-MM-DD
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+
+  const [datePart, timePart] = dateString.split("T");
+  const time = timePart.split(".")[0];
+
+  return time === "00:00:00" ? datePart : `${datePart} ${time}`;
+};
 
 export function IPS({ ips, remove }) {
   const [expanded, setExpanded] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const { setSelectedPatient } = useContext(PatientContext); // Get setSelectedPatients from PatientContext
 
   const handleRemove = () => {
     setShowConfirmModal(true);
@@ -22,13 +35,16 @@ export function IPS({ ips, remove }) {
     setShowConfirmModal(false);
   };
 
+  const handleSelection = () => {
+    // Update selected patient in the context
+    setSelectedPatient([ips]);
+  };
 
   const renderTooltip = (text) => (
       <Tooltip id={`tooltip-${text}`}>
           {text}
       </Tooltip>
   );
-  
 
   return (
     <div className="ips">
@@ -49,7 +65,7 @@ export function IPS({ ips, remove }) {
             <h4>Patient Details:</h4>
             <p>Name: {ips.patient.name}</p>
             <p>Given Name: {ips.patient.given}</p>
-            <p>DOB: {ips.patient.dob}</p>
+            <p>DOB: {ips.patient.dob.split("T")[0]}</p>
             <p>Gender: {ips.patient.gender}</p>
             <p>Country: {ips.patient.nation}</p>
             <p>Practitioner: {ips.patient.practitioner}</p>
@@ -57,7 +73,7 @@ export function IPS({ ips, remove }) {
             <ul>
               {ips.medication.map((med, index) => (
                 <li key={index}>
-                  <small>M:</small> {med.name} - Date: {med.date} - Dosage: {med.dosage}
+                  <small>M:</small> {med.name} - Date: {formatDate(med.date)} - Dosage: {med.dosage}
                 </li>
               ))}
             </ul>
@@ -65,15 +81,15 @@ export function IPS({ ips, remove }) {
             <ul>
               {ips.allergies.map((allergy, index) => (
                 <li key={index}>
-                  <small>A:</small> {allergy.name} - Criticality: {allergy.criticality} - Date: {allergy.date}
+                  <small>A:</small> {allergy.name} - Criticality: {allergy.criticality} - Date: {formatDate(allergy.date)}
                 </li>
               ))}
             </ul>
             <h4>Conditions:</h4>
             <ul>
               {ips.conditions.map((condition, index) => (
-                <li key={index}>
-                  <small>C:</small> {condition.name} - Date: {condition.date}
+                 <li key={index}>
+                  <small>C:</small> {condition.name} - Date: {formatDate(condition.date)}
                 </li>
               ))}
             </ul>
@@ -84,38 +100,38 @@ export function IPS({ ips, remove }) {
         )}
       </div>
       <div>
-      <OverlayTrigger
-                placement="top"
-                overlay={renderTooltip('View IPS API')}
-            >
-                <Link to={`/api/${ips._id}`}>
-                    <Button variant="outline-secondary" className="qr-button custom-button">
-                        <FontAwesomeIcon icon={faFileMedical} />
-                    </Button>
-                </Link>
-            </OverlayTrigger>
+        <OverlayTrigger
+          placement="top"
+          overlay={renderTooltip('View IPS API')}
+        >
+          <Link to="/api">
+            <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
+              <FontAwesomeIcon icon={faFileMedical} />
+            </Button>
+          </Link>
+        </OverlayTrigger>
 
-            {/* Button to navigate to QR page */}
-            <OverlayTrigger
-                placement="top"
-                overlay={renderTooltip('View QR Code')}
-            >
-                <Link to={`/qr/${ips._id}`}>
-                    <Button variant="outline-secondary" className="qr-button custom-button">
-                        <FontAwesomeIcon icon={faQrcode} />
-                    </Button>
-                </Link>
-            </OverlayTrigger>
+        {/* Button to navigate to QR page */}
+        <OverlayTrigger
+          placement="top"
+          overlay={renderTooltip('View QR Code')}
+        >
+          <Link to="/qr">
+            <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
+              <FontAwesomeIcon icon={faQrcode} />
+            </Button>
+          </Link>
+        </OverlayTrigger>
 
-            {/* Button to handle removal */}
-            <OverlayTrigger
-                placement="top"
-                overlay={renderTooltip('Remove')}
-            >
-                <Button variant="outline-danger" className="custom-button" onClick={handleRemove}>
-                    <FontAwesomeIcon icon={faTrash} />
-                </Button>
-            </OverlayTrigger>
+        {/* Button to handle removal */}
+        <OverlayTrigger
+          placement="top"
+          overlay={renderTooltip('Remove')}
+        >
+          <Button variant="outline-danger" className="custom-button" onClick={handleRemove}>
+            <FontAwesomeIcon icon={faTrash} />
+          </Button>
+        </OverlayTrigger>
       </div>
 
       <Modal show={showConfirmModal} onHide={handleCancelDelete}>
