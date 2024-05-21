@@ -20,7 +20,8 @@ function AboutWebAppPage() {
                             <Card.Text>
                                 The development pipeline involves the following steps:
                                 <ol>
-                                    <li>Development Environment: Linux ubuntu-like distribution (<a href="https://www.bodhilinux.com" target="_blank" rel="noopener noreferrer">Bodhi</a>) running on a virtual machine (VM).</li>
+                                    <li>Development Environment Until 0_18: Linux ubuntu-like distribution (<a href="https://www.bodhilinux.com" target="_blank" rel="noopener noreferrer">Bodhi</a>) running on a virtual machine (VM).</li>
+                                    <li>Development Environment 0_19 and Beyond: Docker - Node 22 Bookworm</li>
                                     <li>Version Control: <a href="https://github.com/MikeForde/mern-azure" target="_blank" rel="noopener noreferrer">GitHub</a>.</li>
                                     <li>Continuous Deployment: GitHub Actions, which automates the deployment process whenever changes are pushed to the GitHub repository.</li>
                                     <li>Hosting: The application is hosted on Microsoft Azure.</li>
