@@ -179,6 +179,14 @@ function ChangeLogPage() {
                                 <li>Improvements to 'Active' Patient functionality throughout app</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_20</h5>
+                            <ul>
+                                <li><strong>Added Off Road API Page</strong></li>
+                                <li>Page to allow direct access to the Off Road API</li>
+                                <li>API is at https://4202xiwc.offroadapps.dev:62444/Fhir/ips/json/surname/firstname</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

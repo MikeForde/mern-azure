@@ -8,6 +8,7 @@ import NavigationBar from './appcomp/NavigationBar';
 import ChangeLogPage from './pages/ChangelogPage';
 import AboutWebAppPage from './pages/AboutWebappPage';
 import APIGETPage from './pages/APIGETPage';
+import OffRoadPage from './pages/OffRoadPage';
 import { PatientProvider } from './PatientContext';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
           <Route path="/changelog" element={<ChangeLogPage />} />
           <Route path="/aboutwebapp" element={<AboutWebAppPage />} />
           <Route path="/api/:id?" element={<APIGETPage />} />
+          <Route path="/ipsoffroad" element={<OffRoadPage/>} />
         </Routes>
       </div>
     </Router>
