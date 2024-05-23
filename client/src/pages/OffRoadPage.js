@@ -35,7 +35,7 @@ const IPSOffRoadPage = () => {
 
   return (
     <Container>
-      <h1>OffRoadPage</h1>
+      <h1>Off Road Apps API Page</h1>
       <Form onSubmit={handleSubmit}>
         <Form.Group controlId="name">
           <Form.Label>Name</Form.Label>
