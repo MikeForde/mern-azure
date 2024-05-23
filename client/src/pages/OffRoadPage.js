@@ -1,7 +1,7 @@
 // src/IPSFormPage.js
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Form, Button, Container, Row, Col } from 'react-bootstrap';
+import { Form, Button, Container } from 'react-bootstrap';
 
 const IPSOffRoadPage = () => {
   const [name, setName] = useState('');
