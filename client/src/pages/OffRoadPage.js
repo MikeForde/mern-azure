@@ -6,67 +6,76 @@ import { Form, Button, Container, Row, Col } from 'react-bootstrap';
 const IPSOffRoadPage = () => {
   const [name, setName] = useState('');
   const [givenName, setGivenName] = useState('');
-  const [responseData, setResponseData] = useState('');
+  const [ipsData, setIpsData] = useState(null);
+  const [error, setError] = useState(null);
+  const [message, setMessage] = useState('');
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const response = await axios.get(
-        `/fetchipsora/${name}/${givenName}`
-      );
-      setResponseData(JSON.stringify(response.data, null, 2));
-    } catch (error) {
-      setResponseData(`Error: ${error.message}`);
+      const response = await axios.get(`/fetchipsora/${name}/${givenName}`);
+      setIpsData(response.data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch IPS data');
+      setIpsData(null);
+    }
+  };
+
+  const handleTransform = async () => {
+    try {
+      await axios.post('/ipsbundle', ipsData);
+      setMessage('IPS record successfully transformed and saved to MongoDB');
+      setError(null);
+    } catch (err) {
+      setMessage('');
+      setError('Failed to transform IPS record');
     }
   };
 
   return (
-    <Container className="mt-5">
-      <Row className="justify-content-md-center">
-        <Col md={6}>
-          <h3>Fetch IPS Data</h3>
-          <Form onSubmit={handleSubmit}>
-            <Form.Group controlId="formName">
-              <Form.Label>Name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter family/surname"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group controlId="formGivenName">
-              <Form.Label>Given Name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter first/given name"
-                value={givenName}
-                onChange={(e) => setGivenName(e.target.value)}
-                required
-              />
-            </Form.Group>
-
-            <Button variant="primary" type="submit" className="mt-3">
-              Submit
-            </Button>
-          </Form>
-
-          <Form.Group controlId="formResponse" className="mt-4">
-            <Form.Label>Response Data</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={10}
-              value={responseData}
-              readOnly
-              style={{ whiteSpace: 'pre-wrap' }}
-            />
-          </Form.Group>
-        </Col>
-      </Row>
+    <Container>
+      <h1>OffRoadPage</h1>
+      <Form onSubmit={handleSubmit}>
+        <Form.Group controlId="name">
+          <Form.Label>Name</Form.Label>
+          <Form.Control
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </Form.Group>
+        <Form.Group controlId="givenName">
+          <Form.Label>Given Name</Form.Label>
+          <Form.Control
+            type="text"
+            value={givenName}
+            onChange={(e) => setGivenName(e.target.value)}
+            required
+          />
+        </Form.Group>
+        <Button variant="primary" type="submit">
+          Submit
+        </Button>
+      </Form>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {ipsData && (
+        <div>
+          <h3>IPS Data</h3>
+          <textarea
+            readOnly
+            value={JSON.stringify(ipsData, null, 2)}
+            style={{ width: '100%', height: '300px' }}
+          />
+          <Button variant="success" onClick={handleTransform}>
+            Transform to MongoDB Record
+          </Button>
+        </div>
+      )}
+      {message && <p style={{ color: 'green' }}>{message}</p>}
     </Container>
   );
-};
+}
 
 export default IPSOffRoadPage;

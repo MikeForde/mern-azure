@@ -79,7 +79,8 @@ function convertIPSBundleToSchema(ipsBundle) {
             case "Condition":
                 conditions.push({
                     name: resource.code.coding[0].display,
-                    date: new Date(resource.onsetDateTime).toISOString()
+                    // If not onsetDateTime, use the current date
+                    date: (resource.onsetDateTime !==undefined) ? new Date(resource.onsetDateTime).toISOString(): new Date().toISOString()
                 });
                 break;
             default:

@@ -195,6 +195,14 @@ function ChangeLogPage() {
                                 <li>API GET used internally - but could be used extenally - is /fetchipsora/surname/firstname</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_22</h5>
+                            <ul>
+                                <li><strong>Record Creation from ORA IPS Bundle</strong></li>
+                                <li>Can now convert an Off Road Apps IPS Bundle to a MongoDb Record</li>
+                                <li>Made the Condition Date optional - defaults to today's date - to facilate testing</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>
