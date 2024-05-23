@@ -14,6 +14,7 @@ const { getIPSRaw, getAllIPS } = require('./servercontrollers/ipsDatabaseFormats
 const getIPSBasic = require("./servercontrollers/ipsBasicFormat");
 const { addIPS, addIPSMany } = require('./servercontrollers/ipsNewRecord');
 const { addIPSFromBundle } = require("./servercontrollers/ipsNewRecordFromBundle");
+const { postIPSBundle } = require('./servercontrollers/postIPSBundle');
 const { updateIPS, deleteIPS } = require('./servercontrollers/ipsCRUD_UD');
 const { getIPSSearch } = require('./servercontrollers/ipsRecordSearch');
 
@@ -34,6 +35,7 @@ mongoose
 api.post("/ips", addIPS);
 api.post("/ipsmany", addIPSMany);
 api.post("/ipsbundle", addIPSFromBundle);
+api.post('/pushipsora', postIPSBundle);
 
 // API GET - CRUD Read
 api.get("/ips/all", getAllIPS);

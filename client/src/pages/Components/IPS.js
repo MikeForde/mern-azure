@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { Button, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { faFileMedical, faQrcode, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faFileMedical, faQrcode, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { PatientContext } from '../../PatientContext'; // Import PatientContext
 import "./components.css";
@@ -119,6 +119,18 @@ export function IPS({ ips, remove }) {
           <Link to="/qr">
             <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
               <FontAwesomeIcon icon={faQrcode} />
+            </Button>
+          </Link>
+        </OverlayTrigger>
+
+        {/* Button to navigate to Off Roads POST Page */}
+        <OverlayTrigger
+          placement="top"
+          overlay={renderTooltip('View Off Road POST')}
+        >
+          <Link to="/offroadpost">
+            <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
+              <FontAwesomeIcon icon={faDownload} />
             </Button>
           </Link>
         </OverlayTrigger>

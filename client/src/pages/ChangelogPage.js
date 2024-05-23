@@ -203,6 +203,15 @@ function ChangeLogPage() {
                                 <li>Made the Condition Date optional - defaults to today's date - to facilate testing</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_23</h5>
+                            <ul>
+                                <li><strong>Added API POST to ORA</strong></li>
+                                <li>API POST allows the sending IPS JSON Bundle to Off Road Apps WebApp</li>
+                                <li>Internal API endpoint is /pushipsora</li>
+                                <li>External API endpoint is at https://4202xiwc.offroadapps.dev:62444/Fhir/ips/json</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

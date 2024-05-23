@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBeer, faFileMedical, faHome, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { faBeer, faDownload, faFileMedical, faHome, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
 import { PatientContext } from '../PatientContext';
 
 function NavigationBar() {
@@ -24,7 +24,7 @@ function NavigationBar() {
             alt="IPS Logo"
             style={{ marginRight: '10px' }}
           />
-          IPS MERN Prototype 0_22
+          IPS MERN Prototype 0_23
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
@@ -33,7 +33,10 @@ function NavigationBar() {
             <Nav.Link as={Link} to="/api"><FontAwesomeIcon icon={faFileMedical} /> API</Nav.Link>
             <Nav.Link as={Link} to="/qr"><FontAwesomeIcon icon={faQrcode} /> QR Generators</Nav.Link>
             <Nav.Link as={Link} to="/bulkupload"><FontAwesomeIcon icon={faUpload} /> Bulk Upload</Nav.Link>
-            <Nav.Link as={Link} to="/ipsoffroad"><FontAwesomeIcon icon={faBeer} /> Off Road API</Nav.Link>
+            <NavDropdown title={<span><FontAwesomeIcon icon={faBeer} /> Off Road Apps</span>} id="basic-nav-dropdown">
+              <NavDropdown.Item as={Link} to="/ipsoffroad"><FontAwesomeIcon icon={faUpload} /> Off Road GET</NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/offroadpost"><FontAwesomeIcon icon={faDownload} /> Off Road POST</NavDropdown.Item>
+            </NavDropdown>
             <NavDropdown title="Info" id="basic-nav-dropdown">
               <NavDropdown.Item as={Link} to="/about">About IPS</NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/aboutwebapp">About Web App</NavDropdown.Item>
@@ -43,15 +46,15 @@ function NavigationBar() {
           </Nav>
           {selectedPatients.length > 0 && (
             <Nav>
-              <NavDropdown 
-                title={selectedPatient ? `Patient: ${selectedPatient.patient.given} ${selectedPatient.patient.name}` : "Selected Patients"} 
+              <NavDropdown
+                title={selectedPatient ? `Patient: ${selectedPatient.patient.given} ${selectedPatient.patient.name}` : "Selected Patients"}
                 id="selected-patients-dropdown"
               >
                 {selectedPatients.map((patient) => (
-                  <NavDropdown.Item 
-                    key={patient._id} 
+                  <NavDropdown.Item
+                    key={patient._id}
                     onClick={() => handlePatientSelect(patient)} // Set selectedPatient
-                    as={Link} 
+                    as={Link}
                     to="/api" // Navigate to /api without specifying ID
                   >
                     {patient.patient.given} {patient.patient.name}

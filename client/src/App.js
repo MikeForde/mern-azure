@@ -9,6 +9,7 @@ import ChangeLogPage from './pages/ChangelogPage';
 import AboutWebAppPage from './pages/AboutWebappPage';
 import APIGETPage from './pages/APIGETPage';
 import OffRoadPage from './pages/OffRoadPage';
+import OffRoadPOSTPage from './pages/OffRoadPOSTPage';
 import { PatientProvider } from './PatientContext';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
           <Route path="/aboutwebapp" element={<AboutWebAppPage />} />
           <Route path="/api/:id?" element={<APIGETPage />} />
           <Route path="/ipsoffroad" element={<OffRoadPage/>} />
+          <Route path="/offroadpost/:id?" element={<OffRoadPOSTPage/>} />
         </Routes>
       </div>
     </Router>
