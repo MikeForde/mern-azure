@@ -102,7 +102,7 @@ export function IPS({ ips, remove }) {
       <div>
         <OverlayTrigger
           placement="top"
-          overlay={renderTooltip('View IPS API')}
+          overlay={renderTooltip('View IPS API Page')}
         >
           <Link to="/api">
             <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
@@ -114,7 +114,7 @@ export function IPS({ ips, remove }) {
         {/* Button to navigate to QR page */}
         <OverlayTrigger
           placement="top"
-          overlay={renderTooltip('View QR Code')}
+          overlay={renderTooltip('View QR Code Page')}
         >
           <Link to="/qr">
             <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
@@ -123,10 +123,10 @@ export function IPS({ ips, remove }) {
           </Link>
         </OverlayTrigger>
 
-        {/* Button to navigate to Off Roads POST Page */}
+        {/* Button to navigate to VitalsIQ POST Page */}
         <OverlayTrigger
           placement="top"
-          overlay={renderTooltip('View Off Road POST')}
+          overlay={renderTooltip('View VitalsIQ POST Page')}
         >
           <Link to="/offroadpost">
             <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
@@ -138,7 +138,7 @@ export function IPS({ ips, remove }) {
         {/* Button to handle removal */}
         <OverlayTrigger
           placement="top"
-          overlay={renderTooltip('Remove')}
+          overlay={renderTooltip('Delete IPS Record')}
         >
           <Button variant="outline-danger" className="custom-button" onClick={handleRemove}>
             <FontAwesomeIcon icon={faTrash} />

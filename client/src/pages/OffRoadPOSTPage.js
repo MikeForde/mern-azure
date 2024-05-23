@@ -61,7 +61,7 @@ function OffRoadPOSTPage() {
   return (
     <div className="app">
       <div className="container">
-        <h3>Off Road Apps API Page - POST (Push)</h3>
+        <h3>VitalsIQ API Page - POST (Push)</h3>
         {selectedPatients.length > 0 && (
           <div className="dropdown-container">
             <DropdownButton
@@ -93,7 +93,7 @@ function OffRoadPOSTPage() {
         {message && <Alert variant="success">{message}</Alert>}
         <div className="button-container">
           {selectedPatient && data && (
-            <Button className="mb-3" variant="danger" onClick={handlePushIPS}>Push IPS JSON Data to Off Roads WebApp</Button>
+            <Button className="mb-3" variant="danger" onClick={handlePushIPS}>Push IPS JSON Data to VitalsIQ WebApp</Button>
           )}
         </div>
       </div>

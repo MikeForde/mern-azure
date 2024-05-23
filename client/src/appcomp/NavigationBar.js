@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBeer, faDownload, faFileMedical, faHome, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { faBeer, faBrain, faDownload, faFileMedical, faHome, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
 import { PatientContext } from '../PatientContext';
 
 function NavigationBar() {
@@ -48,14 +48,14 @@ function NavigationBar() {
               <FontAwesomeIcon icon={faUpload} /> Bulk Upload
             </Nav.Link>
             <NavDropdown
-              title={<span><FontAwesomeIcon icon={faBeer} /> Off Road Apps</span>}
+              title={<span><FontAwesomeIcon icon={faBrain} /> VitalsIQ API</span>}
               id="basic-nav-dropdown"
             >
               <NavDropdown.Item as={Link} to="/ipsoffroad" onClick={handleNavItemSelect}>
-                <FontAwesomeIcon icon={faUpload} /> Off Road GET
+                <FontAwesomeIcon icon={faUpload} /> VitalsIQ GET
               </NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/offroadpost" onClick={handleNavItemSelect}>
-                <FontAwesomeIcon icon={faDownload} /> Off Road POST
+                <FontAwesomeIcon icon={faDownload} /> VitalsIQ POST
               </NavDropdown.Item>
             </NavDropdown>
             <NavDropdown title="Info" id="basic-nav-dropdown">

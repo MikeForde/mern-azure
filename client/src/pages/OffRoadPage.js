@@ -36,7 +36,7 @@ const IPSOffRoadPage = () => {
   return (
     <div className="app">
       <div className="container">
-      <h3>Off Road Apps API - GET (Pull)</h3>
+      <h3>VitalsIQ API - GET (Pull)</h3>
       <Form onSubmit={handleSubmit}>
         <Form.Group controlId="name">
           <Form.Control
@@ -57,7 +57,7 @@ const IPSOffRoadPage = () => {
           />
         </Form.Group>
         <Button variant="primary" type="submit">
-          Submit
+          Submit GET Request
         </Button>
       </Form>
       {error && <p style={{ color: 'red' }}>{error}</p>}
