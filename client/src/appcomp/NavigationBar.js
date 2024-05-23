@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBeer, faBrain, faDownload, faFileMedical, faHome, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { faBrain, faDownload, faFileMedical, faHome, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
 import { PatientContext } from '../PatientContext';
 
 function NavigationBar() {
