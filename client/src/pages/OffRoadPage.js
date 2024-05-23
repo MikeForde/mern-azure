@@ -34,22 +34,23 @@ const IPSOffRoadPage = () => {
   };
 
   return (
-    <Container>
-      <h1>Off Road Apps API - GET (Pull)</h1>
+    <div className="app">
+      <div className="container">
+      <h3>Off Road Apps API - GET (Pull)</h3>
       <Form onSubmit={handleSubmit}>
         <Form.Group controlId="name">
-          <Form.Label>Name</Form.Label>
           <Form.Control
             type="text"
+            placeholder="Family/Surname"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
         </Form.Group>
         <Form.Group controlId="givenName">
-          <Form.Label>Given Name</Form.Label>
           <Form.Control
             type="text"
+            placeholder="First/Given Name"
             value={givenName}
             onChange={(e) => setGivenName(e.target.value)}
             required
@@ -62,19 +63,18 @@ const IPSOffRoadPage = () => {
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {ipsData && (
         <div>
-          <h3>IPS Data</h3>
-          <textarea
-            readOnly
-            value={JSON.stringify(ipsData, null, 2)}
-            style={{ width: '100%', height: '300px' }}
-          />
+          <h4>IPS Data</h4>
+          <div className="text-area">
+            <Form.Control as="textarea" rows={10} value={JSON.stringify(ipsData, null, 2)} readOnly />
+          </div>
           <Button variant="success" onClick={handleTransform}>
-            Transform to MongoDB Record
+            Transform to IPS MERN Record
           </Button>
         </div>
       )}
       {message && <p style={{ color: 'green' }}>{message}</p>}
-    </Container>
+    </div>
+    </div>
   );
 }
 

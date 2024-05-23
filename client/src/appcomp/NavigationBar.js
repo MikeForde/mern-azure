@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -7,15 +7,21 @@ import { PatientContext } from '../PatientContext';
 
 function NavigationBar() {
   const { selectedPatients, setSelectedPatient, selectedPatient } = useContext(PatientContext);
+  const [expanded, setExpanded] = useState(false);
 
   const handlePatientSelect = (patient) => {
     setSelectedPatient(patient);
+    setExpanded(false); // Collapse Navbar on patient select
+  };
+
+  const handleNavItemSelect = () => {
+    setExpanded(false); // Collapse Navbar on any item select
   };
 
   return (
-    <Navbar expand="lg" bg="dark" variant="dark" fixed="top">
+    <Navbar expanded={expanded} expand="lg" bg="dark" variant="dark" fixed="top">
       <Container>
-        <Navbar.Brand as={Link} to="/">
+        <Navbar.Brand as={Link} to="/" onClick={handleNavItemSelect}>
           <img
             src="/ipsnavbar.ico"
             width="25"
@@ -26,22 +32,43 @@ function NavigationBar() {
           />
           IPS MERN Prototype 0_23
         </Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link as={Link} to="/"><FontAwesomeIcon icon={faHome} /> Home</Nav.Link>
-            <Nav.Link as={Link} to="/api"><FontAwesomeIcon icon={faFileMedical} /> API</Nav.Link>
-            <Nav.Link as={Link} to="/qr"><FontAwesomeIcon icon={faQrcode} /> QR Generators</Nav.Link>
-            <Nav.Link as={Link} to="/bulkupload"><FontAwesomeIcon icon={faUpload} /> Bulk Upload</Nav.Link>
-            <NavDropdown title={<span><FontAwesomeIcon icon={faBeer} /> Off Road Apps</span>} id="basic-nav-dropdown">
-              <NavDropdown.Item as={Link} to="/ipsoffroad"><FontAwesomeIcon icon={faUpload} /> Off Road GET</NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/offroadpost"><FontAwesomeIcon icon={faDownload} /> Off Road POST</NavDropdown.Item>
+            <Nav.Link as={Link} to="/" onClick={handleNavItemSelect}>
+              <FontAwesomeIcon icon={faHome} /> Home
+            </Nav.Link>
+            <Nav.Link as={Link} to="/api" onClick={handleNavItemSelect}>
+              <FontAwesomeIcon icon={faFileMedical} /> API
+            </Nav.Link>
+            <Nav.Link as={Link} to="/qr" onClick={handleNavItemSelect}>
+              <FontAwesomeIcon icon={faQrcode} /> QR Generators
+            </Nav.Link>
+            <Nav.Link as={Link} to="/bulkupload" onClick={handleNavItemSelect}>
+              <FontAwesomeIcon icon={faUpload} /> Bulk Upload
+            </Nav.Link>
+            <NavDropdown
+              title={<span><FontAwesomeIcon icon={faBeer} /> Off Road Apps</span>}
+              id="basic-nav-dropdown"
+            >
+              <NavDropdown.Item as={Link} to="/ipsoffroad" onClick={handleNavItemSelect}>
+                <FontAwesomeIcon icon={faUpload} /> Off Road GET
+              </NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/offroadpost" onClick={handleNavItemSelect}>
+                <FontAwesomeIcon icon={faDownload} /> Off Road POST
+              </NavDropdown.Item>
             </NavDropdown>
             <NavDropdown title="Info" id="basic-nav-dropdown">
-              <NavDropdown.Item as={Link} to="/about">About IPS</NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/aboutwebapp">About Web App</NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/about" onClick={handleNavItemSelect}>
+                About IPS
+              </NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/aboutwebapp" onClick={handleNavItemSelect}>
+                About Web App
+              </NavDropdown.Item>
               <NavDropdown.Divider />
-              <NavDropdown.Item as={Link} to="/changelog">Change Log</NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/changelog" onClick={handleNavItemSelect}>
+                Change Log
+              </NavDropdown.Item>
             </NavDropdown>
           </Nav>
           {selectedPatients.length > 0 && (
