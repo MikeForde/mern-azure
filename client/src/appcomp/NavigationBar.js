@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFileMedical, faHome, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { faBeer, faFileMedical, faHome, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
 import { PatientContext } from '../PatientContext';
 
 function NavigationBar() {
@@ -33,7 +33,7 @@ function NavigationBar() {
             <Nav.Link as={Link} to="/api"><FontAwesomeIcon icon={faFileMedical} /> API</Nav.Link>
             <Nav.Link as={Link} to="/qr"><FontAwesomeIcon icon={faQrcode} /> QR Generators</Nav.Link>
             <Nav.Link as={Link} to="/bulkupload"><FontAwesomeIcon icon={faUpload} /> Bulk Upload</Nav.Link>
-            <Nav.Link href="/ipsoffroad">Off Road API</Nav.Link>
+            <Nav.Link as={Link} to="/ipsoffroad"><FontAwesomeIcon icon={faBeer} />Off Road API</Nav.Link>
             <NavDropdown title="Info" id="basic-nav-dropdown">
               <NavDropdown.Item as={Link} to="/about">About IPS</NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/aboutwebapp">About Web App</NavDropdown.Item>
