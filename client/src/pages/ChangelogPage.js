@@ -187,6 +187,14 @@ function ChangeLogPage() {
                                 <li>API is at https://4202xiwc.offroadapps.dev:62444/Fhir/ips/json/surname/firstname</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_21</h5>
+                            <ul>
+                                <li><strong>API Comms Client-to-Server</strong></li>
+                                <li>Axios GET code moved to server-side to avoid BPS issues</li>
+                                <li>API GET used internally - but could be used extenally - is /fetchipsora/surname/firstname</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

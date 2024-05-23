@@ -12,7 +12,7 @@ const IPSOffRoadPage = () => {
     event.preventDefault();
     try {
       const response = await axios.get(
-        `https://4202xiwc.offroadapps.dev:62444/Fhir/ips/json/${name}/${givenName}`
+        `/fetchipsora/${name}/${givenName}`
       );
       setResponseData(JSON.stringify(response.data, null, 2));
     } catch (error) {
