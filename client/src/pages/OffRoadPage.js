@@ -30,7 +30,7 @@ const IPSOffRoadPage = () => {
               <Form.Label>Name</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter name"
+                placeholder="Enter family/surname"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -41,7 +41,7 @@ const IPSOffRoadPage = () => {
               <Form.Label>Given Name</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter given name"
+                placeholder="Enter first/given name"
                 value={givenName}
                 onChange={(e) => setGivenName(e.target.value)}
                 required
