@@ -33,7 +33,7 @@ function NavigationBar() {
             <Nav.Link as={Link} to="/api"><FontAwesomeIcon icon={faFileMedical} /> API</Nav.Link>
             <Nav.Link as={Link} to="/qr"><FontAwesomeIcon icon={faQrcode} /> QR Generators</Nav.Link>
             <Nav.Link as={Link} to="/bulkupload"><FontAwesomeIcon icon={faUpload} /> Bulk Upload</Nav.Link>
-            <Nav.Link as={Link} to="/ipsoffroad"><FontAwesomeIcon icon={faBeer} />Off Road API</Nav.Link>
+            <Nav.Link as={Link} to="/ipsoffroad"><FontAwesomeIcon icon={faBeer} /> Off Road API</Nav.Link>
             <NavDropdown title="Info" id="basic-nav-dropdown">
               <NavDropdown.Item as={Link} to="/about">About IPS</NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/aboutwebapp">About Web App</NavDropdown.Item>
