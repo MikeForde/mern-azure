@@ -4,7 +4,6 @@ function convertIPSBundleToSchema(ipsBundle) {
 
     // Initialize variables to store patient and practitioner information
     let patient = {};
-    let practitioner = {};
     let dosage = "";
 
     // Initialize arrays to store medication and allergy information
@@ -88,7 +87,7 @@ function convertIPSBundleToSchema(ipsBundle) {
         }
     }
 
-    return { packageUUID, patient, practitioner, medication, allergies, conditions };
+    return { packageUUID, patient, medication, allergies, conditions };
 }
 
 module.exports = { convertIPSBundleToSchema };
