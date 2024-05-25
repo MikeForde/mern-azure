@@ -28,7 +28,7 @@ const IPSOffRoadPage = () => {
       setMessage('IPS record successfully transformed and saved to MongoDB');
       setError(null);
     } catch (err) {
-      setMessage('');
+      setMessage(err.message);
       setError('Failed to transform IPS record');
     }
   };
