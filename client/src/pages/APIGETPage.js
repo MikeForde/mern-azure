@@ -32,12 +32,19 @@ function APIGETPage() {
 
   useEffect(() => {
     if (selectedPatient) {
-      const endpoint = `/${mode}/${selectedPatient._id}`;
+      let endpoint;
+      if (mode === 'ipsbeerwithdelim') {
+        endpoint = `/ipsbeer/${selectedPatient._id}/semi`;
+      } else {
+        endpoint = `/${mode}/${selectedPatient._id}`;
+      }
 
+      console.log('Fetching data from:', endpoint);
+    
       axios.get(endpoint)
         .then(response => {
           let responseData;
-          if (mode === 'ipsbasic') {
+          if (mode === 'ipsbasic' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim') {
             responseData = response.data;
           } else if (mode === 'ipsxml') {
             responseData = formatXML(response.data);
@@ -56,11 +63,11 @@ function APIGETPage() {
   }, [selectedPatient, mode]);
 
   useEffect(() => {
-    if (data && mode === 'ips') {
-      navigator.clipboard.writeText(data)
-        .then(() => console.log('Data copied to clipboard:', data))
-        .catch(error => console.error('Error copying data to clipboard:', error));
-    }
+    // if (data && mode === 'ips') {
+    //   navigator.clipboard.writeText(data)
+    //     .then(() => console.log('Data copied to clipboard:', data))
+    //     .catch(error => console.error('Error copying data to clipboard:', error));
+    // }
   }, [data, mode]);
 
   const handleDownloadData = () => {
@@ -91,6 +98,12 @@ function APIGETPage() {
         break;
       case 'ipsbasic':
         setModeText('IPS Minimal - /ipsbasic/:id');
+        break;
+      case 'ipsbeer':
+        setModeText('IPS BEER - /ipsbeer/:id');
+        break;
+      case 'ipsbeerwithdelim':
+        setModeText('IPS BEER - /ipsbeer/:id/:delim (semicolon)');
         break;
       default:
         setModeText('IPS JSON Bundle - /ips/:id');
@@ -123,6 +136,8 @@ function APIGETPage() {
               <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle - /ipslegacy/:id</Dropdown.Item>
               <Dropdown.Item eventKey="ipsraw">IPS MongoDB Record - /ipsraw/:id</Dropdown.Item>
               <Dropdown.Item eventKey="ipsbasic">IPS Minimal - /ipsbasic/:id</Dropdown.Item>
+              <Dropdown.Item eventKey="ipsbeer">IPS BEER - /ipsbeer/:id</Dropdown.Item>
+              <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER - /ipsbeer/:id/:delim (semicolon)</Dropdown.Item>
             </DropdownButton>
           </div>
         </> }
@@ -138,7 +153,7 @@ function APIGETPage() {
           <Button className="mb-3" onClick={handleDownloadData}>Download Data</Button>
           {mode === 'ips' && (
             <Button variant="primary" className="mb-3" onClick={() => window.open('https://ipsviewer.com', '_blank')}>
-              Open IPS Viewer and Paste Data
+              Open IPS Viewer
             </Button>
           )}
         </div>

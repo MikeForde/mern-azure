@@ -32,6 +32,7 @@ const getIPSBasic = (req, res) => {
         const dob = ipsRecord.patient.dob.toISOString().substring(0, 10);
         basicInfo += `${dob}\r\n`;
 
+        basicInfo += `${ipsRecord.patient.gender}\r\n`;
         basicInfo += `${ipsRecord.patient.nation}\r\n`;
         basicInfo += `${ipsRecord.patient.practitioner}\r\n`;
 

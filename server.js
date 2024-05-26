@@ -13,6 +13,7 @@ const { getIPSLegacyBundle } = require('./servercontrollers/ipsBundleFormat_old'
 const { getIPSXMLBundle } = require('./servercontrollers/ipsXMLBundleFormat');
 const { getIPSRaw, getAllIPS } = require('./servercontrollers/ipsDatabaseFormats');
 const getIPSBasic = require("./servercontrollers/ipsBasicFormat");
+const getIPSBEER = require("./servercontrollers/ipsBEERFormat");
 const { addIPS, addIPSMany } = require('./servercontrollers/ipsNewRecord');
 const { addIPSFromBundle } = require("./servercontrollers/ipsNewRecordFromBundle");
 const { postIPSBundle } = require('./servercontrollers/postIPSBundle');
@@ -43,6 +44,7 @@ api.get("/ips/all", getAllIPS);
 api.get("/ipsraw/:id", getIPSRaw);
 api.get("/ips/:id", getIPSBundle);
 api.get("/ipsbasic/:id", getIPSBasic);
+api.get("/ipsbeer/:id/:delim?", getIPSBEER);
 api.get("/ipsxml/:id", getIPSXMLBundle);
 api.get("/ipslegacy/:id", getIPSLegacyBundle);
 api.get("/ipsbyname/:name/:given", getIPSBundleByName);

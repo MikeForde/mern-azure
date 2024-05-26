@@ -212,6 +212,16 @@ function ChangeLogPage() {
                                 <li>External API endpoint is at https://4202xiwc.offroadapps.dev:62444/Fhir/ips/json</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_24</h5>
+                            <ul>
+                                <li><strong>Added API GET for BEER</strong></li>
+                                <li>API GET allows the return of an IPS Bundle with the BEER data format using the endpoint /ipsbeer/:id</li>
+                                <li>Note: At this point BEER format is under development - so this represents an initial attempt</li>
+                                <li>API and QR Page include BEER modes</li>
+                                <li>QR Page displays the QR size in bites</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

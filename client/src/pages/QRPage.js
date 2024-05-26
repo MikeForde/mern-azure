@@ -12,6 +12,7 @@ function QRPage() {
   const [qrData, setQRData] = useState('');
   const [mode, setMode] = useState('ipsurl');
   const [showNotification, setShowNotification] = useState(false);
+  const [responseSize, setResponseSize] = useState(0);
 
   useEffect(() => {
     if (selectedPatients.length > 0) {
@@ -35,32 +36,35 @@ function QRPage() {
   useEffect(() => {
     if (selectedPatient) {
       let endpoint;
-      if (mode === 'ips') {
-        endpoint = `/ips/${selectedPatient._id}`;
-      } else if (mode === 'ipsraw') {
-        endpoint = `/ipsraw/${selectedPatient._id}`;
-      } else if (mode === 'ipsminimal') {
-        endpoint = `/ipsbasic/${selectedPatient._id}`;
+
+      if (mode === 'ipsbeerwithdelim') {
+        endpoint = `/ipsbeer/${selectedPatient._id}/semi`;
+      } else {
+        endpoint = `/${mode}/${selectedPatient._id}`;
       }
 
       if (mode === 'ipsurl') {
         const baseUrl = window.location.origin; // Get the base URL of the application
         const url = `${baseUrl}/ips/${selectedPatient.packageUUID}`;
         setQRData(url);
+        setResponseSize(url.length);
         setShowNotification(false);
       } else {
         axios.get(endpoint)
           .then(response => {
             let responseData;
-            if (mode === 'ipsminimal') {
+            if (mode === 'ipsminimal' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim') {
               responseData = response.data;
             } else {
               responseData = JSON.stringify(response.data);
             }
 
-            console.log('Response data length:', responseData.length);
+            const responseSize = new TextEncoder().encode(responseData).length;
+            setResponseSize(responseSize);
 
-            if (responseData.length > THRESHOLD) {
+            console.log('Response data length:', responseSize);
+
+            if (responseSize > THRESHOLD) {
               setShowNotification(true);
             } else {
               setQRData(responseData);
@@ -97,7 +101,11 @@ function QRPage() {
   return (
     <div className="app">
       <div className="container">
-        <h3>Generate QR Code</h3>
+        <div className="header-container">
+          <h3>Generate QR Code {mode !== 'ipsurl' && (
+            <span className="response-size"> - {responseSize} bytes</span>
+          )}</h3>
+        </div>
         {selectedPatients.length > 0 && <>
           <div className="dropdown-container">
             <DropdownButton id="dropdown-record" title={`Patient: ${selectedPatient.patient.given} ${selectedPatient.patient.name}`} onSelect={handleRecordChange} className="dropdown-button">
@@ -112,11 +120,14 @@ function QRPage() {
             <DropdownButton id="dropdown-mode" title={`Mode: ${mode}`} onSelect={handleModeChange} className="dropdown-button">
               <Dropdown.Item eventKey="ipsurl">IPS URL</Dropdown.Item>
               <Dropdown.Item eventKey="ips">IPS JSON Bundle</Dropdown.Item>
-              <Dropdown.Item eventKey="ipsminimal">IPS Minimal</Dropdown.Item>
+              <Dropdown.Item eventKey="ipsbasic">IPS Minimal</Dropdown.Item>
               <Dropdown.Item eventKey="ipsraw">IPS MongoDB Record</Dropdown.Item>
+              <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle</Dropdown.Item>
+              <Dropdown.Item eventKey="ipsbeer">IPS BEER (newline)</Dropdown.Item>
+              <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER with Delimiter (semicolon)</Dropdown.Item>
             </DropdownButton>
           </div>
-        </> }
+        </>}
         {showNotification ? (
           <Alert variant="danger">Data is too large to display. Please try a different mode.</Alert>
         ) : (
