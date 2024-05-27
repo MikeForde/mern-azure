@@ -6,7 +6,7 @@ function ChangeLogPage() {
         <Container className="mt-5">
             <Row>
                 <Col>
-                    <h3>ChangeLog - Versions refer to Azure Deployments</h3>
+                    <h3>ChangeLog - Versions refer to Cloud Deployments</h3>
                     <ul>
                         <li>
                             <h5>Version 0_1 (Initial Release)</h5>
@@ -220,6 +220,14 @@ function ChangeLogPage() {
                                 <li>Note: At this point BEER format is under development - so this represents an initial attempt</li>
                                 <li>API and QR Page include BEER modes</li>
                                 <li>QR Page displays the QR size in bites</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <h5>Version 0_25</h5>
+                            <ul>
+                                <li><strong>Added BEER Garden Page</strong></li>
+                                <li>Page to allow conversion between MongoDb and BEER formats</li>
+                                <li>BEER format is under development - so this represents an initial attempt</li>
                             </ul>
                         </li>
                     </ul>

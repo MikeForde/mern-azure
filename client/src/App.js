@@ -10,6 +10,7 @@ import AboutWebAppPage from './pages/AboutWebappPage';
 import APIGETPage from './pages/APIGETPage';
 import OffRoadPage from './pages/OffRoadPage';
 import OffRoadPOSTPage from './pages/OffRoadPOSTPage';
+import BEERGardenPage from './pages/BEERGardenPage';
 import { PatientProvider } from './PatientContext';
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
           <Route path="/api/:id?" element={<APIGETPage />} />
           <Route path="/ipsoffroad" element={<OffRoadPage/>} />
           <Route path="/offroadpost/:id?" element={<OffRoadPOSTPage/>} />
+          <Route path="/beergarden/:id?" element={<BEERGardenPage/>} />
         </Routes>
       </div>
     </Router>

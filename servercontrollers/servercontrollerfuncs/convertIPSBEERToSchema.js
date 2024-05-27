@@ -16,7 +16,7 @@ function parseBEER(dataPacket, delimiter) {
     let currentIndex = 0;
 
     if (lines[currentIndex] !== 'H9') {
-        throw new Error('Invalid data packet format');
+        throw new Error('Invalid data packet format - first line should be H9');
     }
     currentIndex++; // Skip header
 
@@ -24,6 +24,7 @@ function parseBEER(dataPacket, delimiter) {
         throw new Error('Unsupported version');
     }
     currentIndex++; // Skip version
+    const timestamp = new Date(parseInt(lines[currentIndex++], 10) * 1000); // Convert Unix timestamp to JS timestamp
 
     // Parsing basic info
     record.packageUUID = lines[currentIndex++];
@@ -36,9 +37,11 @@ function parseBEER(dataPacket, delimiter) {
         nation: lines[currentIndex++],
     };
 
-    if (lines[currentIndex++] !== 'UK MOD') {
-        throw new Error('Invalid data packet format');
-    }
+    // if (lines[currentIndex++] !== 'UK MOD') {
+    //     throw new Error('Invalid data packet format - UK MOD not found');
+    // }
+
+    currentIndex++; // Skip UK MOD
 
     // Helper function to parse entries
     const parseMedications = (count) => {
@@ -47,7 +50,7 @@ function parseBEER(dataPacket, delimiter) {
             const name = lines[currentIndex++];
             const dates = lines[currentIndex++].split(', ').map(min => {
                 if (/^\d+$/.test(min)) {
-                    return new Date(record.timestamp.getTime() + min * 60000);
+                    return new Date(timestamp.getTime() + min * 60000);
                 } else {
                     return new Date(min.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
                 }
@@ -78,7 +81,7 @@ function parseBEER(dataPacket, delimiter) {
             const name = lines[currentIndex++];
             const date = lines[currentIndex++];
             const formattedDate = /^\d+$/.test(date)
-                ? new Date(record.timestamp.getTime() + date * 60000)
+                ? new Date(timestamp.getTime() + date * 60000)
                 : new Date(date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
             conditions.push({ name, date: formattedDate });
         }

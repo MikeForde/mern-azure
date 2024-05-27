@@ -43,6 +43,25 @@
   display: inline;
 }
 
+.text-area-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.text-area {
+  flex: 1;
+  margin: 0 10px;
+}
+
+.text-area h5 {
+  text-align: center;
+}
+
+.message {
+  margin-top: 6rem;
+} 
+
+
 
 
 

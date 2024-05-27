@@ -12,6 +12,7 @@ const { getORABundleByName } = require('./servercontrollers/oraBundleByName');
 const { getIPSLegacyBundle } = require('./servercontrollers/ipsBundleFormat_old');
 const { getIPSXMLBundle } = require('./servercontrollers/ipsXMLBundleFormat');
 const { getIPSRaw, getAllIPS } = require('./servercontrollers/ipsDatabaseFormats');
+const { getMongoFormatted } = require('./servercontrollers/ipsMongoDisplayFormat');
 const getIPSBasic = require("./servercontrollers/ipsBasicFormat");
 const getIPSBEER = require("./servercontrollers/ipsBEERFormat");
 const { addIPS, addIPSMany } = require('./servercontrollers/ipsNewRecord');
@@ -20,6 +21,8 @@ const { addIPSFromBEER } = require("./servercontrollers/ipsNewRecordFromBEER");
 const { postIPSBundle } = require('./servercontrollers/postIPSBundle');
 const { updateIPS, deleteIPS } = require('./servercontrollers/ipsCRUD_UD');
 const { getIPSSearch } = require('./servercontrollers/ipsRecordSearch');
+const { convertMongoToBEER } = require('./servercontrollers/convertMongoToBEER');
+const { convertBEERToMongo } = require('./servercontrollers/convertBEERToMongo');
 
 
 const { DB_CONN } = process.env;
@@ -40,10 +43,13 @@ api.post("/ipsmany", addIPSMany);
 api.post("/ipsbundle", addIPSFromBundle);
 api.post('/pushipsora', postIPSBundle);
 api.post('/ipsfrombeer', addIPSFromBEER);
+api.post('/convertmongo2beer', convertMongoToBEER);
+api.post('/convertbeer2mongo', convertBEERToMongo);
 
 // API GET - CRUD Read
 api.get("/ips/all", getAllIPS);
 api.get("/ipsraw/:id", getIPSRaw);
+api.get("/ipsmongo/:id", getMongoFormatted);
 api.get("/ips/:id", getIPSBundle);
 api.get("/ipsbasic/:id", getIPSBasic);
 api.get("/ipsbeer/:id/:delim?", getIPSBEER);

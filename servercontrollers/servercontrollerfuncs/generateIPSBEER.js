@@ -1,4 +1,3 @@
-
 function generateIPSBEER(ipsRecord, delimiter) {
     // Get current timestamp
     const currentTimestamp = new Date();
@@ -6,6 +5,11 @@ function generateIPSBEER(ipsRecord, delimiter) {
 
     // Helper function to format dates as yyyymmdd
     const formatDate = (date) => {
+        // Check if date is already a string
+        if (typeof date === 'string') {
+            return date.substring(0, 10).replace(/-/g, '');
+        }
+        // Otherwise, assume it's a Date object
         return date.toISOString().substring(0, 10).replace(/-/g, '');
     };
 

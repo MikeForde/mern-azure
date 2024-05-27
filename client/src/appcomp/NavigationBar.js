@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBrain, faDownload, faFileMedical, faHome, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { faBeer, faBrain, faDownload, faFileMedical, faHome, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
 import { PatientContext } from '../PatientContext';
 
 function NavigationBar() {
@@ -30,7 +30,7 @@ function NavigationBar() {
             alt="IPS Logo"
             style={{ marginRight: '10px' }}
           />
-          IPS MERN Prototype 0_24
+          IPS MERN Prototype 0_25
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">
@@ -42,10 +42,13 @@ function NavigationBar() {
               <FontAwesomeIcon icon={faFileMedical} /> API
             </Nav.Link>
             <Nav.Link as={Link} to="/qr" onClick={handleNavItemSelect}>
-              <FontAwesomeIcon icon={faQrcode} /> QR Generators
+              <FontAwesomeIcon icon={faQrcode} /> QR
             </Nav.Link>
             <Nav.Link as={Link} to="/bulkupload" onClick={handleNavItemSelect}>
-              <FontAwesomeIcon icon={faUpload} /> Bulk Upload
+              <FontAwesomeIcon icon={faUpload} /> DMICP
+            </Nav.Link>
+            <Nav.Link as={Link} to="/beergarden" onClick={handleNavItemSelect}>
+              <FontAwesomeIcon icon={faBeer} /> BEER
             </Nav.Link>
             <NavDropdown
               title={<span><FontAwesomeIcon icon={faBrain} /> VitalsIQ API</span>}
