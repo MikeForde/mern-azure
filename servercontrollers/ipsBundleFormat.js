@@ -1,6 +1,6 @@
 
 const { IPSModel } = require('../models/IPSModel');
-const { generateIPSBundle } = require('./generateIPSBundle');
+const { generateIPSBundle } = require('./servercontrollerfuncs/generateIPSBundle');
 const { validate: isValidUUID } = require('uuid');
 
 

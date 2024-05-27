@@ -1,5 +1,5 @@
 const { IPSModel } = require('../models/IPSModel');
-const { generateIPSBundle } = require('./generateIPSBundle');
+const { generateIPSBundle } = require('./servercontrollerfuncs/generateIPSBundle');
 
 function getIPSBundleByName(req, res) {
     const { name, given } = req.params;

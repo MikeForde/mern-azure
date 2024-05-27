@@ -182,8 +182,8 @@ function ChangeLogPage() {
                         <li>
                             <h5>Version 0_20</h5>
                             <ul>
-                                <li><strong>Added Off Road API Page</strong></li>
-                                <li>Page to allow direct access to the Off Road API</li>
+                                <li><strong>Added VitalsIQ API Page</strong></li>
+                                <li>Page to allow direct access to the VitalsIQ API</li>
                                 <li>API is at https://4202xiwc.offroadapps.dev:62444/Fhir/ips/json/surname/firstname</li>
                             </ul>
                         </li>
@@ -199,7 +199,7 @@ function ChangeLogPage() {
                             <h5>Version 0_22</h5>
                             <ul>
                                 <li><strong>Record Creation from ORA IPS Bundle</strong></li>
-                                <li>Can now convert an Off Road Apps IPS Bundle to a MongoDb Record</li>
+                                <li>Can now convert an VitalsIQ IPS Bundle to a MongoDb Record</li>
                                 <li>Made the Condition Date optional - defaults to today's date - to facilate testing</li>
                             </ul>
                         </li>
@@ -207,7 +207,7 @@ function ChangeLogPage() {
                             <h5>Version 0_23</h5>
                             <ul>
                                 <li><strong>Added API POST to ORA</strong></li>
-                                <li>API POST allows the sending IPS JSON Bundle to Off Road Apps WebApp</li>
+                                <li>API POST allows the sending IPS JSON Bundle to VitalsIQ WebApp</li>
                                 <li>Internal API endpoint is /pushipsora</li>
                                 <li>External API endpoint is at https://4202xiwc.offroadapps.dev:62444/Fhir/ips/json</li>
                             </ul>

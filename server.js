@@ -16,6 +16,7 @@ const getIPSBasic = require("./servercontrollers/ipsBasicFormat");
 const getIPSBEER = require("./servercontrollers/ipsBEERFormat");
 const { addIPS, addIPSMany } = require('./servercontrollers/ipsNewRecord');
 const { addIPSFromBundle } = require("./servercontrollers/ipsNewRecordFromBundle");
+const { addIPSFromBEER } = require("./servercontrollers/ipsNewRecordFromBEER");
 const { postIPSBundle } = require('./servercontrollers/postIPSBundle');
 const { updateIPS, deleteIPS } = require('./servercontrollers/ipsCRUD_UD');
 const { getIPSSearch } = require('./servercontrollers/ipsRecordSearch');
@@ -38,6 +39,7 @@ api.post("/ips", addIPS);
 api.post("/ipsmany", addIPSMany);
 api.post("/ipsbundle", addIPSFromBundle);
 api.post('/pushipsora', postIPSBundle);
+api.post('/ipsfrombeer', addIPSFromBEER);
 
 // API GET - CRUD Read
 api.get("/ips/all", getAllIPS);

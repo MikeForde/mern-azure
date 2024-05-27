@@ -1,6 +1,6 @@
 // servercontrollers/ipsNewRecord.js
 const { IPSModel } = require('../models/IPSModel');
-const { convertIPSBundleToSchema } = require('./convertIPSBundleToSchema');
+const { convertIPSBundleToSchema } = require('./servercontrollerfuncs/convertIPSBundleToSchema');
 
 function addIPSFromBundle(req, res) {
     // Extract IPS Bundle from request body

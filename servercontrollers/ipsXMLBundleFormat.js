@@ -1,7 +1,7 @@
 // Desc: Controller for generating XML bundle format for IPS records
 // const { js2xml } = require('xml-js');
 const { IPSModel } = require('../models/IPSModel');
-const { generateXMLBundle } = require('./generateXMLBundle');
+const { generateXMLBundle } = require('./servercontrollerfuncs/generateXMLBundle');
 const { validate: isValidUUID } = require('uuid');
 
 function getIPSXMLBundle(req, res) {
