@@ -1,0 +1,9 @@
+/* AppComp.css */
+.search-form {
+    display: flex;
+    align-items: center;
+}
+
+.search-form .form-control {
+    margin-right: 10px;
+}

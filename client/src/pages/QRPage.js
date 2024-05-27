@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams } from 'react-router-dom';
 import QRCode from 'qrcode.react';
 import axios from 'axios';
 import { Button, Alert, DropdownButton, Dropdown } from 'react-bootstrap';
@@ -7,24 +6,11 @@ import './Page.css';
 import { PatientContext } from '../PatientContext';
 
 function QRPage() {
-  const { id } = useParams();
   const { selectedPatients, selectedPatient, setSelectedPatient } = useContext(PatientContext);
   const [qrData, setQRData] = useState('');
   const [mode, setMode] = useState('ipsurl');
   const [showNotification, setShowNotification] = useState(false);
   const [responseSize, setResponseSize] = useState(0);
-
-  useEffect(() => {
-    if (selectedPatients.length > 0) {
-      let record;
-      if (id) {
-        record = selectedPatients.find(record => record._id === id);
-      } else {
-        record = selectedPatient || selectedPatients[0]; // Use selected patient or the first one
-      }
-      setSelectedPatient(record);
-    }
-  }, [id, selectedPatients, selectedPatient, setSelectedPatient]);
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find(record => record._id === recordId);
@@ -121,7 +107,7 @@ function QRPage() {
               <Dropdown.Item eventKey="ipsurl">IPS URL</Dropdown.Item>
               <Dropdown.Item eventKey="ips">IPS JSON Bundle</Dropdown.Item>
               <Dropdown.Item eventKey="ipsbasic">IPS Minimal</Dropdown.Item>
-              <Dropdown.Item eventKey="ipsraw">IPS MongoDB Record</Dropdown.Item>
+              <Dropdown.Item eventKey="ipsmongo">IPS MongoDB</Dropdown.Item>
               <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle</Dropdown.Item>
               <Dropdown.Item eventKey="ipsbeer">IPS BEER (newline)</Dropdown.Item>
               <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER with Delimiter (semicolon)</Dropdown.Item>

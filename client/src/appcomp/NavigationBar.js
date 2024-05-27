@@ -1,13 +1,21 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBeer, faBrain, faDownload, faFileMedical, faHome, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { faBeer, faBrain, faDownload, faFileMedical, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
 import { PatientContext } from '../PatientContext';
+import PatientSearch from './PatientSearch'; // Import the new component
 
 function NavigationBar() {
   const { selectedPatients, setSelectedPatient, selectedPatient } = useContext(PatientContext);
   const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    // Update selectedPatient when selectedPatients change
+    if (selectedPatients.length > 0) {
+      setSelectedPatient(selectedPatients[0]);
+    }
+  }, [selectedPatients, setSelectedPatient]);
 
   const handlePatientSelect = (patient) => {
     setSelectedPatient(patient);
@@ -16,6 +24,11 @@ function NavigationBar() {
 
   const handleNavItemSelect = () => {
     setExpanded(false); // Collapse Navbar on any item select
+  };
+
+  // Function to collapse the Navbar
+  const collapseNavbar = () => {
+    setExpanded(false);
   };
 
   return (
@@ -30,14 +43,11 @@ function NavigationBar() {
             alt="IPS Logo"
             style={{ marginRight: '10px' }}
           />
-          IPS MERN Prototype 0_25
+          IPS MERN Prototype 0_26
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link as={Link} to="/" onClick={handleNavItemSelect}>
-              <FontAwesomeIcon icon={faHome} /> Home
-            </Nav.Link>
             <Nav.Link as={Link} to="/api" onClick={handleNavItemSelect}>
               <FontAwesomeIcon icon={faFileMedical} /> API
             </Nav.Link>
@@ -77,15 +87,13 @@ function NavigationBar() {
           {selectedPatients.length > 0 && (
             <Nav>
               <NavDropdown
-                title={selectedPatient ? `Patient: ${selectedPatient.patient.given} ${selectedPatient.patient.name}` : "Selected Patients"}
+                title={selectedPatient ? `${selectedPatient.patient.given} ${selectedPatient.patient.name}` : "Selected Patients"}
                 id="selected-patients-dropdown"
               >
                 {selectedPatients.map((patient) => (
                   <NavDropdown.Item
                     key={patient._id}
-                    onClick={() => handlePatientSelect(patient)} // Set selectedPatient
-                    as={Link}
-                    to="/api" // Navigate to /api without specifying ID
+                    onClick={() => handlePatientSelect(patient)}
                   >
                     {patient.patient.given} {patient.patient.name}
                   </NavDropdown.Item>
@@ -93,6 +101,7 @@ function NavigationBar() {
               </NavDropdown>
             </Nav>
           )}
+          <PatientSearch collapseNavbar={collapseNavbar}/>
         </Navbar.Collapse>
       </Container>
     </Navbar>

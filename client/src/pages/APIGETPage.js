@@ -1,29 +1,15 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Button, Alert, Form, DropdownButton, Dropdown } from 'react-bootstrap';
 import './Page.css';
 import { PatientContext } from '../PatientContext';
 
 function APIGETPage() {
-  const { id } = useParams();
   const { selectedPatients, selectedPatient, setSelectedPatient } = useContext(PatientContext);
   const [data, setData] = useState('');
   const [mode, setMode] = useState('ips');
   const [modeText, setModeText] = useState('IPS JSON Bundle - /ips/:id or /ipsbyname/:name/:given');
   const [showNotification, setShowNotification] = useState(false);
-
-  useEffect(() => {
-    if (selectedPatients.length > 0) {
-      let record;
-      if (id) {
-        record = selectedPatients.find(record => record._id === id);
-      } else {
-        record = selectedPatient || selectedPatients[0]; // Use selected patient or the first one
-      }
-      setSelectedPatient(record);
-    }
-  }, [id, selectedPatients, selectedPatient, setSelectedPatient]);
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find(record => record._id === recordId);
@@ -62,14 +48,6 @@ function APIGETPage() {
     }
   }, [selectedPatient, mode]);
 
-  useEffect(() => {
-    // if (data && mode === 'ips') {
-    //   navigator.clipboard.writeText(data)
-    //     .then(() => console.log('Data copied to clipboard:', data))
-    //     .catch(error => console.error('Error copying data to clipboard:', error));
-    // }
-  }, [data, mode]);
-
   const handleDownloadData = () => {
     const blob = new Blob([data], { type: 'text/plain' });
     const url = window.URL.createObjectURL(blob);
@@ -94,7 +72,7 @@ function APIGETPage() {
         setModeText('IPS Legacy JSON Bundle - /ipslegacy/:id');
         break;
       case 'ipsraw':
-        setModeText('IPS MongoDB Record - /ipsraw/:id');
+        setModeText('IPS MongoDB - /ipsmongo/:id');
         break;
       case 'ipsbasic':
         setModeText('IPS Minimal - /ipsbasic/:id');
@@ -134,7 +112,7 @@ function APIGETPage() {
               <Dropdown.Item eventKey="ips">IPS JSON Bundle - /ips/:id or /ipsbyname/:name/:given</Dropdown.Item>
               <Dropdown.Item eventKey="ipsxml">IPS XML Bundle - /ipsxml/:id</Dropdown.Item>
               <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle - /ipslegacy/:id</Dropdown.Item>
-              <Dropdown.Item eventKey="ipsraw">IPS MongoDB Record - /ipsraw/:id</Dropdown.Item>
+              <Dropdown.Item eventKey="ipsmongo">IPS MongoDB - /ipsmongo/:id</Dropdown.Item>
               <Dropdown.Item eventKey="ipsbasic">IPS Minimal - /ipsbasic/:id</Dropdown.Item>
               <Dropdown.Item eventKey="ipsbeer">IPS BEER - /ipsbeer/:id</Dropdown.Item>
               <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER - /ipsbeer/:id/:delim (semicolon)</Dropdown.Item>

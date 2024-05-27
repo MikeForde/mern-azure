@@ -1,28 +1,14 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Button, Alert, Form, DropdownButton, Dropdown } from 'react-bootstrap';
 import './Page.css';
 import { PatientContext } from '../PatientContext';
 
 function OffRoadPOSTPage() {
-  const { id } = useParams();
   const { selectedPatients, selectedPatient, setSelectedPatient } = useContext(PatientContext);
   const [data, setData] = useState('');
   const [showNotification, setShowNotification] = useState(false);
   const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    if (selectedPatients.length > 0) {
-      let record;
-      if (id) {
-        record = selectedPatients.find(record => record._id === id);
-      } else {
-        record = selectedPatient || selectedPatients[0];
-      }
-      setSelectedPatient(record);
-    }
-  }, [id, selectedPatients, selectedPatient, setSelectedPatient]);
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find(record => record._id === recordId);

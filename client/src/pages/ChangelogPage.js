@@ -230,6 +230,15 @@ function ChangeLogPage() {
                                 <li>BEER format is under development - so this represents an initial attempt</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_26</h5>
+                            <ul>
+                                <li><strong>Added NavBar Search</strong></li>
+                                <li>Search for IPS records based on patient's family/surname</li>
+                                <li>Removed HomePage from NavBar - as same functionality available from clicking on IPS Main Title and Logo</li>
+                                <li>Creates more space for other NavBar items</li>
+                            </ul>
+                        </li>    
                     </ul>
                 </Col>
             </Row>
