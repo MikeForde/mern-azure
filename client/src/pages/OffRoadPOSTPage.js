@@ -48,7 +48,7 @@ function OffRoadPOSTPage() {
     <div className="app">
       <div className="container">
         <h3>VitalsIQ API Page - POST (Push)</h3>
-        {selectedPatients.length > 0 && (
+        {selectedPatients.length > 0 && selectedPatient && (
           <div className="dropdown-container">
             <DropdownButton
               id="dropdown-record"

@@ -92,7 +92,7 @@ function QRPage() {
             <span className="response-size"> - {responseSize} bytes</span>
           )}</h3>
         </div>
-        {selectedPatients.length > 0 && <>
+        {selectedPatients.length > 0 && selectedPatient && <>
           <div className="dropdown-container">
             <DropdownButton id="dropdown-record" title={`Patient: ${selectedPatient.patient.given} ${selectedPatient.patient.name}`} onSelect={handleRecordChange} className="dropdown-button">
               {selectedPatients.map(record => (

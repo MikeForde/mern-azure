@@ -60,7 +60,7 @@ function BEERGardenPage() {
     <div className="app">
       <div className="container">
         <h3>BEER <div className="noteFont">(Basic Emergency Exchange Record)</div></h3>
-        {selectedPatients.length > 0 && (
+        {selectedPatients.length > 0 && selectedPatient && (
           <div className="dropdown-container">
             <DropdownButton
               id="dropdown-record"

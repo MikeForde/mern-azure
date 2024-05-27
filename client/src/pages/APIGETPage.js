@@ -97,7 +97,7 @@ function APIGETPage() {
     <div className="app">
       <div className="container">
         <h3>API GET - IPS Data <div className="noteFont">- /:id can be the IPS id (the main UUID) or the internal MongoDB _id</div></h3>
-        {selectedPatients.length > 0 && <>
+        {selectedPatients.length > 0 && selectedPatient && <>
           <div className="dropdown-container">
             <DropdownButton id="dropdown-record" title={`Patient: ${selectedPatient.patient.given} ${selectedPatient.patient.name}`} onSelect={handleRecordChange} className="dropdown-button">
               {selectedPatients.map(record => (
