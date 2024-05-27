@@ -29,7 +29,7 @@ function getMongoFormatted(req, res) {
           name: ips.patient.name,
           given: ips.patient.given,
           dob: ips.patient.dob,
-          gender: ips.patient.gender[0].toLowerCase(), // First character, lowercased
+          gender: ips.patient.gender,
           practitioner: ips.patient.practitioner,
           nation: ips.patient.nation
         },

@@ -26,13 +26,24 @@ function parseBEER(dataPacket, delimiter) {
     currentIndex++; // Skip version
     const timestamp = new Date(parseInt(lines[currentIndex++], 10) * 1000); // Convert Unix timestamp to JS timestamp
 
+    // Helper function to map gender
+    function mapGender(gender) {
+        const genderMap = {
+            'm': 'Male',
+            'f': 'Female',
+            'u': 'Unknown',
+            'o': 'Other'
+        };
+        return genderMap[gender] || 'Unknown';
+    }
+
     // Parsing basic info
     record.packageUUID = lines[currentIndex++];
     record.patient = {
         name: lines[currentIndex++],
         given: lines[currentIndex++],
         dob: new Date(lines[currentIndex++].replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')), // Convert yyyymmdd to yyyy-mm-dd
-        gender: lines[currentIndex++],
+        gender: mapGender(lines[currentIndex++]),
         practitioner: lines[currentIndex++],
         nation: lines[currentIndex++],
     };
