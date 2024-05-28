@@ -1,17 +1,28 @@
 // servercontrollers/ipsCRUD_UD.js
 const {IPSModel} = require('../models/IPSModel');
+const { ReadPreference } = require('mongodb');
 
 function updateIPS(req, res) {
     const { id } = req.params;
+    const updatedData = req.body;
 
     if (id) {
         IPSModel.findById(id)
             .read(ReadPreference.NEAREST)
             .exec()
             .then((ips) => {
-                ips.save().then((updatedIPS) => {
-                    res.json(updatedIPS);
-                });
+                if (!ips) {
+                    return res.status(404).send("IPS not found.");
+                }
+                
+                // Update IPS with new data
+                Object.assign(ips, updatedData);
+                
+                // Save the updated IPS
+                return ips.save();
+            })
+            .then((updatedIPS) => {
+                res.json(updatedIPS);
             })
             .catch((err) => {
                 res.status(400).send(err);

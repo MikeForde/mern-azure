@@ -36,5 +36,9 @@ ul {
   margin-bottom: 3px; 
 }
 
+.edit-modal {
+  max-width: 1000px; /* Adjust the width as needed */
+}
+
   
   

@@ -70,6 +70,14 @@ function HomePage() {
       });
   };
 
+  const update = (updatedIPS) => {
+    const newIPS = selectedPatients.map((ips) =>
+      ips._id === updatedIPS._id ? updatedIPS : ips
+    );
+    setSelectedPatients(newIPS);
+    setSelectedPatient(updatedIPS);
+  };
+
   const searchPatients = () => {
     server
       .get(`/ips/search/${searchTerm}`)
@@ -122,7 +130,7 @@ function HomePage() {
           {selectedPatients.map((ips) => (
             <Card key={ips._id} onClick={() => setSelectedPatient(ips)}>
               <Card.Body>
-                <IPS ips={ips} remove={remove} />
+                <IPS ips={ips} remove={remove} update={update} />
               </Card.Body>
             </Card>
           ))}

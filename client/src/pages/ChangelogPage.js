@@ -238,7 +238,15 @@ function ChangeLogPage() {
                                 <li>Removed HomePage from NavBar - as same functionality available from clicking on IPS Main Title and Logo</li>
                                 <li>Creates more space for other NavBar items</li>
                             </ul>
-                        </li>    
+                        </li>
+                        <li>
+                            <h5>Version 0_27</h5>
+                            <ul>
+                                <li><strong>Added Edit Functionality</strong></li>
+                                <li>Allows editing of existing IPS records</li>
+                                <li>Added Edit button to individual records on HomePage</li>
+                            </ul>
+                        </li>  
                     </ul>
                 </Col>
             </Row>
