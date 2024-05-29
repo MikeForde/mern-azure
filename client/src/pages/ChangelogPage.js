@@ -246,7 +246,16 @@ function ChangeLogPage() {
                                 <li>Allows editing of existing IPS records</li>
                                 <li>Added Edit button to individual records on HomePage</li>
                             </ul>
-                        </li>  
+                        </li>
+                        <li>
+                            <h5>Version 0_28</h5>
+                            <ul>
+                                <li><strong>Added Spinner</strong></li>
+                                <li>Added Spinner to indicate loading for asynchronous functions</li>
+                                <li>Spinner appears for any action that relies on fetching or posting data</li>
+                                <li>Whether using the internal or external API</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

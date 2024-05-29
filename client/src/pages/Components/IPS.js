@@ -5,6 +5,7 @@ import { faDownload, faFileMedical, faQrcode, faTrash, faBeer, faEdit } from '@f
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { PatientContext } from '../../PatientContext';
+import { useLoading} from '../../contexts/LoadingContext';
 import "./components.css";
 
 const formatDate = (dateString) => {
@@ -20,6 +21,7 @@ export function IPS({ ips, remove, update }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editIPS, setEditIPS] = useState({ ...ips });
   const { setSelectedPatient } = useContext(PatientContext);
+  const { startLoading, stopLoading } = useLoading();
 
   const handleRemove = () => setShowConfirmModal(true);
 
@@ -46,12 +48,14 @@ export function IPS({ ips, remove, update }) {
   };
 
   const handleSaveEdit = () => {
+    startLoading();
     axios.put(`/ips/${ips._id}`, editIPS)
       .then(response => {
         update(response.data);
         setShowEditModal(false);
       })
-      .catch(error => console.error("There was an error updating the IPS record!", error));
+      .catch(error => console.error("There was an error updating the IPS record!", error))
+      .finally(() => stopLoading());
   };
 
   const handleAddItem = (type) => {

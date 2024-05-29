@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Form, Button } from 'react-bootstrap';
+import { useLoading } from '../contexts/LoadingContext';
 
 const IPSOffRoadPage = () => {
   const [name, setName] = useState('');
@@ -9,9 +10,11 @@ const IPSOffRoadPage = () => {
   const [ipsData, setIpsData] = useState(null);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState('');
+  const { startLoading, stopLoading } = useLoading();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    startLoading();
     try {
       const response = await axios.get(`/fetchipsora/${name}/${givenName}`);
       setIpsData(response.data);
@@ -19,6 +22,8 @@ const IPSOffRoadPage = () => {
     } catch (err) {
       setError('Failed to fetch IPS data');
       setIpsData(null);
+    } finally {
+      stopLoading();
     }
   };
 

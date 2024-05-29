@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Button, Alert, Form, DropdownButton, Dropdown } from 'react-bootstrap';
 import './Page.css';
 import { PatientContext } from '../PatientContext';
+import { useLoading } from '../contexts/LoadingContext';
 
 function BEERGardenPage() {
   const { selectedPatients, selectedPatient, setSelectedPatient } = useContext(PatientContext);
@@ -10,9 +11,11 @@ function BEERGardenPage() {
   const [beerData, setBeerData] = useState('');
   const [showNotification, setShowNotification] = useState(false);
   const [message, setMessage] = useState('');
+  const { startLoading, stopLoading } = useLoading();
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find(record => record._id === recordId);
+    startLoading();
     setSelectedPatient(record);
   };
 
@@ -28,11 +31,15 @@ function BEERGardenPage() {
         })
         .catch(error => {
           console.error('Error fetching IPS record:', error);
+        })
+        .finally(() => {
+          stopLoading();
         });
     }
-  }, [selectedPatient]);
+  }, [selectedPatient, stopLoading]);
 
   const handleConvertToBEER = async () => {
+    startLoading();
     try {
       const response = await axios.post('/convertmongo2beer', { data: mongoData });
       setBeerData(response.data);
@@ -41,10 +48,13 @@ function BEERGardenPage() {
     } catch (error) {
       console.error('Error converting to BEER format:', error);
       setShowNotification(true);
+    } finally {
+      stopLoading();
     }
   };
 
   const handleConvertToMongo = async () => {
+    startLoading();
     try {
       const response = await axios.post('/convertbeer2mongo', { data: beerData });
       setMongoData(JSON.stringify(response.data, null, 2));
@@ -53,6 +63,8 @@ function BEERGardenPage() {
     } catch (error) {
       console.error('Error converting to MongoDB format:', error);
       setShowNotification(true);
+    } finally {
+      stopLoading();
     }
   };
 

@@ -6,6 +6,7 @@ import axios from "axios";
 import { FormIPS } from "./Components/FormIPS";
 import { IPS } from "./Components/IPS";
 import { PatientContext } from '../PatientContext';
+import { useLoading } from '../contexts/LoadingContext';
 
 const server = process.env.REACT_APP_API_BASE_URL
   ? axios.create({ baseURL: process.env.REACT_APP_API_BASE_URL })
@@ -14,6 +15,7 @@ const server = process.env.REACT_APP_API_BASE_URL
 function HomePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const { selectedPatients, setSelectedPatients, setSelectedPatient } = useContext(PatientContext);
+  const { startLoading, stopLoading } = useLoading();
 
   const add = (formData) => {
     const cleanedMedication = formData.medication.filter(item => {
@@ -33,6 +35,7 @@ function HomePage() {
     console.log("Form Data", cleanedFormData);
     console.log(JSON.stringify(cleanedFormData, null, 2));
 
+    startLoading();
     server
       .post("/ips", cleanedFormData)
       .then((response) => {
@@ -47,10 +50,14 @@ function HomePage() {
       })
       .catch((error) => {
         console.log("Error", error);
+      })
+      .finally(() => {
+        stopLoading();
       });
   };
 
   const remove = (id) => {
+    startLoading();
     server
       .delete(`/ips/${id}`)
       .then((response) => {
@@ -67,6 +74,9 @@ function HomePage() {
       })
       .catch((error) => {
         console.log("Error", error);
+      })
+      .finally(() => {
+        stopLoading();
       });
   };
 
@@ -79,6 +89,7 @@ function HomePage() {
   };
 
   const searchPatients = () => {
+    startLoading();
     server
       .get(`/ips/search/${searchTerm}`)
       .then((response) => {
@@ -94,6 +105,9 @@ function HomePage() {
       })
       .catch((error) => {
         console.log("Error", error);
+      })
+      .finally(() => {
+        stopLoading();
       });
   };
 

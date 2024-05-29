@@ -4,6 +4,7 @@ import React, { useState, useContext } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import axios from 'axios';
 import { PatientContext } from '../PatientContext';
+import { useLoading } from '../contexts/LoadingContext';
 import './AppComp.css'; // Import the CSS file
 
 const server = process.env.REACT_APP_API_BASE_URL
@@ -13,8 +14,10 @@ const server = process.env.REACT_APP_API_BASE_URL
 function PatientSearch({ collapseNavbar }) { // Accept collapseNavbar prop
   const [searchTerm, setSearchTerm] = useState('');
   const { setSelectedPatients, setSelectedPatient } = useContext(PatientContext);
+  const { startLoading, stopLoading } = useLoading();
 
   const searchPatients = () => {
+    startLoading();
     server
       .get(`/ips/search/${searchTerm}`)
       .then((response) => response.data)
@@ -29,6 +32,9 @@ function PatientSearch({ collapseNavbar }) { // Accept collapseNavbar prop
       })
       .catch((error) => {
         console.log('Error', error);
+      })
+      .finally(() => {
+        stopLoading();
       });
   };
 

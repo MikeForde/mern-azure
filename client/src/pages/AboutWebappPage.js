@@ -3,7 +3,6 @@ import { Container, Row, Col, Card } from 'react-bootstrap';
 
 function AboutWebAppPage() {
     const isHostedOnAzure = window.location.href.includes("mern-webapp-mike.azurewebsites.net");
-
     return (
         <Container className="mt-5">
             <Row>

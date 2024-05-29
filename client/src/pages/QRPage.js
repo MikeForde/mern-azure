@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Button, Alert, DropdownButton, Dropdown } from 'react-bootstrap';
 import './Page.css';
 import { PatientContext } from '../PatientContext';
+import { useLoading } from '../contexts/LoadingContext';
 
 function QRPage() {
   const { selectedPatients, selectedPatient, setSelectedPatient } = useContext(PatientContext);
@@ -11,9 +12,12 @@ function QRPage() {
   const [mode, setMode] = useState('ipsurl');
   const [showNotification, setShowNotification] = useState(false);
   const [responseSize, setResponseSize] = useState(0);
+  const { startLoading, stopLoading } = useLoading();
+
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find(record => record._id === recordId);
+    startLoading();
     setSelectedPatient(record);
   };
 
@@ -35,6 +39,7 @@ function QRPage() {
         setQRData(url);
         setResponseSize(url.length);
         setShowNotification(false);
+        stopLoading();
       } else {
         axios.get(endpoint)
           .then(response => {
@@ -60,10 +65,13 @@ function QRPage() {
           })
           .catch(error => {
             console.error('Error fetching IPS record:', error);
+          })
+          .finally(() => {
+            stopLoading();
           });
       }
     }
-  }, [selectedPatient, mode]);
+  }, [selectedPatient, mode, stopLoading]);
 
   const handleDownloadQR = () => {
     const canvas = document.getElementById('qr-canvas');
@@ -77,6 +85,7 @@ function QRPage() {
   };
 
   const handleModeChange = (selectedMode) => {
+    startLoading();
     setMode(selectedMode);
   };
 

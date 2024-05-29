@@ -3,15 +3,18 @@ import axios from 'axios';
 import { Button, Alert, Form, DropdownButton, Dropdown } from 'react-bootstrap';
 import './Page.css';
 import { PatientContext } from '../PatientContext';
+import { useLoading } from '../contexts/LoadingContext';
 
 function OffRoadPOSTPage() {
   const { selectedPatients, selectedPatient, setSelectedPatient } = useContext(PatientContext);
   const [data, setData] = useState('');
   const [showNotification, setShowNotification] = useState(false);
   const [message, setMessage] = useState('');
+  const { startLoading, stopLoading } = useLoading();
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find(record => record._id === recordId);
+    startLoading();
     setSelectedPatient(record);
   };
 
@@ -28,11 +31,15 @@ function OffRoadPOSTPage() {
         })
         .catch(error => {
           console.error('Error fetching IPS record:', error);
+        })
+        .finally(() => {
+          stopLoading();
         });
     }
-  }, [selectedPatient]);
+  }, [selectedPatient, stopLoading]);
 
   const handlePushIPS = async () => {
+    startLoading();
     try {
       const ipsData = JSON.parse(data);
       await axios.post('/pushipsora', ipsData);
@@ -41,6 +48,8 @@ function OffRoadPOSTPage() {
     } catch (error) {
       console.error('Error pushing IPS data:', error);
       setShowNotification(true);
+    } finally {
+      stopLoading();
     }
   };
 

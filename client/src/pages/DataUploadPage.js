@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Button, Modal, Form } from 'react-bootstrap';
 import axios from 'axios';
 import './Page.css';
+import { useLoading } from '../contexts/LoadingContext';
 
 function DataUploadPage() {
   const [data, setData] = useState('');
   const [validatedRecords, setValidatedRecords] = useState([]);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showNoRecordsPassed, setShowNoRecordsPassed] = useState(false);
+  const { startLoading, stopLoading } = useLoading();
 
   const handleUpload = () => {
     // Check if data is empty
@@ -198,7 +200,7 @@ function DataUploadPage() {
 
   const handleSubmit = () => {
     setShowConfirmationModal(false);
-
+    startLoading();
     //Send the IPS records to the server
     axios.post('/ipsmany', validatedRecords)
       .then(response => {
@@ -208,6 +210,10 @@ function DataUploadPage() {
       .catch(error => {
         console.error('Error uploading data:', error);
         // Add your logic here to handle errors
+      })
+      .finally(() => {
+        // Stop the loading spinner
+        stopLoading();
       });
 
     // Clear the data entry textbox
