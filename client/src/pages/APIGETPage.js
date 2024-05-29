@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext} from 'react';
 import axios from 'axios';
 import { Button, Alert, Form, DropdownButton, Dropdown } from 'react-bootstrap';
 import './Page.css';
@@ -53,7 +53,7 @@ function APIGETPage() {
 
       fetchData();
     }
-  }, [selectedPatient, mode, stopLoading]);
+  }, [selectedPatient, mode, stopLoading, startLoading]);
 
   const handleDownloadData = () => {
     const blob = new Blob([data], { type: 'text/plain' });

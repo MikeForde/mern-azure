@@ -32,7 +32,10 @@ export function IPS({ ips, remove, update }) {
 
   const handleCancelDelete = () => setShowConfirmModal(false);
 
-  const handleSelection = () => setSelectedPatient([ips]);
+  const handleSelection = () => {
+    setSelectedPatient([ips])
+    startLoading();
+  };
 
   const handleEdit = () => setShowEditModal(true);
 
