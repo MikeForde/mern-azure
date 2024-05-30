@@ -1,4 +1,3 @@
-
 function convertIPSBundleToSchema(ipsBundle) {
     const { id: packageUUID, entry } = ipsBundle;
 
@@ -6,10 +5,11 @@ function convertIPSBundleToSchema(ipsBundle) {
     let patient = {};
     let dosage = "";
 
-    // Initialize arrays to store medication and allergy information
+    // Initialize arrays to store medication, allergy, condition, and observation information
     let medication = [];
     let allergies = [];
     let conditions = [];
+    let observations = [];
 
     // Iterate over each entry in the IPS Bundle
     for (const entryItem of entry) {
@@ -25,7 +25,7 @@ function convertIPSBundleToSchema(ipsBundle) {
                 patient.nation = resource.address[0].country;
                 break;
             case "Practitioner":
-                if(resource.name[0].text !== undefined){
+                if (resource.name[0].text !== undefined) {
                     patient.practitioner = resource.name[0].text;
                 } else if (resource.name[0].family !== undefined) {
                     patient.practitioner = resource.name[0].family + ", " + resource.name[0].given[0];
@@ -34,38 +34,30 @@ function convertIPSBundleToSchema(ipsBundle) {
                 }
                 break;
             case "MedicationStatement":
-                if(resource.dosage[0].text !== undefined){
+                if (resource.dosage[0].text !== undefined) {
                     dosage = resource.dosage[0].text;
                 } else {
                     dosage = resource.dosage[0].doseAndRate[0].doseQuantity.value + " " + resource.dosage[0].doseAndRate[0].doseQuantity.unit;
-                    if(resource.dosage[0].timing !== undefined){
+                    if (resource.dosage[0].timing !== undefined) {
                         dosage += " " + resource.dosage[0].timing.repeat.frequency + resource.dosage[0].timing.repeat.periodUnit;
-                    console.log("not undefined");   
                     }
                 }
                 medication.push({
                     name: resource.medicationReference.display,
                     date: new Date(resource.effectivePeriod.start).toISOString(),
-                    dosage: dosage    
+                    dosage: dosage
                 });
                 break;
             case "MedicationRequest":
-                if(resource.dosageInstruction[0].text !== undefined){
+                if (resource.dosageInstruction[0].text !== undefined) {
                     dosage = resource.dosageInstruction[0].text;
                 } else {
                     dosage = "unknown";
                 }
-                // } else {
-                //     dosage = resource.dosage[0].doseAndRate[0].doseQuantity.value + " " + resource.dosage[0].doseAndRate[0].doseQuantity.unit;
-                //     if(resource.dosage[0].timing !== undefined){
-                //         dosage += " " + resource.dosage[0].timing.repeat.frequency + resource.dosage[0].timing.repeat.periodUnit;
-                //     console.log("not undefined");   
-                //     }
-                // }
                 medication.push({
                     name: resource.medicationReference.display,
                     date: new Date(resource.authoredOn).toISOString(),
-                    dosage: dosage    
+                    dosage: dosage
                 });
                 break;
             case "AllergyIntolerance":
@@ -79,15 +71,27 @@ function convertIPSBundleToSchema(ipsBundle) {
                 conditions.push({
                     name: resource.code.coding[0].display,
                     // If not onsetDateTime, use the current date
-                    date: (resource.onsetDateTime !==undefined) ? new Date(resource.onsetDateTime).toISOString(): new Date().toISOString()
+                    date: (resource.onsetDateTime !== undefined) ? new Date(resource.onsetDateTime).toISOString() : new Date().toISOString()
                 });
+                break;
+            case "Observation":
+                const observation = {
+                    name: resource.code.coding[0].display,
+                    date: new Date(resource.effectiveDateTime).toISOString()
+                };
+                if (resource.valueQuantity !== undefined) {
+                    observation.value = `${resource.valueQuantity.value} ${resource.valueQuantity.unit}`;
+                } else if (resource.bodySite !== undefined) {
+                    observation.value = resource.bodySite.coding[0].display;
+                }
+                observations.push(observation);
                 break;
             default:
                 break;
         }
     }
 
-    return { packageUUID, patient, medication, allergies, conditions };
+    return { packageUUID, patient, medication, allergies, conditions, observations };
 }
 
 module.exports = { convertIPSBundleToSchema };

@@ -7,11 +7,12 @@ function generateXMLBundle(ipsRecord) {
     const practitionerUUID = uuidv4();
     const organizationUUID = uuidv4();
 
-    // Generate UUIDs for MedicationStatement, Medication, AllergyIntolerance
+    // Generate UUIDs for MedicationStatement, Medication, AllergyIntolerance, Condition, Observation
     const medicationStatementUUIDs = ipsRecord.medication.map(() => uuidv4());
     const medicationUUIDs = ipsRecord.medication.map(() => uuidv4());
     const allergyIntoleranceUUIDs = ipsRecord.allergies.map(() => uuidv4());
     const conditionUUIDs = ipsRecord.conditions.map(() => uuidv4());
+    const observationUUIDs = ipsRecord.observations.map(() => uuidv4());
 
     // Get current date/time
     const currentDateTime = new Date().toISOString();
@@ -84,7 +85,7 @@ function generateXMLBundle(ipsRecord) {
         xml += `
                     <entry>
                         <reference value="AllergyIntolerance/${allergyIntoleranceUUID}"/>
-                    </entry>`;              
+                    </entry>`;
     });
 
     // Close Allergies section and start Conditions section
@@ -107,7 +108,28 @@ function generateXMLBundle(ipsRecord) {
                         <reference value="Condition/${conditionUUID}"/>
                     </entry>`;
     });
-    
+
+    // Close Conditions section and start Observations section
+    xml += `
+                </section>
+                <section>
+                    <title value="Observations"/>
+                    <code>
+                        <coding>
+                            <system value="http://loinc.org"/>
+                            <code value="57016-8"/>
+                            <display value="Vital signs Document"/>
+                        </coding>
+                    </code>`;
+
+    // Add Observation entries to Composition section
+    observationUUIDs.forEach((observationUUID) => {
+        xml += `
+                    <entry>
+                        <reference value="Observation/${observationUUID}"/>
+                    </entry>`;
+    });
+
     // Close Composition resource
     xml += `
                 </section>
@@ -237,6 +259,58 @@ function generateXMLBundle(ipsRecord) {
                 </subject>
                 <onsetDateTime value="${condition.date.toISOString()}"/>
             </Condition>
+        </resource>
+    </entry>`;
+    });
+
+// Add Observation entries
+ipsRecord.observations.forEach((observation, index) => {
+    xml += `
+    <entry>
+        <resource>
+            <Observation>
+                <id value="${observationUUIDs[index]}"/>
+                <code>
+                    <coding>
+                        <display value="${observation.name}"/>
+                    </coding>
+                </code>
+                <subject>
+                    <reference value="Patient/${patientUUID}"/>
+                </subject>
+                <effectiveDateTime value="${observation.date.toISOString()}"/>`;
+
+    // Check if observation value is present and determine its type
+    if (observation.value) {
+        const value = observation.value.trim();
+
+        // Regex to separate numeric part and unit
+        const match = value.match(/^(\d+)(\D*)$/);
+
+        if (match) {
+            const numericValue = match[1];
+            const unit = match[2];
+            xml += `
+                <valueQuantity>
+                    <value value="${numericValue}"/>
+                    <unit value="${unit}"/>
+                    <system value="http://unitsofmeasure.org"/>
+                    <code value="${unit}"/>
+                </valueQuantity>`;
+        } else {
+            // If no match, treat it as bodySite
+            xml += `
+                <bodySite>
+                    <coding>
+                        <display value="${value}"/>
+                    </coding>
+                </bodySite>`;
+        }
+    }
+
+        // Close Observation resource
+        xml += `
+            </Observation>
         </resource>
     </entry>`;
     });

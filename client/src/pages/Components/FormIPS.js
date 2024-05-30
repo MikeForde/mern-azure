@@ -18,6 +18,7 @@ export function FormIPS({ add }) {
     medication: [{ name: "", date: "", dosage: "" }],
     allergies: [{ name: "", criticality: "", date: "" }],
     conditions: [{ name: "", date: "" }],
+    observations: [{ name: "", date: "", value: "" }],
   });
 
   const [showAlert, setShowAlert] = useState(false);
@@ -63,6 +64,16 @@ export function FormIPS({ add }) {
     });
   };
 
+  const handleObservationChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedObservations = [...formData.observations];
+    updatedObservations[index][name] = value;
+    setFormData({
+      ...formData,
+      observations: updatedObservations,
+    });
+  };
+
   const handleAddMedication = () => {
     setFormData({
       ...formData,
@@ -81,6 +92,13 @@ export function FormIPS({ add }) {
     setFormData({
       ...formData,
       conditions: [...formData.conditions, { name: "", date: "" }],
+    });
+  };
+
+  const handleAddObservation = () => {
+    setFormData({
+      ...formData,
+      observations: [...formData.observations, { name: "", date: "", value: "" }],
     });
   };
 
@@ -120,6 +138,7 @@ export function FormIPS({ add }) {
       medication: [{ name: "", date: "", dosage: "" }],
       allergies: [{ name: "", criticality: "", date: "" }],
       conditions: [{ name: "", date: "" }],
+      observations: [{ name: "", date: "", value: "" }],
     });
   };
 
@@ -314,6 +333,44 @@ export function FormIPS({ add }) {
                     value={condition.date}
                     onChange={(e) => handleConditionChange(index, e)}
                     placeholder="Date" />
+                </div>
+              </Form.Group>
+            </div>
+          ))}
+          <Button className="mb-3 minor-button" onClick={handleAddObservation}>Add Observation</Button>
+          {formData.observations.map((observation, index) => (
+            <div key={index}>
+              <Form.Group className="row">
+                <Form.Label className="col-sm-2">Observation</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="text"
+                    name="name"
+                    value={observation.name}
+                    onChange={(e) => handleObservationChange(index, e)}
+                    placeholder="Observation Name" />
+                </div>
+              </Form.Group>
+              <Form.Group className="row">
+                <Form.Label className="col-sm-2">Date</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="date"
+                    name="date"
+                    value={observation.date}
+                    onChange={(e) => handleObservationChange(index, e)}
+                    placeholder="Date" />
+                </div>
+              </Form.Group>
+              <Form.Group className="row">
+                <Form.Label className="col-sm-2">Value</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="text"
+                    name="value"
+                    value={observation.value}
+                    onChange={(e) => handleObservationChange(index, e)}
+                    placeholder="Value" />
                 </div>
               </Form.Group>
             </div>

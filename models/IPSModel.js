@@ -53,6 +53,13 @@ const IPSModel = mongoose.model(
                 date: Date
             }
         ],
+        observations: [
+            {
+                name: String,
+                date: Date,
+                value: String
+            }
+        ],
     })
 );
 

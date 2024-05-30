@@ -1,5 +1,8 @@
 const { v4: uuidv4 } = require('uuid');
 
+// Helper function to check if a string contains a number
+const containsNumber = (str) => /\d/.test(str);
+
 function generateIPSBundle(ipsRecord) {
     // Generate UUIDs
     const compositionUUID = uuidv4();
@@ -109,6 +112,55 @@ function generateIPSBundle(ipsRecord) {
         };
     });
 
+    // Construct Observation resources
+    const observations = ipsRecord.observations.map((observation, index) => {
+        const observationUUID = uuidv4();
+        let observationResource = {
+            "fullUrl": `urn:uuid:${observationUUID}`,
+            "resource": {
+                "resourceType": "Observation",
+                "id": observationUUID,
+                "code": {
+                    "coding": [
+                        {
+                            "display": observation.name
+                        }
+                    ]
+                },
+                "subject": {
+                    "reference": `Patient/${patientUUID}`
+                },
+                "effectiveDateTime": observation.date
+            }
+        };
+
+        if (observation.value) {
+            if (containsNumber(observation.value)) {
+                // Value contains a number, assume it's numerical value with units
+                const valueMatch = observation.value.match(/(\d+)(\D+)/);
+                if (valueMatch) {
+                    observationResource.resource.valueQuantity = {
+                        value: parseFloat(valueMatch[1]),
+                        unit: valueMatch[2].trim(),
+                        system: "http://unitsofmeasure.org",
+                        code: valueMatch[2].trim()
+                    };
+                }
+            } else {
+                // Value is just text, assume it's body site related
+                observationResource.resource.bodySite = {
+                    coding: [
+                        {
+                            display: observation.value
+                        }
+                    ]
+                };
+            }
+        }
+
+        return observationResource;
+    });
+
     // Construct Composition resource
     const composition = {
         "fullUrl": `urn:uuid:${compositionUUID}`,
@@ -182,6 +234,21 @@ function generateIPSBundle(ipsRecord) {
                     "entry": conditions.map((condition) => ({
                         "reference": `Condition/${condition.resource.id}`
                     }))
+                },
+                {
+                    "title": "Observations",
+                    "code": {
+                        "coding": [
+                            {
+                                "system": "http://loinc.org",
+                                "code": "61150-9",
+                                "display": "Vital signs, weight, length, head circumference, oxygen saturation and BMI Panel"
+                            }
+                        ]
+                    },
+                    "entry": observations.map((observation) => ({
+                        "reference": `Observation/${observation.resource.id}`
+                    }))
                 }
             ]
         }
@@ -243,7 +310,8 @@ function generateIPSBundle(ipsRecord) {
             ...medicationStatements,
             ...medications,
             ...allergyIntolerances,
-            ...conditions
+            ...conditions,
+            ...observations
         ]
     };
 

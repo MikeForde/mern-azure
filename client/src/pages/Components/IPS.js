@@ -64,7 +64,7 @@ export function IPS({ ips, remove, update }) {
   const handleAddItem = (type) => {
     setEditIPS((prev) => ({
       ...prev,
-      [type]: [...prev[type], { name: '', date: '', dosage: '', criticality: '' }],
+      [type]: [...prev[type], { name: '', date: '', dosage: '', criticality: '', value: ''}],
     }));
   };
 
@@ -133,6 +133,14 @@ export function IPS({ ips, remove, update }) {
               {ips.conditions.map((condition, index) => (
                 <li key={index}>
                   <small>C:</small> {condition.name} - Date: {formatDate(condition.date)}
+                </li>
+              ))}
+            </ul>
+            <h4>Observations:</h4>
+            <ul>
+              {ips.observations.map((observation, index) => (
+                <li key={index}>
+                  <small>O:</small> {observation.name} - Date: {formatDate(observation.date)} - Value: {observation.value}
                 </li>
               ))}
             </ul>
@@ -402,6 +410,50 @@ export function IPS({ ips, remove, update }) {
             ))}
             <Button variant="primary" onClick={() => handleAddItem('conditions')}>
               Add Condition
+            </Button>
+
+            <h4>Observations:</h4>
+            {editIPS.observations.map((observation, index) => (
+              <Row key={index} className="align-items-center">
+                <Col>
+                  <Form.Group controlId={`observationName-${index}`}>
+                    <Form.Control
+                      type="text"
+                      name="name"
+                      value={observation.name}
+                      onChange={(e) => handleChangeItem('observations', index, e)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col xs={2}>
+                  <Form.Group controlId={`observationDate-${index}`}>
+                    <Form.Control
+                      type="date"
+                      name="date"
+                      value={observation.date.split("T")[0]}
+                      onChange={(e) => handleChangeItem('observations', index, e)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col>
+                  <Form.Group controlId={`observationValue-${index}`}>
+                    <Form.Control
+                      type="text"
+                      name="value"
+                      value={observation.value}
+                      onChange={(e) => handleChangeItem('observations', index, e)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col xs="auto">
+                  <Button variant="outline-danger" className="custom-button" onClick={() => handleRemoveItem('observations', index)}>
+                    <FontAwesomeIcon icon={faTrash} />
+                  </Button>
+                </Col>
+              </Row>
+            ))}
+            <Button variant="primary" onClick={() => handleAddItem('observations')}>
+              Add Observation
             </Button>
           </Form>
         </Modal.Body>

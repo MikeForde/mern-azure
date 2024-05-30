@@ -46,6 +46,11 @@ function getMongoFormatted(req, res) {
         conditions: ips.conditions.map(condition => ({
           name: condition.name,
           date: condition.date
+        })),
+        observations: ips.observations.map(observation => ({
+          name: observation.name,
+          date: observation.date,
+          value: observation.value
         }))
       };
 

@@ -256,6 +256,16 @@ function ChangeLogPage() {
                                 <li>Whether using the internal or external API</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_29</h5>
+                            <ul>
+                                <li><strong>Added Observation Resource</strong></li>
+                                <li>Added Observation resource to IPS Bundle</li>
+                                <li>Observation resource is optional and can be added to IPS Bundle</li>
+                                <li>Observation resource includes a code, value, and date</li>
+                                <li>Depending on the value it will converted to a valueQuantity or a body site or plain entry</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

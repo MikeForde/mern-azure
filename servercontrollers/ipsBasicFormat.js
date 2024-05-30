@@ -57,6 +57,13 @@ const getIPSBasic = (req, res) => {
             basicInfo += `C:\r\n${condition.name}\r\n${conditionDate}\r\n`;
         });
 
+        // Append observation information
+        ipsRecord.observations.forEach((observation) => {
+            // Format observation date to yyyy-mm-dd
+            const observationDate = observation.date.toISOString().substring(0, 10);
+            basicInfo += `O:\r\n${observation.name}\r\n${observationDate}\r\n${observation.value}\r\n`;
+        });
+
         // Send the plain text response
         res.set('Content-Type', 'text/plain');
         res.send(basicInfo);
