@@ -275,6 +275,7 @@ export function FormIPS({ add }) {
                   <Form.Control
                     type="text"
                     name="dosage"
+                    defaultValue="Stat"
                     value={med.dosage}
                     onChange={(e) => handleMedicationChange(index, e)}
                     placeholder="Dosage" />
@@ -300,11 +301,15 @@ export function FormIPS({ add }) {
                 <Form.Label className="col-sm-2">Criticality</Form.Label>
                 <div className="col-sm-10">
                   <Form.Control
-                    type="text"
+                    as="select"
                     name="criticality"
                     value={allergy.criticality}
                     onChange={(e) => handleAllergyChange(index, e)}
-                    placeholder="Criticality" />
+                    placeholder="Criticality" >
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </Form.Control>`
                 </div>
               </Form.Group>
               <Form.Group className="row">
@@ -354,11 +359,27 @@ export function FormIPS({ add }) {
                 <Form.Label className="col-sm-2">Observation</Form.Label>
                 <div className="col-sm-10">
                   <Form.Control
+                    as="select"
+                    name="name"
+                    value={observation.name}
+                    onChange={(e) => handleObservationChange(index, e)}
+                  >
+                    <option value="">Select an observation or enter custom</option>
+                    <option value="Blood Pressure">Blood Pressure</option>
+                    <option value="Pulse">Pulse</option>
+                    <option value="Resp Rate">Resp Rate</option>
+                    <option value="Temperature">Temperature</option>
+                    <option value="Oxygen Sats">Oxygen Sats</option>
+                    <option value="AVPU">AVPU</option>
+                  </Form.Control>
+                  <Form.Control
                     type="text"
                     name="name"
                     value={observation.name}
                     onChange={(e) => handleObservationChange(index, e)}
-                    placeholder="Observation Name" />
+                    placeholder="Custom Observation"
+                    className="mt-2"
+                  />
                 </div>
               </Form.Group>
               <Form.Group className="row">
@@ -385,6 +406,7 @@ export function FormIPS({ add }) {
               </Form.Group>
             </div>
           ))}
+
           <Button className="submit" variant="primary" type="submit">Submit IPS Data</Button>
           <Toast show={showAlert} onClose={() => setShowAlert(false)} bg="danger" className="fixed-bottom m-3">
             <Toast.Body>Please fill in all required fields.</Toast.Body>

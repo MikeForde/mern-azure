@@ -5,7 +5,7 @@ import { faDownload, faFileMedical, faQrcode, faTrash, faBeer, faEdit } from '@f
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { PatientContext } from '../../PatientContext';
-import { useLoading} from '../../contexts/LoadingContext';
+import { useLoading } from '../../contexts/LoadingContext';
 import "./components.css";
 
 const formatDate = (dateString) => {
@@ -64,7 +64,7 @@ export function IPS({ ips, remove, update }) {
   const handleAddItem = (type) => {
     setEditIPS((prev) => ({
       ...prev,
-      [type]: [...prev[type], { name: '', date: '', dosage: '', criticality: '', value: ''}],
+      [type]: [...prev[type], { name: '', date: '', dosage: '', criticality: '', value: '' }],
     }));
   };
 
@@ -299,6 +299,7 @@ export function IPS({ ips, remove, update }) {
                     <Form.Control
                       type="text"
                       name="name"
+                      placeholder="Medication"
                       value={med.name}
                       onChange={(e) => handleChangeItem('medication', index, e)}
                     />
@@ -319,6 +320,7 @@ export function IPS({ ips, remove, update }) {
                     <Form.Control
                       type="text"
                       name="dosage"
+                      placeholder="Dosage"
                       value={med.dosage}
                       onChange={(e) => handleChangeItem('medication', index, e)}
                     />
@@ -343,6 +345,7 @@ export function IPS({ ips, remove, update }) {
                     <Form.Control
                       type="text"
                       name="name"
+                      placeholder="Allergy"
                       value={allergy.name}
                       onChange={(e) => handleChangeItem('allergies', index, e)}
                     />
@@ -351,11 +354,16 @@ export function IPS({ ips, remove, update }) {
                 <Col xs={2}>
                   <Form.Group controlId={`allergyCriticality-${index}`}>
                     <Form.Control
-                      type="text"
+                      as="select"
                       name="criticality"
+                      placeholder="Criticality:High/Moderate/Low"
                       value={allergy.criticality}
                       onChange={(e) => handleChangeItem('allergies', index, e)}
-                    />
+                    >
+                      <option value="High">High</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Low">Low</option>
+                    </Form.Control>
                   </Form.Group>
                 </Col>
                 <Col xs={2}>
@@ -419,10 +427,26 @@ export function IPS({ ips, remove, update }) {
                 <Col>
                   <Form.Group controlId={`observationName-${index}`}>
                     <Form.Control
+                      as="select"
+                      name="name"
+                      value={observation.name}
+                      onChange={(e) => handleChangeItem('observations', index, e)}
+                    >
+                      <option value="">Select an observation or enter custom</option>
+                      <option value="Blood Pressure">Blood Pressure</option>
+                      <option value="Pulse">Pulse</option>
+                      <option value="Resp Rate">Resp Rate</option>
+                      <option value="Temperature">Temperature</option>
+                      <option value="Oxygen Sats">Oxygen Sats</option>
+                      <option value="AVPU">AVPU</option>
+                    </Form.Control>
+                    <Form.Control
                       type="text"
                       name="name"
                       value={observation.name}
                       onChange={(e) => handleChangeItem('observations', index, e)}
+                      placeholder="Custom Observation"
+                      className="mt-2"
                     />
                   </Form.Group>
                 </Col>
@@ -437,6 +461,7 @@ export function IPS({ ips, remove, update }) {
                   </Form.Group>
                 </Col>
                 <Col>
+                  <h6>Numerical=Vitals, Text=Body site else blank</h6>
                   <Form.Group controlId={`observationValue-${index}`}>
                     <Form.Control
                       type="text"
@@ -456,6 +481,7 @@ export function IPS({ ips, remove, update }) {
             <Button variant="primary" onClick={() => handleAddItem('observations')}>
               Add Observation
             </Button>
+
           </Form>
         </Modal.Body>
         <Modal.Footer>

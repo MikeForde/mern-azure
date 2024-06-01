@@ -23,7 +23,7 @@ function HomePage() {
     });
 
     const cleanedAllergies = formData.allergies.filter(item => {
-      return item.name.trim() !== "" || item.severity.trim() !== "" || item.date.trim() !== "";
+      return item.name.trim() !== "" || item.criticality.trim() !== "" || item.date.trim() !== "";
     });
 
     const cleanedConditions = formData.conditions.filter(item => {

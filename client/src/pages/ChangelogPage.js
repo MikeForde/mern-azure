@@ -261,9 +261,8 @@ function ChangeLogPage() {
                             <ul>
                                 <li><strong>Added Observation Resource</strong></li>
                                 <li>Added Observation resource to IPS Bundle</li>
-                                <li>Observation resource is optional and can be added to IPS Bundle</li>
                                 <li>Observation resource includes a code, value, and date</li>
-                                <li>Depending on the value it will converted to a valueQuantity or a body site or plain entry</li>
+                                <li>If value start numerical then valueQuantity, if just text then bodySite, if blank then simple ob e.g. symptom</li>
                             </ul>
                         </li>
                         <li>
@@ -271,9 +270,17 @@ function ChangeLogPage() {
                             <ul>
                                 <li><strong>Added TimeStamp</strong></li>
                                 <li>Addded fixed TimeStamp - previously generated on the fly</li>
-                                <li>TimeStamp is now fixed at the time of record creation</li>
-                                <li>Whether manual addition or Data Upload.</li>
-                                <li>If API GET used then the TimeStamp is the time of the GET request</li>
+                                <li>Good idea in general but particularly aides BEER development</li>
+                                <li>Generated whether by manual addition or Data Upload.</li>
+                                <li>If API GET used then the TimeStamp is the that provided by the IPS JSON bundle fetched</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <h5>Version 0_31</h5>
+                            <ul>
+                                <li><strong>Added Observation and Allergy Dropdowns</strong></li>
+                                <li>Observation dropdown for quick vital signs - temperature, blood pressure, pulse, respiration etc</li>
+                                <li>Allergy dropdown for criticality - low, medium, high</li>                   
                             </ul>
                         </li>
                     </ul>

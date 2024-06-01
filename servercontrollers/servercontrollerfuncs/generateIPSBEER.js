@@ -45,7 +45,7 @@ function generateIPSBEER(ipsRecord, delimiter) {
             basicInfo += `${medName}${delimiter}`;
 
             const medTimes = medEntries.map(med => {
-                const diffMs = new Date(med.date) - currentTimestamp;
+                const diffMs = new Date(med.date) - ipsRecord.timeStamp;
                 const diffMinutes = Math.round(diffMs / 60000);
 
                 // Express time in minutes if within 24 hours, otherwise in yyyymmdd
