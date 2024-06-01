@@ -266,6 +266,16 @@ function ChangeLogPage() {
                                 <li>Depending on the value it will converted to a valueQuantity or a body site or plain entry</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_30</h5>
+                            <ul>
+                                <li><strong>Added TimeStamp</strong></li>
+                                <li>Addded fixed TimeStamp - previously generated on the fly</li>
+                                <li>TimeStamp is now fixed at the time of record creation</li>
+                                <li>Whether manual addition or Data Upload.</li>
+                                <li>If API GET used then the TimeStamp is the time of the GET request</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

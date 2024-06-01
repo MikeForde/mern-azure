@@ -27,6 +27,7 @@ function getIPSLegacyBundle(req, res) {
             const bundle = {
                 resourceType: "Bundle",
                 id: ips.packageUUID, // First ID is the packageUUID
+                timestamp: ips.timeStamp, // Time stamp
                 type: "collection",
                 total: 2 + (ips.medication.length * 2) + ips.allergies.length + ips.conditions.length + ips.observations.length, // Total resources
                 entry: [

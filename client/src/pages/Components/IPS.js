@@ -105,6 +105,7 @@ export function IPS({ ips, remove, update }) {
         )}
         {expanded && (
           <>
+            <h5>Timestamp: {formatDate(ips.timeStamp)}</h5>
             <h4>Patient Details:</h4>
             <p>Name: {ips.patient.name}</p>
             <p>Given Name: {ips.patient.given}</p>

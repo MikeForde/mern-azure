@@ -24,7 +24,6 @@ function parseBEER(dataPacket, delimiter) {
         throw new Error('Unsupported version');
     }
     currentIndex++; // Skip version
-    const timestamp = new Date(parseInt(lines[currentIndex++], 10) * 1000); // Convert Unix timestamp to JS timestamp
 
     // Helper function to map gender
     function mapGender(gender) {
@@ -39,6 +38,7 @@ function parseBEER(dataPacket, delimiter) {
 
     // Parsing basic info
     record.packageUUID = lines[currentIndex++];
+    record.timestamp = new Date(parseInt(lines[currentIndex++], 10) * 1000); // Convert Unix timestamp to JS timestamp
     record.patient = {
         name: lines[currentIndex++],
         given: lines[currentIndex++],
@@ -61,7 +61,7 @@ function parseBEER(dataPacket, delimiter) {
             const name = lines[currentIndex++];
             const dates = lines[currentIndex++].split(', ').map(min => {
                 if (/^\d+$/.test(min)) {
-                    return new Date(timestamp.getTime() + min * 60000);
+                    return new Date(record.timestamp.getTime() + min * 60000);
                 } else {
                     return new Date(min.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
                 }
@@ -92,7 +92,7 @@ function parseBEER(dataPacket, delimiter) {
             const name = lines[currentIndex++];
             const date = lines[currentIndex++];
             const formattedDate = /^\d+$/.test(date)
-                ? new Date(timestamp.getTime() + date * 60000)
+                ? new Date(record.timestamp.getTime() + date * 60000)
                 : new Date(date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
             conditions.push({ name, date: formattedDate });
         }

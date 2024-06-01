@@ -25,6 +25,7 @@ function getMongoFormatted(req, res) {
       // Format the response data
       const formattedData = {
         packageUUID: ips.packageUUID,
+        timeStamp: ips.timeStamp,
         patient: {
           name: ips.patient.name,
           given: ips.patient.given,

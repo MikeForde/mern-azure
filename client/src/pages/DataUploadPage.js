@@ -62,6 +62,8 @@ function DataUploadPage() {
       ];
       if (genderFull) { genderFinal = genderFull; }
 
+      const timeStamp = new Date().toISOString();
+
       // Create medication array
       const medication = [];
       if (rest[0]) {
@@ -159,6 +161,7 @@ function DataUploadPage() {
 
       return {
         packageUUID,
+        timeStamp,
         patient: {
           name,
           given,

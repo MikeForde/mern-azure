@@ -260,7 +260,7 @@ function generateIPSBundle(ipsRecord) {
         "resourceType": "Bundle",
         "id": ipsRecord.packageUUID,
         "type": "document",
-        "timestamp": currentDateTime,
+        "timestamp": ipsRecord.timeStamp.toISOString(),
         "entry": [
             // Composition entry - arguably nugatory but required for FHIR compliance
             composition,

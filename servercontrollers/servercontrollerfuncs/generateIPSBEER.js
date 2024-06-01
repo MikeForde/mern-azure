@@ -16,8 +16,8 @@ function generateIPSBEER(ipsRecord, delimiter) {
     // Basic information
     let basicInfo = `H9${delimiter}`;
     basicInfo += `1${delimiter}`;
-    basicInfo += `${currentTimestampString}${delimiter}`;
     basicInfo += `${ipsRecord.packageUUID}${delimiter}`;
+    basicInfo += `${formatDate(ipsRecord.timeStamp)}${delimiter}`;
     basicInfo += `${ipsRecord.patient.name}${delimiter}`;
     basicInfo += `${ipsRecord.patient.given}${delimiter}`;
     basicInfo += `${formatDate(ipsRecord.patient.dob)}${delimiter}`;

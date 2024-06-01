@@ -7,6 +7,7 @@ export function FormIPS({ add }) {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     packageUUID: uuidv4(),
+    timeStamp: new Date(),
     patient: {
       name: "",
       given: "",
@@ -127,6 +128,7 @@ export function FormIPS({ add }) {
     add(formData);
     setFormData({
       packageUUID: uuidv4(),
+      timeStamp: new Date(),
       patient: {
         name: "",
         given: "",
@@ -163,7 +165,15 @@ export function FormIPS({ add }) {
                   value={formData.packageUUID} />
               </div>
             </Form.Group>
-
+          </Form.Group>
+          <Form.Group className="row">
+            <Form.Label className="col-sm-2">Time Stamp</Form.Label>
+            <div className="col-sm-10">
+              <Form.Control
+                type="text"
+                readOnly
+                value={formData.timeStamp} />
+            </div>
           </Form.Group>
           <Form.Group>
             <Form.Label>
@@ -208,8 +218,8 @@ export function FormIPS({ add }) {
                   type="text"
                   name="gender"
                   value={formData.patient.gender}
-                  onChange={handlePatientChange} 
-                  placeholder="Gender - if blank then defaults to Unknown"/>
+                  onChange={handlePatientChange}
+                  placeholder="Gender - if blank then defaults to Unknown" />
               </div>
             </Form.Group>
             <Form.Group className="row">

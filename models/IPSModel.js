@@ -7,6 +7,10 @@ const IPSModel = mongoose.model(
             type: String,
             required: true
         },
+        timeStamp: {
+            type: Date,
+            required: true
+        },
         patient: {
             name: {
                 type: String,

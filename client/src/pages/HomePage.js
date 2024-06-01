@@ -26,10 +26,20 @@ function HomePage() {
       return item.name.trim() !== "" || item.severity.trim() !== "" || item.date.trim() !== "";
     });
 
+    const cleanedConditions = formData.conditions.filter(item => {
+      return item.name.trim() !== "" || item.date.trim() !== "";
+    });
+
+    const cleanedObservations = formData.observations.filter(item => {
+      return item.name.trim() !== "" || item.date.trim() !== "" || item.value.trim() !== "";
+    });
+
     const cleanedFormData = {
       ...formData,
       medication: cleanedMedication,
-      allergies: cleanedAllergies
+      allergies: cleanedAllergies,
+      conditions: cleanedConditions,
+      observations: cleanedObservations
     };
 
     console.log("Form Data", cleanedFormData);

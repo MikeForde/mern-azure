@@ -25,6 +25,7 @@ const getIPSBasic = (req, res) => {
         // Construct the plain text response format
         let basicInfo = '';
         basicInfo += `${ipsRecord.packageUUID}\r\n`;
+        basicInfo += `${ipsRecord.timeStamp.toISOString()}\r\n`;
         basicInfo += `${ipsRecord.patient.name}\r\n`;
         basicInfo += `${ipsRecord.patient.given}\r\n`;
 

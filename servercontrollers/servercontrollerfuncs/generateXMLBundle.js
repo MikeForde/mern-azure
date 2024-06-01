@@ -22,7 +22,7 @@ function generateXMLBundle(ipsRecord) {
 <Bundle xmlns="http://hl7.org/fhir">
     <id value="${ipsRecord.packageUUID}"/>
     <type value="document"/>
-    <timestamp value="${currentDateTime}"/>`;
+    <timestamp value="${ipsRecord.timeStamp}"/>`;
 
     // Compose Composition resource XML
     xml += `

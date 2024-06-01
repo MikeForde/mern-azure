@@ -1,8 +1,9 @@
 function convertIPSBundleToSchema(ipsBundle) {
-    const { id: packageUUID, entry } = ipsBundle;
+    const { id: packageUUID, timestamp: timeStamp, entry } = ipsBundle;
 
     // Initialize variables to store patient and practitioner information
     let patient = {};
+    patient.practitioner = "Unknown";
     let dosage = "";
 
     // Initialize arrays to store medication, allergy, condition, and observation information
@@ -30,7 +31,7 @@ function convertIPSBundleToSchema(ipsBundle) {
                 } else if (resource.name[0].family !== undefined) {
                     patient.practitioner = resource.name[0].family + ", " + resource.name[0].given[0];
                 } else {
-                    patient.practitioner = "unknown";
+                    patient.practitioner = "Unknown";
                 }
                 break;
             case "MedicationStatement":
@@ -52,7 +53,7 @@ function convertIPSBundleToSchema(ipsBundle) {
                 if (resource.dosageInstruction[0].text !== undefined) {
                     dosage = resource.dosageInstruction[0].text;
                 } else {
-                    dosage = "unknown";
+                    dosage = "Unknown";
                 }
                 medication.push({
                     name: resource.medicationReference.display,
@@ -91,7 +92,7 @@ function convertIPSBundleToSchema(ipsBundle) {
         }
     }
 
-    return { packageUUID, patient, medication, allergies, conditions, observations };
+    return { packageUUID, timeStamp, patient, medication, allergies, conditions, observations };
 }
 
 module.exports = { convertIPSBundleToSchema };
