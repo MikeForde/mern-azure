@@ -37,7 +37,11 @@ export function IPS({ ips, remove, update }) {
     startLoading();
   };
 
-  const handleEdit = () => setShowEditModal(true);
+  const handleEdit = () => {
+    setEditIPS({ ...ips });  // Reset the form with the current IPS data
+    setShowEditModal(true);
+  };
+
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
@@ -305,12 +309,12 @@ export function IPS({ ips, remove, update }) {
                     />
                   </Form.Group>
                 </Col>
-                <Col xs={2}>
+                <Col xs={3}>
                   <Form.Group controlId={`medicationDate-${index}`}>
                     <Form.Control
-                      type="date"
+                      type="datetime-local"
                       name="date"
-                      value={med.date.split("T")[0]}
+                      value={formatDate(med.date)}
                       onChange={(e) => handleChangeItem('medication', index, e)}
                     />
                   </Form.Group>
@@ -450,12 +454,12 @@ export function IPS({ ips, remove, update }) {
                     />
                   </Form.Group>
                 </Col>
-                <Col xs={2}>
+                <Col xs={3}>
                   <Form.Group controlId={`observationDate-${index}`}>
                     <Form.Control
-                      type="date"
+                      type="datetime-local"
                       name="date"
-                      value={observation.date.split("T")[0]}
+                      value={formatDate(observation.date)}
                       onChange={(e) => handleChangeItem('observations', index, e)}
                     />
                   </Form.Group>
