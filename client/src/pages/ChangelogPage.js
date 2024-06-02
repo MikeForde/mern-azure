@@ -269,8 +269,8 @@ function ChangeLogPage() {
                             <h5>Version 0_30</h5>
                             <ul>
                                 <li><strong>Added TimeStamp</strong></li>
-                                <li>Addded fixed TimeStamp - previously generated on the fly</li>
-                                <li>Good idea in general but particularly aides BEER development</li>
+                                <li>Added fixed TimeStamp - previously generated with IPS bundle</li>
+                                <li>Closer to IPS concept and aides BEER format development - items can be added post-timestamp</li>
                                 <li>Generated whether by manual addition or Data Upload.</li>
                                 <li>If API GET used then the TimeStamp is the that provided by the IPS JSON bundle fetched</li>
                             </ul>
@@ -279,7 +279,7 @@ function ChangeLogPage() {
                             <h5>Version 0_31</h5>
                             <ul>
                                 <li><strong>Added Observation and Allergy Dropdowns</strong></li>
-                                <li>Observation dropdown for quick vital signs - temperature, blood pressure, pulse, respiration etc</li>
+                                <li>Observation dropdown for key vital signs - temperature, blood pressure, pulse, respiration etc</li>
                                 <li>Allergy dropdown for criticality - low, medium, high</li>                   
                             </ul>
                         </li>
