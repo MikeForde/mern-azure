@@ -3,6 +3,13 @@ import { Button, Form, Toast } from "react-bootstrap";
 import { v4 as uuidv4 } from 'uuid';
 import "./components.css";
 
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  const [datePart, timePart] = dateString.split("T");
+  const time = timePart.split(".")[0];
+  return time === "00:00:00" ? datePart : `${datePart} ${time}`;
+};
+
 export function FormIPS({ add }) {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -262,9 +269,9 @@ export function FormIPS({ add }) {
                 <Form.Label className="col-sm-2">Date</Form.Label>
                 <div className="col-sm-10">
                   <Form.Control
-                    type="date"
+                    type="datetime-local"
                     name="date"
-                    value={med.date}
+                    value={formatDate(med.date)}
                     onChange={(e) => handleMedicationChange(index, e)}
                     placeholder="Date" />
                 </div>
@@ -386,9 +393,9 @@ export function FormIPS({ add }) {
                 <Form.Label className="col-sm-2">Date</Form.Label>
                 <div className="col-sm-10">
                   <Form.Control
-                    type="date"
+                    type="datetime-local"
                     name="date"
-                    value={observation.date}
+                    value={formatDate(observation.date)}
                     onChange={(e) => handleObservationChange(index, e)}
                     placeholder="Date" />
                 </div>
