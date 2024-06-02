@@ -38,7 +38,7 @@ function parseBEER(dataPacket, delimiter) {
 
     // Parsing basic info
     record.packageUUID = lines[currentIndex++];
-    record.timestamp = new Date(parseInt(lines[currentIndex++], 10) * 1000); // Convert Unix timestamp to JS timestamp
+    record.timeStamp = new Date(lines[currentIndex++].replace(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1-$2-$3T$4:$5:00.000Z'));
     record.patient = {
         name: lines[currentIndex++],
         given: lines[currentIndex++],
@@ -48,38 +48,50 @@ function parseBEER(dataPacket, delimiter) {
         nation: lines[currentIndex++],
     };
 
-    // if (lines[currentIndex++] !== 'UK MOD') {
-    //     throw new Error('Invalid data packet format - UK MOD not found');
-    // }
-
     currentIndex++; // Skip UK MOD
 
-    // Helper function to parse entries
-    const parseMedications = (count) => {
+    const parsePreMeds = (count) => {
         const medications = [];
         for (let i = 0; i < count; i++) {
             const name = lines[currentIndex++];
-            const dates = lines[currentIndex++].split(', ').map(min => {
-                if (/^\d+$/.test(min)) {
-                    return new Date(record.timestamp.getTime() + min * 60000);
-                } else {
-                    return new Date(min.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
-                }
-            });
+            const date = new Date(lines[currentIndex++].replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
             const dosage = lines[currentIndex++];
-
-            dates.forEach(date => {
+            medications.push({ name, date, dosage });
+        }
+        return medications;
+    };
+    
+    const parsePostMeds = (count, earliestMedTime) => {
+        const medications = [];
+        for (let i = 0; i < count; i++) {
+            const name = lines[currentIndex++];
+            const minutesList = lines[currentIndex++].split(', ').map(min => parseInt(min, 10));
+            const dosage = "Stat";
+            currentIndex++; // Skip route line - may handle in future but dosage always assumed to be "Stat"
+    
+            minutesList.forEach(minutes => {
+                const date = new Date(earliestMedTime.getTime() + minutes * 60000);
                 medications.push({ name, date, dosage });
             });
         }
         return medications;
     };
 
+    // Helper function to parse allergies criticality
+    function mapCriticality(criticality) {
+        const criticalityMap = {
+            'l': 'Low',
+            'm': 'Medium',
+            'h': 'High'
+        };
+        return criticalityMap[criticality] || 'Unknown';
+    }
+
     const parseAllergies = (count) => {
         const allergies = [];
         for (let i = 0; i < count; i++) {
             const name = lines[currentIndex++];
-            const criticality = lines[currentIndex++];
+            const criticality = mapCriticality(lines[currentIndex++]);
             const date = new Date(lines[currentIndex++].replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
             allergies.push({ name, criticality, date });
         }
@@ -90,20 +102,17 @@ function parseBEER(dataPacket, delimiter) {
         const conditions = [];
         for (let i = 0; i < count; i++) {
             const name = lines[currentIndex++];
-            const date = lines[currentIndex++];
-            const formattedDate = /^\d+$/.test(date)
-                ? new Date(record.timestamp.getTime() + date * 60000)
-                : new Date(date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
-            conditions.push({ name, date: formattedDate });
+            const date = new Date(lines[currentIndex++].replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
+            conditions.push({ name, date });
         }
         return conditions;
     };
 
-    // Medication entries
+    // Medication entries before timeStamp
     if (lines[currentIndex].startsWith('M')) {
         const [prefix, typeInfo] = lines[currentIndex++].match(/^M(\d+)-(\d+)$/).slice(1, 3);
         const uniqueCount = parseInt(typeInfo, 10);
-        record.medication = parseMedications(uniqueCount);
+        record.medication = parsePreMeds(uniqueCount);
     } else {
         record.medication = [];
     }
@@ -124,6 +133,33 @@ function parseBEER(dataPacket, delimiter) {
         record.conditions = parseConditions(uniqueCount);
     } else {
         record.conditions = [];
+    }
+
+    // Observation entries
+    if (lines[currentIndex].startsWith('O')) {
+        const [prefix, typeInfo] = lines[currentIndex++].match(/^O(\d+)-(\d+)$/).slice(1, 3);
+        const uniqueCount = parseInt(typeInfo, 10);
+        record.observations = [];
+        for (let i = 0; i < uniqueCount; i++) {
+            record.observations.push({
+                name: lines[currentIndex++],
+                date: new Date(lines[currentIndex++].replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')),
+                value: lines[currentIndex++]
+            });
+        }
+    } else {
+        record.observations = [];
+    }
+
+    // Medication entries on or after timeStamp
+    if (/^\d{12}$/.test(lines[currentIndex])) {
+        const earliestMedTime = new Date(
+            lines[currentIndex].replace(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1-$2-$3T$4:$5:00.000Z')
+        );
+        currentIndex++;
+        const [prefix, typeInfo] = lines[currentIndex++].match(/^m(\d+)-(\d+)$/).slice(1, 3);
+        const uniqueCount = parseInt(typeInfo, 10);
+        record.medication = record.medication.concat(parsePostMeds(uniqueCount, earliestMedTime));
     }
 
     return record;

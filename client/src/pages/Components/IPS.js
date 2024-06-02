@@ -363,7 +363,8 @@ export function IPS({ ips, remove, update }) {
                       placeholder="Criticality:High/Moderate/Low"
                       value={allergy.criticality}
                       onChange={(e) => handleChangeItem('allergies', index, e)}
-                    >
+                    > 
+                      <option value="">Select Criticality</option>
                       <option value="High">High</option>
                       <option value="Medium">Medium</option>
                       <option value="Low">Low</option>

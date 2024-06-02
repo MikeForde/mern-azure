@@ -1,23 +1,80 @@
 function generateIPSBEER(ipsRecord, delimiter) {
     // Get current timestamp
-    const currentTimestamp = new Date();
+    const currentTimestamp = new Date(ipsRecord.timeStamp);
     const currentTimestampString = currentTimestamp.toISOString();
 
     // Helper function to format dates as yyyymmdd
     const formatDate = (date) => {
-        // Check if date is already a string
         if (typeof date === 'string') {
             return date.substring(0, 10).replace(/-/g, '');
         }
-        // Otherwise, assume it's a Date object
         return date.toISOString().substring(0, 10).replace(/-/g, '');
     };
+
+    // Helper function to format date and time as yyyymmddHHMM
+    const formatDateTime = (date) => {
+        if (typeof date === 'string') {
+            date = new Date(date);
+        }
+        return date.toISOString().replace(/[-:T]/g, '').substring(0, 12);
+    };
+
+    // Helper function to check if an observation is a vital sign
+    const isVitalSign = (name) => {
+        const vitalSigns = [
+            'Blood Pressure',
+            'Pulse',
+            'Resp Rate',
+            'Temperature',
+            'Oxygen saturations',
+            'AVPU'
+        ];
+        return vitalSigns.includes(name);
+    };
+
+// Helper function to format vital signs observations
+const formatVitalSigns = (vitalSigns, earliestDate) => {
+    const obsTypeMap = {
+        'Blood Pressure': 'B',
+        'Pulse': 'P',
+        'Resp Rate': 'R',
+        'Temperature': 'T',
+        'Oxygen saturations': 'O',
+        'AVPU': 'A'
+    };
+
+    const formattedVitalSigns = {};
+
+    vitalSigns.forEach(obs => {
+        const diffMs = new Date(obs.date) - earliestDate;
+        const diffMinutes = Math.round(diffMs / 60000);
+        const obsType = obsTypeMap[obs.name];
+        
+        if (!formattedVitalSigns[obsType]) {
+            formattedVitalSigns[obsType] = [];
+        }
+
+        let value = parseFloat(obs.value);
+        if (obs.name === 'Blood Pressure') {
+            const bpValues = obs.value.split('-');
+            value = `${bpValues[0].replace('mmHg', '')}-${bpValues[1].replace('mmHg', '')}`;
+        }
+        
+        formattedVitalSigns[obsType].push(`${diffMinutes}+${value}`);
+    });
+
+    return Object.entries(formattedVitalSigns).map(([obsType, entries]) => {
+        return `${obsType}${entries.join(',')}`;
+    }).join('\n');
+};
+
+
 
     // Basic information
     let basicInfo = `H9${delimiter}`;
     basicInfo += `1${delimiter}`;
     basicInfo += `${ipsRecord.packageUUID}${delimiter}`;
-    basicInfo += `${formatDate(ipsRecord.timeStamp)}${delimiter}`;
+    basicInfo += `${formatDateTime(ipsRecord.timeStamp)}${delimiter}`;
     basicInfo += `${ipsRecord.patient.name}${delimiter}`;
     basicInfo += `${ipsRecord.patient.given}${delimiter}`;
     basicInfo += `${formatDate(ipsRecord.patient.dob)}${delimiter}`;
@@ -36,32 +93,39 @@ function generateIPSBEER(ipsRecord, delimiter) {
     basicInfo += `UK MOD${delimiter}`;
 
     // Medication information
+    const pastMedications = [];
+    const futureMedications = [];
+
     if (ipsRecord.medication && ipsRecord.medication.length > 0) {
-        const uniqueMedications = [...new Set(ipsRecord.medication.map(med => med.name))];
-        basicInfo += `M${3}-${uniqueMedications.length}${delimiter}`;
-
-        uniqueMedications.forEach((medName) => {
-            const medEntries = ipsRecord.medication.filter(med => med.name === medName);
-            basicInfo += `${medName}${delimiter}`;
-
-            const medTimes = medEntries.map(med => {
-                const diffMs = new Date(med.date) - ipsRecord.timeStamp;
-                const diffMinutes = Math.round(diffMs / 60000);
-
-                // Express time in minutes if within 24 hours, otherwise in yyyymmdd
-                return (Math.abs(diffMinutes) < 1440) ? diffMinutes : formatDate(new Date(med.date));
-            }).join(', ');
-
-            basicInfo += `${medTimes}${delimiter}`;
-            basicInfo += `${medEntries[0].dosage}${delimiter}`;
+        ipsRecord.medication.forEach((med) => {
+            if (new Date(med.date) < currentTimestamp) {
+                pastMedications.push(med);
+            } else {
+                futureMedications.push(med);
+            }
         });
+
+        if (pastMedications.length > 0) {
+            const uniquePastMedications = [...new Set(pastMedications.map(med => med.name))];
+            basicInfo += `M${3}-${uniquePastMedications.length}${delimiter}`;
+
+            uniquePastMedications.forEach((medName) => {
+                const medEntries = pastMedications.filter(med => med.name === medName);
+                basicInfo += `${medName} ${medEntries[0].dosage}${delimiter}`;
+
+                const medTimes = medEntries.map(med => formatDate(med.date)).join(', ');
+                basicInfo += `${medTimes}${delimiter}`;
+                basicInfo += `${medEntries[0].dosage}${delimiter}`;
+            });
+        }
     }
 
     // Criticality formatting
     const criticalityMap = {
         'High': 'h',
-        'Moderate': 'm',
-        'Low': 'l'
+        'Medium': 'm',
+        'Low': 'l',
+        'Moderate': 'm'
     };
 
     // Allergy information
@@ -81,12 +145,96 @@ function generateIPSBEER(ipsRecord, delimiter) {
             const diffMs = new Date(condition.date) - currentTimestamp;
             const diffMinutes = Math.round(diffMs / 60000);
 
-            // Express time in minutes if within 24 hours, otherwise in yyyymmdd
             const conditionTime = (Math.abs(diffMinutes) < 1440) ? diffMinutes : formatDate(new Date(condition.date));
-
             basicInfo += `${condition.name}${delimiter}`;
             basicInfo += `${conditionTime}${delimiter}`;
         });
+    }
+
+    // Observation information
+    const pastObservations = [];
+    const futureObservations = [];
+
+    if (ipsRecord.observations && ipsRecord.observations.length > 0) {
+        ipsRecord.observations.forEach((obs) => {
+            if (new Date(obs.date) < currentTimestamp) {
+                pastObservations.push(obs);
+            } else {
+                futureObservations.push(obs);
+            }
+        });
+
+        if (pastObservations.length > 0) {
+            const uniquePastObservations = [...new Set(pastObservations.map(obs => obs.name))];
+            basicInfo += `O${3}-${uniquePastObservations.length}${delimiter}`;
+
+            uniquePastObservations.forEach((obsName) => {
+                const obsEntries = pastObservations.filter(obs => obs.name === obsName);
+                basicInfo += `${obsName}${delimiter}`;
+
+                const obsTimes = obsEntries.map(obs => formatDate(obs.date)).join(', ');
+                basicInfo += `${obsTimes}${delimiter}`;
+                // If value add next
+                basicInfo += `${obsEntries[0].value || ''}${delimiter}`;
+            });
+        }
+    }
+
+    // New medication section
+    if (futureMedications.length > 0) {
+        const earliestMedication = futureMedications.reduce((earliest, current) => {
+            return new Date(current.date) < new Date(earliest.date) ? current : earliest;
+        }, futureMedications[0]);
+
+        const earliestMedicationTime = formatDateTime(earliestMedication.date);
+        basicInfo += `${earliestMedicationTime}${delimiter}`;
+
+        const uniqueFutureMedications = [...new Set(futureMedications.map(med => med.name))];
+        basicInfo += `m${3}-${uniqueFutureMedications.length}${delimiter}`;
+
+        uniqueFutureMedications.forEach((medName) => {
+            const medEntries = futureMedications.filter(med => med.name === medName);
+            basicInfo += `${medName}${delimiter}`;
+
+            const earliestDate = new Date(earliestMedication.date);
+            const medTimes = medEntries.map(med => {
+                const diffMs = new Date(med.date) - earliestDate;
+                const diffMinutes = Math.round(diffMs / 60000);
+                return diffMinutes;
+            }).join(', ');
+
+            basicInfo += `${medTimes}${delimiter}`;
+            basicInfo += `O${medEntries.length}${delimiter}`;
+        });
+    }
+
+    // New future observations section
+    if (futureObservations.length > 0) {
+        const earliestObservation = futureObservations.reduce((earliest, current) => {
+            return new Date(current.date) < new Date(earliest.date) ? current : earliest;
+        }, futureObservations[0]);
+
+        const earliestObservationTime = formatDateTime(earliestObservation.date);
+        basicInfo += `${earliestObservationTime}${delimiter}`;
+
+        const vitalSigns = futureObservations.filter(obs => isVitalSign(obs.name));
+        const otherObservations = futureObservations.filter(obs => !isVitalSign(obs.name));
+
+        if (vitalSigns.length > 0) {
+            const vitalSignsCount = new Set(vitalSigns.map(obs => obs.name)).size;
+            basicInfo += `v${vitalSignsCount}${delimiter}`;
+            basicInfo += `${formatVitalSigns(vitalSigns, new Date(earliestObservation.date))}${delimiter}`;
+        }
+
+        if (otherObservations.length > 0) {
+            basicInfo += `o3-${otherObservations.length}${delimiter}`;
+
+            otherObservations.forEach((obs) => {
+                const diffMs = new Date(obs.date) - new Date(earliestObservation.date);
+                const diffMinutes = Math.round(diffMs / 60000);
+                basicInfo += `${obs.name}${delimiter}${diffMinutes}${delimiter}${obs.value || ''}${delimiter}`;
+            });
+        }
     }
 
     return basicInfo;

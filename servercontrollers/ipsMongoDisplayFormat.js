@@ -41,7 +41,7 @@ function getMongoFormatted(req, res) {
         })),
         allergies: ips.allergies.map(allergy => ({
           name: allergy.name,
-          criticality: allergy.criticality[0].toLowerCase(), // First character, lowercased
+          criticality: allergy.criticality, 
           date: allergy.date
         })),
         conditions: ips.conditions.map(condition => ({

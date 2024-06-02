@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import axios from 'axios';
 import { Button, Alert, Form, DropdownButton, Dropdown } from 'react-bootstrap';
 import './Page.css';
@@ -12,15 +12,17 @@ function BEERGardenPage() {
   const [showNotification, setShowNotification] = useState(false);
   const [message, setMessage] = useState('');
   const { startLoading, stopLoading } = useLoading();
+  const isConvertingRef = useRef(false);
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find(record => record._id === recordId);
+    isConvertingRef.current = false;
     startLoading();
     setSelectedPatient(record);
   };
 
   useEffect(() => {
-    if (selectedPatient) {
+    if (selectedPatient && !isConvertingRef.current) {
       const endpoint = `/ipsmongo/${selectedPatient._id}`;
 
       axios.get(endpoint)
@@ -39,6 +41,7 @@ function BEERGardenPage() {
   }, [selectedPatient, stopLoading]);
 
   const handleConvertToBEER = async () => {
+    isConvertingRef.current = true;
     startLoading();
     try {
       const response = await axios.post('/convertmongo2beer', { data: mongoData });
@@ -55,6 +58,7 @@ function BEERGardenPage() {
 
   const handleConvertToMongo = async () => {
     startLoading();
+    isConvertingRef.current = true; // Set the converting flag
     try {
       const response = await axios.post('/convertbeer2mongo', { data: beerData });
       setMongoData(JSON.stringify(response.data, null, 2));
@@ -111,7 +115,6 @@ function BEERGardenPage() {
             <div>
               {message && <Alert variant="success" className="message">{message}</Alert>}
             </div>
-            
           </>
         )}
       </div>
