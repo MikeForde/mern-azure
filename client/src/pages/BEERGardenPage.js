@@ -13,6 +13,8 @@ function BEERGardenPage() {
   const [message, setMessage] = useState('');
   const { startLoading, stopLoading } = useLoading();
   const isConvertingRef = useRef(false);
+  const [mongoSize, setMongoSize] = useState(0);
+  const [beerSize, setBEERSize] = useState(0);
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find(record => record._id === recordId);
@@ -30,6 +32,8 @@ function BEERGardenPage() {
           const responseData = JSON.stringify(response.data, null, 2);
           setMongoData(responseData);
           setShowNotification(false);
+          const mongoSize = new TextEncoder().encode(responseData).length;
+          setMongoSize(mongoSize);
         })
         .catch(error => {
           console.error('Error fetching IPS record:', error);
@@ -46,6 +50,8 @@ function BEERGardenPage() {
     try {
       const response = await axios.post('/convertmongo2beer', { data: mongoData });
       setBeerData(response.data);
+      const beerSize = new TextEncoder().encode(response.data).length;
+      setBEERSize(beerSize);
       setMessage('Successfully converted to BEER format');
       setShowNotification(false);
     } catch (error) {
@@ -62,6 +68,8 @@ function BEERGardenPage() {
     try {
       const response = await axios.post('/convertbeer2mongo', { data: beerData });
       setMongoData(JSON.stringify(response.data, null, 2));
+      const mongoSize = new TextEncoder().encode(JSON.stringify(response.data, null, 2)).length;
+      setMongoSize(mongoSize);
       setMessage('Successfully converted to MongoDB format');
       setShowNotification(false);
     } catch (error) {
@@ -102,12 +110,12 @@ function BEERGardenPage() {
           <>
             <div className="text-area-container">
               <div className="text-area">
-                <h5>MongoDB Format</h5>
+                <h5>MongoDB Format - {mongoSize} bytes</h5>
                 <Form.Control as="textarea" rows={10} value={mongoData} onChange={e => setMongoData(e.target.value)} />
                 <Button className="mt-3" variant="primary" onClick={handleConvertToBEER}>Convert to BEER Format</Button>
               </div>
               <div className="text-area">
-                <h5>BEER Format</h5>
+                <h5>BEER Format - {beerSize} bytes</h5>
                 <Form.Control as="textarea" rows={10} value={beerData} onChange={e => setBeerData(e.target.value)} />
                 <Button className="mt-3" variant="secondary" onClick={handleConvertToMongo}>Convert to MongoDB Format</Button>
               </div>
