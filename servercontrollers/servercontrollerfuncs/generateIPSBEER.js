@@ -111,7 +111,7 @@ const formatVitalSigns = (vitalSigns, earliestDate) => {
 
             uniquePastMedications.forEach((medName) => {
                 const medEntries = pastMedications.filter(med => med.name === medName);
-                basicInfo += `${medName} ${medEntries[0].dosage}${delimiter}`;
+                basicInfo += `${medName}${delimiter}`;
 
                 const medTimes = medEntries.map(med => formatDate(med.date)).join(', ');
                 basicInfo += `${medTimes}${delimiter}`;

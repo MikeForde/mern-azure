@@ -313,6 +313,7 @@ export function FormIPS({ add }) {
                     value={allergy.criticality}
                     onChange={(e) => handleAllergyChange(index, e)}
                     placeholder="Criticality" >
+                    <option value="">Select Criticality</option>
                     <option value="high">High</option>
                     <option value="medium">Medium</option>
                     <option value="low">Low</option>
