@@ -182,7 +182,7 @@ function parseBEER(dataPacket, delimiter) {
                 'P': 'Pulse',
                 'R': 'Resp Rate',
                 'T': 'Temperature',
-                'O': 'Oxygen saturations',
+                'O': 'Oxygen Sats',
                 'A': 'AVPU'
             };
 
