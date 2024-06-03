@@ -262,11 +262,17 @@ export function IPS({ ips, remove, update }) {
                 <Form.Group controlId="formPatientGender">
                   <Form.Label>Gender</Form.Label>
                   <Form.Control
-                    type="text"
+                    as="select"
                     name="gender"
                     value={editIPS.patient.gender}
                     onChange={handleEditChange}
-                  />
+                    >
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                    <option value="Unknown">Unknown</option>
+                  </Form.Control>
                 </Form.Group>
               </Col>
             </Row>

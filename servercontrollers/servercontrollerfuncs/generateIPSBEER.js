@@ -26,7 +26,7 @@ function generateIPSBEER(ipsRecord, delimiter) {
             'Pulse',
             'Resp Rate',
             'Temperature',
-            'Oxygen saturations',
+            'Oxygen Sats',
             'AVPU'
         ];
         return vitalSigns.includes(name);
@@ -39,7 +39,7 @@ const formatVitalSigns = (vitalSigns, earliestDate) => {
         'Pulse': 'P',
         'Resp Rate': 'R',
         'Temperature': 'T',
-        'Oxygen saturations': 'O',
+        'Oxygen Sats': 'O',
         'AVPU': 'A'
     };
 
@@ -58,6 +58,8 @@ const formatVitalSigns = (vitalSigns, earliestDate) => {
         if (obs.name === 'Blood Pressure') {
             const bpValues = obs.value.split('-');
             value = `${bpValues[0].replace('mmHg', '')}-${bpValues[1].replace('mmHg', '')}`;
+        } else if (obs.name === 'AVPU') {
+            value = obs.value;
         }
         
         formattedVitalSigns[obsType].push(`${diffMinutes}+${value}`);

@@ -222,11 +222,16 @@ export function FormIPS({ add }) {
               <Form.Label className="col-sm-2">Gender</Form.Label>
               <div className="col-sm-10">
                 <Form.Control
-                  type="text"
+                  as="select"
                   name="gender"
                   value={formData.patient.gender}
-                  onChange={handlePatientChange}
-                  placeholder="Gender - if blank then defaults to Unknown" />
+                  onChange={handlePatientChange} >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                  <option value="Unknown">Unknown</option>
+                </Form.Control>
               </div>
             </Form.Group>
             <Form.Group className="row">
@@ -238,7 +243,7 @@ export function FormIPS({ add }) {
                   defaultValue="UK"
                   value={formData.patient.nation}
                   onChange={handlePatientChange}
-                  placeholder="Country - if blank then defaults to UK" />
+                  placeholder="Country - default UK" />
               </div>
               <Form.Label className="col-sm-2">Practitioner</Form.Label>
               <div className="col-sm-4">
@@ -247,7 +252,7 @@ export function FormIPS({ add }) {
                   name="practitioner"
                   value={formData.patient.practitioner}
                   onChange={handlePatientChange}
-                  placeholder="Practitioner - if blank then defaults to Dr No" />
+                  placeholder="Practitioner - default Dr No" />
               </div>
             </Form.Group>
           </Form.Group>
@@ -317,7 +322,7 @@ export function FormIPS({ add }) {
                     <option value="high">High</option>
                     <option value="medium">Medium</option>
                     <option value="low">Low</option>
-                  </Form.Control>`
+                  </Form.Control>
                 </div>
               </Form.Group>
               <Form.Group className="row">

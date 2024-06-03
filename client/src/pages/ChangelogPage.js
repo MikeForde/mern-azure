@@ -290,7 +290,6 @@ function ChangeLogPage() {
                                 <li>Medication and Observations formatted differently depending on whether past or future relative to timestamp</li>
                                 <li>Vital Sign observations in particular have a highly compact form</li>
                                 <li>Design varies slightly from earlier concept but basic ideas remain</li>
-                                <li>Conversion back to MongoDb currently incomplete</li>
                             </ul>
                         </li>
                     </ul>

@@ -136,30 +136,111 @@ function parseBEER(dataPacket, delimiter) {
     }
 
     // Observation entries
+    const parseObservations = (count) => {
+        const observations = [];
+        for (let i = 0; i < count; i++) {
+            const name = lines[currentIndex++];
+            const dates = lines[currentIndex++].split(', ').map(dateStr => new Date(dateStr.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')));
+            const values = lines[currentIndex++].split(', ');
+            dates.forEach((date, index) => {
+                observations.push({ name, date, value: values[index] });
+            });
+        }
+        return observations;
+    };
+
     if (lines[currentIndex].startsWith('O')) {
         const [prefix, typeInfo] = lines[currentIndex++].match(/^O(\d+)-(\d+)$/).slice(1, 3);
         const uniqueCount = parseInt(typeInfo, 10);
-        record.observations = [];
-        for (let i = 0; i < uniqueCount; i++) {
-            record.observations.push({
-                name: lines[currentIndex++],
-                date: new Date(lines[currentIndex++].replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')),
-                value: lines[currentIndex++]
-            });
-        }
+        record.observations = parseObservations(uniqueCount);
     } else {
         record.observations = [];
     }
 
     // Medication entries on or after timeStamp
     if (/^\d{12}$/.test(lines[currentIndex])) {
-        const earliestMedTime = new Date(
-            lines[currentIndex].replace(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1-$2-$3T$4:$5:00.000Z')
+        let earliestMedTime = new Date(
+            lines[currentIndex++].replace(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1-$2-$3T$4:$5:00.000Z')
         );
-        currentIndex++;
-        const [prefix, typeInfo] = lines[currentIndex++].match(/^m(\d+)-(\d+)$/).slice(1, 3);
-        const uniqueCount = parseInt(typeInfo, 10);
-        record.medication = record.medication.concat(parsePostMeds(uniqueCount, earliestMedTime));
+        if (lines[currentIndex].startsWith('m')) {
+            const [prefix, typeInfo] = lines[currentIndex++].match(/^m(\d+)-(\d+)$/).slice(1, 3);
+            const uniqueCount = parseInt(typeInfo, 10);
+            record.medication = record.medication.concat(parsePostMeds(uniqueCount, earliestMedTime));
+        }
+    }
+
+    // Observation entries on or after timeStamp
+    if (/^\d{12}$/.test(lines[currentIndex])) {
+        let earliestObservationTime = new Date(
+            lines[currentIndex++].replace(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1-$2-$3T$4:$5:00.000Z')
+        );
+
+        const parseVitalSigns = (vCount, earliestObservationTime) => {
+            const vitalSigns = [];
+            const obsTypeMap = {
+                'B': 'Blood Pressure',
+                'P': 'Pulse',
+                'R': 'Resp Rate',
+                'T': 'Temperature',
+                'O': 'Oxygen saturations',
+                'A': 'AVPU'
+            };
+
+            // Needs obsUnitsMap
+            const obsUnitsMap = {
+                'B': 'mmHg',
+                'P': 'bpm',
+                'R': 'bpm',
+                'T': 'cel',
+                'O': '%',
+                'A': ''
+            };
+            
+            for (let i = 0; i < vCount; i++) {
+                const line = lines[currentIndex++];
+                const obsType = line[0];
+                const units = obsUnitsMap[obsType];
+                const obsName = obsTypeMap[obsType];
+                const entries = line.substring(1).split(/[,]+/);
+                
+                entries.forEach(entry => {
+                    const [time, value] = entry.split('+');
+                    const minutes = parseInt(time, 10);
+                    const date = new Date(earliestObservationTime.getTime() + minutes * 60000);
+                    
+                    // Need to add units to value
+                    vitalSigns.push({ name: obsName, date, value: `${value}${units}` });
+                });
+            }
+            
+            return vitalSigns;
+        };
+        
+        if (lines[currentIndex].startsWith('v')) {
+            const [_, vCountStr] = lines[currentIndex++].match(/^v(\d+)$/);
+            const vCount = parseInt(vCountStr, 10);
+            record.observations = record.observations.concat(parseVitalSigns(vCount, earliestObservationTime));
+        }               
+
+        const parseOtherObservations = (oCount) => {
+            const observations = [];
+            for (let i = 0; i < oCount; i++) {
+                const name = lines[currentIndex++];
+                const minutesList = lines[currentIndex++].split(', ').map(min => parseInt(min, 10));
+                const values = lines[currentIndex++].split(', ');
+                minutesList.forEach((minutes, index) => {
+                    const date = new Date(earliestObservationTime.getTime() + minutes * 60000);
+                    observations.push({ name, date, value: values[index] });
+                });
+            }
+            return observations;
+        };
+
+        if (lines[currentIndex].startsWith('o')) {
+            const [_, typeInfo] = lines[currentIndex++].match(/^o(\d+)-(\d+)$/).slice(1, 3);
+            const oCount = parseInt(typeInfo, 10);
+            record.observations = record.observations.concat(parseOtherObservations(oCount));
+        }
     }
 
     return record;
