@@ -15,6 +15,8 @@ function BEERGardenPage() {
   const isConvertingRef = useRef(false);
   const [mongoSize, setMongoSize] = useState(0);
   const [beerSize, setBEERSize] = useState(0);
+  const [selectedFormat, setSelectedFormat] = useState('MongoDB');
+  const [displayFormat, setDisplayFormat] = useState('MongoDB');
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find(record => record._id === recordId);
@@ -71,6 +73,7 @@ function BEERGardenPage() {
       const mongoSize = new TextEncoder().encode(JSON.stringify(response.data, null, 2)).length;
       setMongoSize(mongoSize);
       setMessage('Successfully converted to MongoDB format');
+      setDisplayFormat('MongoDB');
       setShowNotification(false);
     } catch (error) {
       console.error('Error converting to MongoDB format:', error);
@@ -78,6 +81,29 @@ function BEERGardenPage() {
     } finally {
       stopLoading();
     }
+  };
+
+  const handleConvertToIPS = async () => {
+    startLoading();
+    isConvertingRef.current = true; // Set the converting flag
+    try {
+      const response = await axios.post('/convertbeer2ips', { data: beerData });
+      setMongoData(JSON.stringify(response.data, null, 2));
+      const mongoSize = new TextEncoder().encode(JSON.stringify(response.data, null, 2)).length;
+      setMongoSize(mongoSize);
+      setMessage('Successfully converted to IPS JSON format');
+      setDisplayFormat('IPS JSON');
+      setShowNotification(false);
+    } catch (error) {
+      console.error('Error converting to IPS JSON format:', error);
+      setShowNotification(true);
+    } finally {
+      stopLoading();
+    }
+  };
+
+  const handleFormatChange = (format) => {
+    setSelectedFormat(format);
   };
 
   return (
@@ -110,14 +136,27 @@ function BEERGardenPage() {
           <>
             <div className="text-area-container">
               <div className="text-area">
-                <h5>MongoDB Format - {mongoSize} bytes</h5>
+                <h5>{displayFormat} Format - {mongoSize} bytes</h5>
                 <Form.Control as="textarea" rows={10} value={mongoData} onChange={e => setMongoData(e.target.value)} />
-                <Button className="mt-3" variant="primary" onClick={handleConvertToBEER}>Convert to BEER Format</Button>
+                {displayFormat === 'MongoDB' && (
+                  <Button className="mt-3" variant="primary" onClick={handleConvertToBEER}>Convert to BEER Format</Button>
+                )}
               </div>
               <div className="text-area">
                 <h5>BEER Format - {beerSize} bytes</h5>
                 <Form.Control as="textarea" rows={10} value={beerData} onChange={e => setBeerData(e.target.value)} />
-                <Button className="mt-3" variant="secondary" onClick={handleConvertToMongo}>Convert to MongoDB Format</Button>
+                <DropdownButton
+                  id="dropdown-format"
+                  title={`Convert to ${selectedFormat}`}
+                  onSelect={handleFormatChange}
+                  className="mt-3"
+                >
+                  <Dropdown.Item eventKey="MongoDB">MongoDB</Dropdown.Item>
+                  <Dropdown.Item eventKey="IPS JSON">IPS JSON</Dropdown.Item>
+                </DropdownButton>
+                <Button className="mt-3" variant="secondary" onClick={selectedFormat === 'MongoDB' ? handleConvertToMongo : handleConvertToIPS}>
+                  Convert to {selectedFormat} Format
+                </Button>
               </div>
             </div>
             <div>

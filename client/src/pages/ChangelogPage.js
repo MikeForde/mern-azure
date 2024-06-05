@@ -292,6 +292,14 @@ function ChangeLogPage() {
                                 <li>Design varies slightly from earlier concept but basic ideas remain</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_33</h5>
+                            <ul>
+                                <li><strong>Added BEER to IPS JSON Conversion</strong></li>
+                                <li>BEER data can now be converted to IPS JSON format - display only in the BEER Garden</li>
+                                
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>
