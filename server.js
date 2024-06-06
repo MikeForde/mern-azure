@@ -24,6 +24,7 @@ const { getIPSSearch } = require('./servercontrollers/ipsRecordSearch');
 const { convertMongoToBEER } = require('./servercontrollers/convertMongoToBEER');
 const { convertBEERToMongo } = require('./servercontrollers/convertBEERToMongo');
 const { convertBEERToIPS } = require('./servercontrollers/convertBEERToIPS');
+const { convertIPSToBEER } = require('./servercontrollers/convertIPSToBEER');
 
 
 const { DB_CONN } = process.env;
@@ -47,6 +48,7 @@ api.post('/ipsfrombeer', addIPSFromBEER);
 api.post('/convertmongo2beer', convertMongoToBEER);
 api.post('/convertbeer2mongo', convertBEERToMongo);
 api.post('/convertbeer2ips', convertBEERToIPS);
+api.post('/convertips2beer', convertIPSToBEER);
 
 // API GET - CRUD Read
 api.get("/ips/all", getAllIPS);

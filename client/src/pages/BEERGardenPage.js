@@ -15,8 +15,8 @@ function BEERGardenPage() {
   const isConvertingRef = useRef(false);
   const [mongoSize, setMongoSize] = useState(0);
   const [beerSize, setBEERSize] = useState(0);
-  const [selectedFormat, setSelectedFormat] = useState('MongoDB');
-  const [displayFormat, setDisplayFormat] = useState('MongoDB');
+  const [selectedFormat, setSelectedFormat] = useState('IPS JSON');
+  const [displayFormat, setDisplayFormat] = useState('IPS JSON');
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find(record => record._id === recordId);
@@ -27,7 +27,7 @@ function BEERGardenPage() {
 
   useEffect(() => {
     if (selectedPatient && !isConvertingRef.current) {
-      const endpoint = `/ipsmongo/${selectedPatient._id}`;
+      const endpoint = `/ips/${selectedPatient._id}`;
 
       axios.get(endpoint)
         .then(response => {
@@ -36,7 +36,7 @@ function BEERGardenPage() {
           setMongoData(responseData);
           setShowNotification(false);
           setMongoSize(mongoSize);
-          setDisplayFormat('MongoDB');
+          setDisplayFormat('IPS JSON');
           setBeerData('');
           setBEERSize(0);
         })
@@ -49,7 +49,7 @@ function BEERGardenPage() {
     }
   }, [selectedPatient, stopLoading]);
 
-  const handleConvertToBEER = async () => {
+  const handleConvertToBEERFromMongo = async () => {
     isConvertingRef.current = true;
     startLoading();
     try {
@@ -64,6 +64,32 @@ function BEERGardenPage() {
       setShowNotification(true);
     } finally {
       stopLoading();
+    }
+  };
+
+  const handleConvertToBEERFromIPS = () => {
+    isConvertingRef.current = true;
+    startLoading();
+    try {
+      const endpoint = '/convertips2beer';
+      axios.post(endpoint, { data: mongoData })
+        .then(response => {
+          setBeerData(response.data);
+          const beerSize = new TextEncoder().encode(response.data).length;
+          setBEERSize(beerSize);
+          setMessage('Successfully converted to BEER format');
+          setShowNotification(false);
+        })
+        .catch(error => {
+          console.error('Error converting to BEER format:', error);
+          setShowNotification(true);
+        })
+        .finally(() => {
+          stopLoading();
+        });
+    } catch (error) {
+      console.error('Error converting to BEER format:', error);
+      setShowNotification(true);
     }
   };
 
@@ -111,6 +137,7 @@ function BEERGardenPage() {
 
   const handleFormatChange = (format) => {
     setSelectedFormat(format);
+    setDisplayFormat(format);
   };
 
   return (
@@ -143,18 +170,25 @@ function BEERGardenPage() {
           <>
             <div className="text-area-container">
               <div className="text-area">
-                <h5>{displayFormat} Format - {mongoSize} bytes</h5>
+                <h5>
+                  <DropdownButton
+                    id="dropdown-display-format"
+                    title={`Format: ${displayFormat} - ${mongoSize} bytes`}
+                    onSelect={handleFormatChange}
+                  >
+                    <Dropdown.Item eventKey="MongoDB">MongoDB</Dropdown.Item>
+                    <Dropdown.Item eventKey="IPS JSON">IPS JSON</Dropdown.Item>
+                  </DropdownButton>
+                </h5>
                 <Form.Control as="textarea" rows={10} value={mongoData} onChange={e => setMongoData(e.target.value)} />
-                {displayFormat === 'MongoDB' && (
-                  <Button className="mt-3" variant="primary" onClick={handleConvertToBEER}>Convert to BEER Format</Button>
-                )}
+                <Button className="mt-3" variant="secondary" onClick={selectedFormat === 'MongoDB' ? handleConvertToBEERFromMongo : handleConvertToBEERFromIPS}> Convert to BEER Format</Button>
               </div>
               <div className="text-area">
                 <h5>BEER Format - {beerSize} bytes</h5>
                 <Form.Control as="textarea" rows={10} value={beerData} onChange={e => setBeerData(e.target.value)} />
                 <DropdownButton
                   id="dropdown-format"
-                  title={`Convert to ${selectedFormat}`}
+                  title={`Conversion Mode: ${selectedFormat}`}
                   onSelect={handleFormatChange}
                   className="mt-3"
                 >
