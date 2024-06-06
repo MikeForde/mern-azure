@@ -65,7 +65,7 @@ function parseBEER(dataPacket, delimiter) {
         const medications = [];
         for (let i = 0; i < count; i++) {
             const name = lines[currentIndex++];
-            const minutesList = lines[currentIndex++].split(', ').map(min => parseInt(min, 10));
+            const minutesList = lines[currentIndex++].split(',').map(min => parseInt(min, 10));
             const dosage = "Stat";
             currentIndex++; // Skip route line - may handle in future but dosage always assumed to be "Stat"
     
@@ -140,8 +140,8 @@ function parseBEER(dataPacket, delimiter) {
         const observations = [];
         for (let i = 0; i < count; i++) {
             const name = lines[currentIndex++];
-            const dates = lines[currentIndex++].split(', ').map(dateStr => new Date(dateStr.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')));
-            const values = lines[currentIndex++].split(', ');
+            const dates = lines[currentIndex++].split(',').map(dateStr => new Date(dateStr.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')));
+            const values = lines[currentIndex++].split(',');
             dates.forEach((date, index) => {
                 observations.push({ name, date, value: values[index] });
             });

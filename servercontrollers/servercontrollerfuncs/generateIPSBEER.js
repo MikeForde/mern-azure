@@ -57,7 +57,9 @@ const formatVitalSigns = (vitalSigns, earliestDate) => {
         let value = parseFloat(obs.value);
         if (obs.name === 'Blood Pressure') {
             const bpValues = obs.value.split('-');
-            value = `${bpValues[0].replace('mmHg', '')}-${bpValues[1].replace('mmHg', '')}`;
+            bpValues[1] = bpValues[1].replace('mmHg','');
+            bpValues[1] = bpValues[1].trim();
+            value = `${bpValues[0]}-${bpValues[1]}`;
         } else if (obs.name === 'AVPU') {
             value = obs.value;
         }
@@ -174,7 +176,7 @@ const formatVitalSigns = (vitalSigns, earliestDate) => {
                 const obsEntries = pastObservations.filter(obs => obs.name === obsName);
                 basicInfo += `${obsName}${delimiter}`;
 
-                const obsTimes = obsEntries.map(obs => formatDate(obs.date)).join(', ');
+                const obsTimes = obsEntries.map(obs => formatDate(obs.date)).join(',');
                 basicInfo += `${obsTimes}${delimiter}`;
                 // If value add next
                 basicInfo += `${obsEntries[0].value || ''}${delimiter}`;
@@ -203,7 +205,7 @@ const formatVitalSigns = (vitalSigns, earliestDate) => {
                 const diffMs = new Date(med.date) - earliestDate;
                 const diffMinutes = Math.round(diffMs / 60000);
                 return diffMinutes;
-            }).join(', ');
+            }).join(',');
 
             basicInfo += `${medTimes}${delimiter}`;
             basicInfo += `O${medEntries.length}${delimiter}`;

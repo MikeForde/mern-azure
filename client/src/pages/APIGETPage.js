@@ -12,6 +12,7 @@ function APIGETPage() {
   const [mode, setMode] = useState('ips');
   const [modeText, setModeText] = useState('IPS JSON Bundle - /ips/:id or /ipsbyname/:name/:given');
   const [showNotification, setShowNotification] = useState(false);
+  const [responseSize, setResponseSize] = useState(0);
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find(record => record._id === recordId);
@@ -35,9 +36,12 @@ function APIGETPage() {
           let responseData;
           if (mode === 'ipsbasic' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim') {
             responseData = response.data;
+            setResponseSize(responseData.length);
           } else if (mode === 'ipsxml') {
             responseData = formatXML(response.data);
+            setResponseSize(responseData.length);
           } else {
+            setResponseSize(JSON.stringify(response.data).length);
             responseData = JSON.stringify(response.data, null, 2);
           }
 
@@ -105,7 +109,7 @@ function APIGETPage() {
     return (
       <div className="app">
         <div className="container">
-          <h3>API GET - IPS Data <div className="noteFont">- /:id can be the IPS id (the main UUID) or the internal MongoDB _id</div></h3>
+          <h3>API GET - IPS Data: {responseSize}<div className="noteFont">- /:id can be the IPS id (the main UUID) or the internal MongoDB _id</div></h3>
           {selectedPatients.length > 0 && selectedPatient && (
             <>
               <div className="dropdown-container">

@@ -59,8 +59,8 @@ function BEERGardenPage() {
     startLoading();
     try {
       const response = await axios.post('/convertmongo2beer', { data: mongoData });
-      setBeerData(response.data);
-      const beerSize = new TextEncoder().encode(response.data).length;
+      setBeerData(response.data.trim());
+      const beerSize = new TextEncoder().encode(response.data.trim()).length;
       setBEERSize(beerSize);
       setMessage('Successfully converted to BEER format');
       setShowNotification(false);
@@ -80,8 +80,8 @@ function BEERGardenPage() {
     const endpoint = '/convertips2beer';
     axios.post(endpoint, { data: mongoData })
       .then(response => {
-        setBeerData(response.data);
-        const beerSize = new TextEncoder().encode(response.data).length;
+        setBeerData(response.data.trim()); 
+        const beerSize = new TextEncoder().encode(response.data.trim()).length;
         setBEERSize(beerSize);
         setMessage('Successfully converted to BEER format');
         setShowNotification(false);
