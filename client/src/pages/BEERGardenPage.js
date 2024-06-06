@@ -31,11 +31,14 @@ function BEERGardenPage() {
 
       axios.get(endpoint)
         .then(response => {
+          const mongoSize = new TextEncoder().encode(JSON.stringify(response.data)).length;
           const responseData = JSON.stringify(response.data, null, 2);
           setMongoData(responseData);
           setShowNotification(false);
-          const mongoSize = new TextEncoder().encode(responseData).length;
           setMongoSize(mongoSize);
+          setDisplayFormat('MongoDB');
+          setBeerData('');
+          setBEERSize(0);
         })
         .catch(error => {
           console.error('Error fetching IPS record:', error);
@@ -70,8 +73,10 @@ function BEERGardenPage() {
     try {
       const response = await axios.post('/convertbeer2mongo', { data: beerData });
       setMongoData(JSON.stringify(response.data, null, 2));
-      const mongoSize = new TextEncoder().encode(JSON.stringify(response.data, null, 2)).length;
+      const mongoSize = new TextEncoder().encode(JSON.stringify(response.data)).length;
       setMongoSize(mongoSize);
+      const beerSize = new TextEncoder().encode(beerData).length;
+      setBEERSize(beerSize);
       setMessage('Successfully converted to MongoDB format');
       setDisplayFormat('MongoDB');
       setShowNotification(false);
@@ -89,8 +94,10 @@ function BEERGardenPage() {
     try {
       const response = await axios.post('/convertbeer2ips', { data: beerData });
       setMongoData(JSON.stringify(response.data, null, 2));
-      const mongoSize = new TextEncoder().encode(JSON.stringify(response.data, null, 2)).length;
+      const mongoSize = new TextEncoder().encode(JSON.stringify(response.data)).length;
       setMongoSize(mongoSize);
+      const beerSize = new TextEncoder().encode(beerData).length;
+      setBEERSize(beerSize);
       setMessage('Successfully converted to IPS JSON format');
       setDisplayFormat('IPS JSON');
       setShowNotification(false);
