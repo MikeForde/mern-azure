@@ -226,8 +226,8 @@ function parseBEER(dataPacket, delimiter) {
             const observations = [];
             for (let i = 0; i < oCount; i++) {
                 const name = lines[currentIndex++];
-                const minutesList = lines[currentIndex++].split(', ').map(min => parseInt(min, 10));
-                const values = lines[currentIndex++].split(', ');
+                const minutesList = lines[currentIndex++].split(',').map(min => parseInt(min, 10));
+                const values = lines[currentIndex++].split(',');
                 minutesList.forEach((minutes, index) => {
                     const date = new Date(earliestObservationTime.getTime() + minutes * 60000);
                     observations.push({ name, date, value: values[index] });
