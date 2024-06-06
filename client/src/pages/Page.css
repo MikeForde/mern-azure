@@ -58,8 +58,13 @@
 }
 
 .message {
-  margin-top: 6rem;
+  margin-top: 6.5rem;
   width: 50%;
+  height: 30px;
+  /* ensure in centre vertically of message */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 } 
 
 

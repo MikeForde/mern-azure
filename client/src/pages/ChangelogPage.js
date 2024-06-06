@@ -295,9 +295,11 @@ function ChangeLogPage() {
                         <li>
                             <h5>Version 0_33</h5>
                             <ul>
-                                <li><strong>Added BEER to IPS JSON Conversion</strong></li>
-                                <li>BEER data can now be converted to IPS JSON format - display only in the BEER Garden</li>
-                                
+                                <li><strong>Added BEER - IPS JSON Conversion in BEER Garden</strong></li>
+                                <li>Manually edited BEER data can be converted to IPS JSON format or Native MongoDB</li>
+                                <li>IPS JSON (converted internally from MongoDb) or manually edited - can be converted to BEER format</li>
+                                <li>Byte size displayed for both formats</li>
+                                <li>Neither option affects the stored record - just for display purposes</li>
                             </ul>
                         </li>
                     </ul>
