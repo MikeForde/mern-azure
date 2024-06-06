@@ -105,7 +105,7 @@ function BEERGardenPage() {
       setMongoData(JSON.stringify(response.data, null, 2));
       const mongoSize = new TextEncoder().encode(JSON.stringify(response.data)).length;
       setMongoSize(mongoSize);
-      const beerSize = new TextEncoder().encode(beerData).length;
+      const beerSize = new TextEncoder().encode(beerData.trim()).length;
       setBEERSize(beerSize);
       setMessage('Successfully converted to MongoDB format');
       setDisplayFormat('MongoDB');
@@ -128,7 +128,7 @@ function BEERGardenPage() {
       setMongoData(JSON.stringify(response.data, null, 2));
       const mongoSize = new TextEncoder().encode(JSON.stringify(response.data)).length;
       setMongoSize(mongoSize);
-      const beerSize = new TextEncoder().encode(beerData).length;
+      const beerSize = new TextEncoder().encode(beerData.trim()).length;
       setBEERSize(beerSize);
       setMessage('Successfully converted to IPS JSON format');
       setDisplayFormat('IPS JSON');
