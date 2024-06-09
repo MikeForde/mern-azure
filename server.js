@@ -25,6 +25,7 @@ const { convertMongoToBEER } = require('./servercontrollers/convertMongoToBEER')
 const { convertBEERToMongo } = require('./servercontrollers/convertBEERToMongo');
 const { convertBEERToIPS } = require('./servercontrollers/convertBEERToIPS');
 const { convertIPSToBEER } = require('./servercontrollers/convertIPSToBEER');
+const { updateIPSByUUID } = require('./servercontrollers/updateIPSRecordByUUID');
 
 
 const { DB_CONN } = process.env;
@@ -33,6 +34,7 @@ const api = express();
 api.use(cors()); // enable CORS on all our requests
 api.use(express.json()); // parses incoming requests with JSON payloads
 api.use(express.urlencoded({ extended: false })); // parses incoming requests with urlencoded payloads
+api.use(express.text())
 
 mongoose
     .connect(DB_CONN, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -65,6 +67,7 @@ api.get('/fetchipsora/:name/:givenName', getORABundleByName);
   
 // API PUT - CRUD Update
 api.put("/ips/:id", updateIPS);
+api.put("/ipsuuid/:uuid", updateIPSByUUID);
 
 // API DELETE - CRUD Delete
 api.delete("/ips/:id", deleteIPS);

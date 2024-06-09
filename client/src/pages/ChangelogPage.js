@@ -302,6 +302,16 @@ function ChangeLogPage() {
                                 <li>Neither option affects the stored record - just for display purposes</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_34</h5>
+                            <ul>
+                                <li><strong>Added New Update/Edit Endpoint</strong></li>
+                                <li>Added new endpoint to allow updating of existing IPS records using UUID</li>
+                                <li>API PUT call is /ipsuuid/:id</li>
+                                <li>This means an external system that has POST/created a record - perhaps before patient id known - can then update it later</li>
+                                <li>Changes to unique Patient data - e.g. name - are treated as edits, Medication, Allergies, Conditions and Observations are added to the record</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

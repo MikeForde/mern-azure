@@ -9,6 +9,7 @@ function parseBEER(dataPacket, delimiter) {
     };
 
     const delim = delimiterMap[delimiter] || '\n';
+    dataPacket = dataPacket + delim; // Ensure last line is parsed
     const lines = dataPacket.split(delim);
 
     // Basic Information

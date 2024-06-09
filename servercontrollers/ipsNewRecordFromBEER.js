@@ -6,6 +6,8 @@ function addIPSFromBEER(req, res) {
     // Extract IPS Bundle from request body
     const ipsBEER = req.body;
 
+    console.log(req.body);
+
     const delimiter = req.query.delim || 'newline';
 
     // Convert IPS BEER to desired schema
