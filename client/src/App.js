@@ -12,6 +12,7 @@ import APIGETPage from './pages/APIGETPage';
 import OffRoadPage from './pages/OffRoadPage';
 import OffRoadPOSTPage from './pages/OffRoadPOSTPage';
 import BEERGardenPage from './pages/BEERGardenPage';
+import APIDocumentationPage from './pages/APIDocumentationPage';
 import { PatientProvider } from './PatientContext';
 import { LoadingProvider } from './contexts/LoadingContext';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -35,6 +36,7 @@ function App() {
               <Route path="/ipsoffroad" element={<OffRoadPage />} />
               <Route path="/offroadpost/:id?" element={<OffRoadPOSTPage />} />
               <Route path="/beergarden/:id?" element={<BEERGardenPage />} />
+              <Route path="/apidocumentation" element={<APIDocumentationPage />} />
             </Routes>
           </div>
         </Router>

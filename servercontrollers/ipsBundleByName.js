@@ -4,8 +4,11 @@ const { generateIPSBundle } = require('./servercontrollerfuncs/generateIPSBundle
 function getIPSBundleByName(req, res) {
     const { name, given } = req.params;
 
-    // Search for IPS records based on patient's name and given name
-    IPSModel.findOne({ "patient.name": name, "patient.given": given })
+    // Use regular expressions for case-insensitive matching
+    const nameRegex = new RegExp(`^${name}$`, 'i');
+    const givenRegex = new RegExp(`^${given}$`, 'i');
+
+    IPSModel.findOne({ "patient.name": nameRegex, "patient.given": givenRegex })
         .exec()
         .then((ips) => {
             if (!ips) {
@@ -23,3 +26,4 @@ function getIPSBundleByName(req, res) {
 }
 
 module.exports = { getIPSBundleByName };
+

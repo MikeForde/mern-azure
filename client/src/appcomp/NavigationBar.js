@@ -58,7 +58,7 @@ function NavigationBar() {
             alt="IPS Logo"
             style={{ marginRight: '10px' }}
           />
-          IPS MERN Prototype 0_34
+          IPS MERN Prototype 0_35
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">
@@ -96,6 +96,10 @@ function NavigationBar() {
               <NavDropdown.Divider />
               <NavDropdown.Item as={Link} to="/changelog" onClick={() => handleNavItemSelect(false)}>
                 Change Log
+              </NavDropdown.Item>
+              <NavDropdown.Divider />
+              <NavDropdown.Item as={Link} to="/apidocumentation" onClick={() => handleNavItemSelect(false)}>
+                API Documentation
               </NavDropdown.Item>
             </NavDropdown>
           </Nav>

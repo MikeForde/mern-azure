@@ -312,6 +312,15 @@ function ChangeLogPage() {
                                 <li>Changes to unique Patient data - e.g. name - are treated as edits, Medication, Allergies, Conditions and Observations are added to the record</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_35</h5>
+                            <ul>
+                                <li><strong>Added API Documentation Page</strong></li>
+                                <li>Page to allow easy access to all API endpoints and their descriptions</li>
+                                <li>API Documentation Page is accessible from the NavBar</li>
+                                <li>/ipsbyname is now case-insensitive</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>
