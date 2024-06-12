@@ -50,14 +50,16 @@ function deleteIPSbyPractitioner(req, res) {
     const { practitioner } = req.params;
 
     if (practitioner) {
-        // We will delete all matching records with this practitioner
-        IPSModel.deleteMany({ practitioner })
-            .then((ips) => {
-                res.json(ips);
+        // Perform case-insensitive deletion of records matching the practitioner's name
+        IPSModel.deleteMany({ "patient.practitioner": { $regex: new RegExp(`^${practitioner}$`, 'i') } })
+            .then((result) => {
+                res.json({ message: `${result.deletedCount} IPS record(s) deleted.` });
             })
             .catch((err) => {
                 res.status(400).send(err);
             });
+    } else {
+        res.status(400).send("Practitioner parameter is missing.");
     }
 }
 
