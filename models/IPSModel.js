@@ -35,7 +35,11 @@ const IPSModel = mongoose.model(
             practitioner: {
                 type: String,
                 required: true
-            }
+            },
+            organization: {
+                type: String,
+                required: false
+            },
         },
         medication: [
             {

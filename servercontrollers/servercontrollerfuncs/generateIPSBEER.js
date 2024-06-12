@@ -94,7 +94,7 @@ const formatVitalSigns = (vitalSigns, earliestDate) => {
 
     basicInfo += `${ipsRecord.patient.practitioner}${delimiter}`;
     basicInfo += `${ipsRecord.patient.nation}${delimiter}`;
-    basicInfo += `UK MOD${delimiter}`;
+    basicInfo += `${ipsRecord.patient.organization || ''}${delimiter}`;
 
     // Medication information
     const pastMedications = [];

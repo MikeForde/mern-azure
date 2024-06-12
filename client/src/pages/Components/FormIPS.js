@@ -22,6 +22,7 @@ export function FormIPS({ add }) {
       gender: "",
       nationality: "",
       practitioner: "",
+      organization: "",
     },
     medication: [{ name: "", date: "", dosage: "" }],
     allergies: [{ name: "", criticality: "", date: "" }],
@@ -129,6 +130,7 @@ export function FormIPS({ add }) {
     if (!formData.patient.gender) { formData.patient.gender = "Unknown"; }
     if (!formData.patient.nation) { formData.patient.nation = "UK"; }
     if (!formData.patient.practitioner) { formData.patient.practitioner = "Dr No"; }
+    if (!formData.patient.organization) { formData.patient.organization = "UK DMS"; }
 
     // Proceed with the submission if all required fields are filled
     if (!formData.packageUUID) return;
@@ -143,6 +145,7 @@ export function FormIPS({ add }) {
         gender: "",
         nation: "",
         practitioner: "",
+        organization: "",
       },
       medication: [{ name: "", date: "", dosage: "" }],
       allergies: [{ name: "", criticality: "", date: "" }],
@@ -253,6 +256,15 @@ export function FormIPS({ add }) {
                   value={formData.patient.practitioner}
                   onChange={handlePatientChange}
                   placeholder="Practitioner - default Dr No" />
+              </div>
+              <Form.Label className="col-sm-2">Organization</Form.Label>
+              <div className="col-sm-4">
+                <Form.Control
+                  type="text"
+                  name="organization"
+                  value={formData.patient.organization}
+                  onChange={handlePatientChange}
+                  placeholder="Organization - default UK DMS" />
               </div>
             </Form.Group>
           </Form.Group>

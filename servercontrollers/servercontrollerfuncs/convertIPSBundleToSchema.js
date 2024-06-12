@@ -34,6 +34,13 @@ function convertIPSBundleToSchema(ipsBundle) {
                     patient.practitioner = "Unknown";
                 }
                 break;
+            case "Organization":
+                if(resource.name !== undefined) {
+                    patient.organization = resource.name;
+                } else {
+                    patient.organization = "Unknown";
+                }
+                break;
             case "MedicationStatement":
                 if (resource.dosage[0].text !== undefined) {
                     dosage = resource.dosage[0].text;

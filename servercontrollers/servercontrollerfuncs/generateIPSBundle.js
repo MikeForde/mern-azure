@@ -314,7 +314,7 @@ function generateIPSBundle(ipsRecord) {
                 "resource": {
                     "resourceType": "Organization",
                     "id": organizationUUID,
-                    "name": "UK DMS"
+                    "name": ipsRecord.patient.organization ? ipsRecord.patient.organization : "Unknown"
                 }
             },
             // Medication and AllergyIntolerance entries

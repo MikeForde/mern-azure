@@ -32,7 +32,8 @@ function getMongoFormatted(req, res) {
           dob: ips.patient.dob,
           gender: ips.patient.gender,
           practitioner: ips.patient.practitioner,
-          nation: ips.patient.nation
+          nation: ips.patient.nation,
+          organization: ips.patient.organization
         },
         medication: ips.medication.map(med => ({
           name: med.name,

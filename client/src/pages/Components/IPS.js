@@ -117,6 +117,7 @@ export function IPS({ ips, remove, update }) {
             <p>Gender: {ips.patient.gender}</p>
             <p>Country: {ips.patient.nation}</p>
             <p>Practitioner: {ips.patient.practitioner}</p>
+            <p>Organization: {ips.patient.organization}</p>
             <h4>Medications:</h4>
             <ul>
               {ips.medication.map((med, index) => (
@@ -295,6 +296,19 @@ export function IPS({ ips, remove, update }) {
                     type="text"
                     name="practitioner"
                     value={editIPS.patient.practitioner}
+                    onChange={handleEditChange}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                <Form.Group controlId="formPatientOrganization">
+                  <Form.Label>Organization</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="organization"
+                    value={editIPS.patient.organization}
                     onChange={handleEditChange}
                   />
                 </Form.Group>

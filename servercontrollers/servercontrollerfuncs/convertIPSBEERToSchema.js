@@ -47,9 +47,8 @@ function parseBEER(dataPacket, delimiter) {
         gender: mapGender(lines[currentIndex++]),
         practitioner: lines[currentIndex++],
         nation: lines[currentIndex++],
+        organization: lines[currentIndex++]
     };
-
-    currentIndex++; // Skip UK MOD
 
     const parsePreMeds = (count) => {
         const medications = [];

@@ -169,7 +169,7 @@ function generateXMLBundle(ipsRecord) {
         <resource>
             <Organization>
                 <id value="${organizationUUID}"/>
-                <name value="UK DMS"/>
+                <name value="${ipsRecord.patient.organization}"/>
             </Organization>
         </resource>
     </entry>`;

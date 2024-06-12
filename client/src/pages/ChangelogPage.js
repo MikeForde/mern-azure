@@ -321,6 +321,14 @@ function ChangeLogPage() {
                                 <li>/ipsbyname is now case-insensitive</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_36</h5>
+                            <ul>
+                                <li><strong>Organization added</strong></li>
+                                <li>Organization field added to MongoDB record</li>
+                                <li>Previously was not being read and was being automatically set in exports/conversions to 'UK DMS'</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

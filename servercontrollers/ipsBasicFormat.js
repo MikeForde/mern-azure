@@ -36,6 +36,7 @@ const getIPSBasic = (req, res) => {
         basicInfo += `${ipsRecord.patient.gender}\r\n`;
         basicInfo += `${ipsRecord.patient.nation}\r\n`;
         basicInfo += `${ipsRecord.patient.practitioner}\r\n`;
+        basicInfo += `${ipsRecord.patient.organization}\r\n`;
 
         // Append medication information
         ipsRecord.medication.forEach((med) => {
