@@ -46,4 +46,19 @@ function deleteIPS(req, res) {
     }
 }
 
-module.exports = { updateIPS, deleteIPS };
+function deleteIPSbyPractitioner(req, res) {
+    const { practitioner } = req.params;
+
+    if (practitioner) {
+        // We will delete all matching records with this practitioner
+        IPSModel.deleteMany({ practitioner })
+            .then((ips) => {
+                res.json(ips);
+            })
+            .catch((err) => {
+                res.status(400).send(err);
+            });
+    }
+}
+
+module.exports = { updateIPS, deleteIPS, deleteIPSbyPractitioner };

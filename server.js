@@ -19,7 +19,7 @@ const { addIPS, addIPSMany } = require('./servercontrollers/ipsNewRecord');
 const { addIPSFromBundle } = require("./servercontrollers/ipsNewRecordFromBundle");
 const { addIPSFromBEER } = require("./servercontrollers/ipsNewRecordFromBEER");
 const { postIPSBundle } = require('./servercontrollers/postIPSBundle');
-const { updateIPS, deleteIPS } = require('./servercontrollers/ipsCRUD_UD');
+const { updateIPS, deleteIPS, deleteIPSbyPractitioner } = require('./servercontrollers/ipsCRUD_UD');
 const { getIPSSearch } = require('./servercontrollers/ipsRecordSearch');
 const { convertMongoToBEER } = require('./servercontrollers/convertMongoToBEER');
 const { convertBEERToMongo } = require('./servercontrollers/convertBEERToMongo');
@@ -71,6 +71,7 @@ api.put("/ipsuuid/:uuid", updateIPSByUUID);
 
 // API DELETE - CRUD Delete
 api.delete("/ips/:id", deleteIPS);
+api.delete("/ipsdeletebypractitioner/:practitioner", deleteIPSbyPractitioner);
 
 api.use(express.static(path.join(__dirname, "client", "build")));
 api.get("/*", (req, res) => {
