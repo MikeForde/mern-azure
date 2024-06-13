@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { Button, Modal, Form, OverlayTrigger, Tooltip, Row, Col } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { faDownload, faFileMedical, faQrcode, faTrash, faBeer, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faFileMedical, faQrcode, faTrash, faBeer, faEdit, faCloud } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { PatientContext } from '../../PatientContext';
@@ -185,6 +185,14 @@ export function IPS({ ips, remove, update }) {
           <Link to="/offroadpost">
             <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
               <FontAwesomeIcon icon={faDownload} />
+            </Button>
+          </Link>
+        </OverlayTrigger>
+
+        <OverlayTrigger placement="top" overlay={renderTooltip('View NLD POST Page')}>
+          <Link to="/pushipsnld">
+            <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
+              <FontAwesomeIcon icon={faCloud} />
             </Button>
           </Link>
         </OverlayTrigger>
