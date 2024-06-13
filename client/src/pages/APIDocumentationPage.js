@@ -113,7 +113,7 @@ function APIDocumentationPage() {
       method: 'GET',
       endpoint: '/ipsbeer/:id/:delim?',
       description: 'Retrieve IPS record in BEER format by ID.',
-      request: 'IPS record ID and optional delimiter as URL parameters.',
+      request: 'IPS record ID and optional delimiter as URL parameters. If delimiter not stated, all delimiters will be tried before giving up',
       response: 'BEER format string of the IPS record.'
     },
     {

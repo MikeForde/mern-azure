@@ -21,7 +21,9 @@ const getIPSBEER = async (req, res) => {
     const delimiterMap = {
         'semi': ';',
         'colon': ':',
-        'comma': ','
+        'pipe': '|',
+        'at': '@',
+        'newline': '\n'
     };
     const delimiter = delimiterMap[delim] || '\n';
 

@@ -9,7 +9,7 @@ function ChangeLogPage() {
                     <h3>ChangeLog - Versions refer to Cloud Deployments</h3>
                     <ul>
                         <li>
-                            <h5>Version 0_1 (Initial Release)</h5>
+                            <h5>Version 0_1 (Initial Release) - 2nd May 2024</h5>
                             <ul>
                                 <li><strong>Implemented basic functionality for the MERN web app.</strong></li>
                                 <li>Single page with data entry and previous data display</li>
@@ -18,7 +18,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_2</h5>
+                            <h5>Version 0_2 - 3rd May 2024</h5>
                             <ul>
                                 <li><strong>Improved data presentation, delete confirm and IPS API additions</strong></li>
                                 <li>Data presented in compact form with expand mechanism</li>
@@ -27,7 +27,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_3</h5>
+                            <h5>Version 0_3 - 4th May 2024</h5>
                             <ul>
                                 <li><strong>Implemented QR Generator, (non-functional) Data Upload page and Navigation.</strong></li>
                                 <li>QR code Generation of IPS Bundle and MongoDb record format.</li>
@@ -36,7 +36,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_4</h5>
+                            <h5>Version 0_4 - 4th May 2024</h5>
                             <ul>
                                 <li><strong>Per-record QR Button, new data format for both API and QR Generator</strong></li>
                                 <li>QR Button added to previous record display to jump to QR Generator Page for that record</li>
@@ -46,7 +46,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_5</h5>
+                            <h5>Version 0_5 - 4th May 2024</h5>
                             <ul>
                                 <li><strong>Better Navigation format and QR URL for Patient</strong></li>
                                 <li>QR Generator includes new mode representing - in Plain Text - the API endpoint for the IPS Bundle</li>
@@ -54,7 +54,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_6</h5>
+                            <h5>Version 0_6 - 5th May 2024</h5>
                             <ul>
                                 <li><strong>Added About IPS and ChangeLog page, Hide data entry form</strong></li>
                                 <li>About IPS page to give brief context - non-sensitive</li>
@@ -64,7 +64,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_7</h5>
+                            <h5>Version 0_7 - 6th May 2024</h5>
                             <ul>
                                 <li><strong>Added real functionality to Bulk Upload page</strong></li>
                                 <li>Bulk Upload page to allow pasting of multiple records for conversion</li>
@@ -75,7 +75,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_8</h5>
+                            <h5>Version 0_8 - 6th May 2024</h5>
                             <ul>
                                 <li><strong>Added UUID validator for Bulk Upload</strong></li>
                                 <li>UUID validator is basic regex - so not true validator - but will suffice for now</li>
@@ -84,7 +84,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_9</h5>
+                            <h5>Version 0_9 - 6th May 2024</h5>
                             <ul>
                                 <li><strong>Logo and Navbar Changes</strong></li>
                                 <li>Added new logo to replace stock React App one</li>
@@ -92,7 +92,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_10</h5>
+                            <h5>Version 0_10 - 8th May 2024</h5>
                             <ul>
                                 <li><strong>QR Code Size Check</strong></li>
                                 <li>QR Code data size check - and user feedback - to avoid display errors</li>
@@ -100,7 +100,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_11</h5>
+                            <h5>Version 0_11 - 9th May 2024</h5>
                             <ul>
                                 <li><strong>New XML Format and IPS JSON Format change</strong></li>
                                 <li>IPS Bundle format now compatible with the <a href="https://ipsviewer.com" target="_blank" rel="noopener noreferrer">IPS Viewer</a></li>
@@ -111,7 +111,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_12</h5>
+                            <h5>Version 0_12 - 9th May 2024</h5>
                             <ul>
                                 <li><strong>Added API GET Data Viewer</strong></li>
                                 <li>Allows more convient viewing of data formats returned by the various API GET endpoints</li>
@@ -119,7 +119,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_13</h5>
+                            <h5>Version 0_13 - 10th May 2024</h5>
                             <ul>
                                 <li><strong>Legacy IPS JSON and Screen Realestate</strong></li>
                                 <li>Added IPS Legacy format to API endpoints and API Page - based on version 2 of bundle</li>
@@ -129,14 +129,14 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_14</h5>
+                            <h5>Version 0_14 - 11th May 2024</h5>
                             <ul>
                                 <li><strong>Cosmetic changes and hyperlinks</strong></li>
                                 <li>Links in various places to aide testing</li>
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_15</h5>
+                            <h5>Version 0_15 - 17th May 2024</h5>
                             <ul>
                                 <li><strong>Added API GET and POST</strong></li>
                                 <li>API GET allows the return of an IPS Bundle using the endpoint /ipsbyname/:name/:given</li>
@@ -144,7 +144,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_16</h5>
+                            <h5>Version 0_16 - 18th May 2024</h5>
                             <ul>
                                 <li><strong>Added Gender and Conditions</strong></li>
                                 <li>Large update as entire schema changed</li>
@@ -155,7 +155,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_17</h5>
+                            <h5>Version 0_17 - 19th May 2024</h5>
                             <ul>
                                 <li><strong>Replaced 'Display All' with Search Functionality</strong></li>
                                 <li>Search for IPS records based on patient's name</li>
@@ -163,7 +163,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_18</h5>
+                            <h5>Version 0_18 - 19th May 2024</h5>
                             <ul>
                                 <li><strong>Patient Selection Preservation</strong></li>
                                 <li>Selected patients are preserved across the App</li>
@@ -172,7 +172,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_19</h5>
+                            <h5>Version 0_19 - 19th May 2024</h5>
                             <ul>
                                 <li><strong>Optional :id endpoints</strong></li>
                                 <li>API GET endpoints that use /:id will now accept both MongoDB internal _id and IPS id (packageUUID)</li>
@@ -180,7 +180,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_20</h5>
+                            <h5>Version 0_20 - 22nd May 2024</h5>
                             <ul>
                                 <li><strong>Added VitalsIQ API Page</strong></li>
                                 <li>Page to allow direct access to the VitalsIQ API</li>
@@ -188,7 +188,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_21</h5>
+                            <h5>Version 0_21 - 23rd May 2024</h5>
                             <ul>
                                 <li><strong>API Comms Client-to-Server</strong></li>
                                 <li>Axios GET code moved to server-side to avoid BPS issues</li>
@@ -196,7 +196,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_22</h5>
+                            <h5>Version 0_22- 23rd May 2024</h5>
                             <ul>
                                 <li><strong>Record Creation from ORA IPS Bundle</strong></li>
                                 <li>Can now convert an VitalsIQ IPS Bundle to a MongoDb Record</li>
@@ -204,7 +204,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_23</h5>
+                            <h5>Version 0_23- 23rd May 2024</h5>
                             <ul>
                                 <li><strong>Added API POST to ORA</strong></li>
                                 <li>API POST allows the sending IPS JSON Bundle to VitalsIQ WebApp</li>
@@ -213,7 +213,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_24</h5>
+                            <h5>Version 0_24 - 26th May 2024</h5>
                             <ul>
                                 <li><strong>Added API GET for BEER</strong></li>
                                 <li>API GET allows the return of an IPS Bundle with the BEER data format using the endpoint /ipsbeer/:id</li>
@@ -223,7 +223,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_25</h5>
+                            <h5>Version 0_25 - 27th May 2024</h5>
                             <ul>
                                 <li><strong>Added BEER Garden Page</strong></li>
                                 <li>Page to allow conversion between MongoDb and BEER formats</li>
@@ -231,7 +231,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_26</h5>
+                            <h5>Version 0_26 - 27th May 2024</h5>
                             <ul>
                                 <li><strong>Added NavBar Search</strong></li>
                                 <li>Search for IPS records based on patient's family/surname</li>
@@ -240,7 +240,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_27</h5>
+                            <h5>Version 0_27 - 28th May 2024</h5>
                             <ul>
                                 <li><strong>Added Edit Functionality</strong></li>
                                 <li>Allows editing of existing IPS records</li>
@@ -248,7 +248,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_28</h5>
+                            <h5>Version 0_28 - 29th May 2024</h5>
                             <ul>
                                 <li><strong>Added Spinner</strong></li>
                                 <li>Added Spinner to indicate loading for asynchronous functions</li>
@@ -257,7 +257,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_29</h5>
+                            <h5>Version 0_29 - 30th May 2024</h5>
                             <ul>
                                 <li><strong>Added Observation Resource</strong></li>
                                 <li>Added Observation resource to IPS Bundle</li>
@@ -266,7 +266,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_30</h5>
+                            <h5>Version 0_30 - 1st Jun 2024</h5>
                             <ul>
                                 <li><strong>Added TimeStamp</strong></li>
                                 <li>Added fixed TimeStamp - previously generated with IPS bundle</li>
@@ -276,7 +276,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_31</h5>
+                            <h5>Version 0_31 - 1st Jun 2024</h5>
                             <ul>
                                 <li><strong>Added Observation and Allergy Dropdowns</strong></li>
                                 <li>Observation dropdown for key vital signs - temperature, blood pressure, pulse, respiration etc</li>
@@ -284,7 +284,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_32</h5>
+                            <h5>Version 0_32 - 3rd Jun 2024</h5>
                             <ul>
                                 <li><strong>Further BEER Format Development</strong></li>
                                 <li>Medication and Observations formatted differently depending on whether past or future relative to timestamp</li>
@@ -293,7 +293,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_33</h5>
+                            <h5>Version 0_33 - 6th June 2024</h5>
                             <ul>
                                 <li><strong>Added BEER - IPS JSON Conversion in BEER Garden</strong></li>
                                 <li>Manually edited BEER data can be converted to IPS JSON format or Native MongoDB</li>
@@ -303,7 +303,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_34</h5>
+                            <h5>Version 0_34 - 9th June 2024</h5>
                             <ul>
                                 <li><strong>Added New Update/Edit Endpoint</strong></li>
                                 <li>Added new endpoint to allow updating of existing IPS records using UUID</li>
@@ -313,7 +313,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_35</h5>
+                            <h5>Version 0_3 - 12th June 2024</h5>
                             <ul>
                                 <li><strong>Added API Documentation Page</strong></li>
                                 <li>Page to allow easy access to all API endpoints and their descriptions</li>
@@ -322,7 +322,7 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_36</h5>
+                            <h5>Version 0_36 - 12th June 2024</h5>
                             <ul>
                                 <li><strong>Organization added</strong></li>
                                 <li>Organization field added to MongoDB record</li>
@@ -330,12 +330,20 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_37</h5>
+                            <h5>Version 0_37 - 13th June 2024</h5>
                             <ul>
                                 <li><strong>Added API POST to NLD</strong></li>
                                 <li>API POST allows the sending IPS JSON Bundle to NLD WebApp</li>
                                 <li>Internal API endpoint is /pushipsnld</li>
                                 <li>External API endpoint is at https://medicalcloud.orange-synapse.nl/api/fhir/1</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <h5>Version 0_38 - 13th June 2024</h5>
+                            <ul>
+                                <li><strong>IPS BEER Parsing Delimiter Improvements</strong></li>
+                                <li>IPS BEER format can use various delimiters - newline, semicolon, pipe, colon, and @</li>
+                                <li>If no delimiter is specified then all are tried before failing</li>
                             </ul>
                         </li>
                     </ul>

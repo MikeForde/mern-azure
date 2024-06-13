@@ -69,7 +69,7 @@ const formatVitalSigns = (vitalSigns, earliestDate) => {
 
     return Object.entries(formattedVitalSigns).map(([obsType, entries]) => {
         return `${obsType}${entries.join(',')}`;
-    }).join('\n');
+    }).join(delimiter);
 };
 
 

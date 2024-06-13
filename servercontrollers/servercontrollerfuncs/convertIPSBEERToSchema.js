@@ -2,23 +2,42 @@
 function parseBEER(dataPacket, delimiter) {
     // Mapping delimiters
     const delimiterMap = {
+        'pipe': '|',
         'semi': ';',
         'colon': ':',
-        'comma': ',',
+        'at': '@',
         'newline': '\n'
     };
 
-    const delim = delimiterMap[delimiter] || '\n';
+    let delim = delimiterMap[delimiter] || '\n';
     dataPacket = dataPacket + delim; // Ensure last line is parsed
-    const lines = dataPacket.split(delim);
+    let lines = dataPacket.split(delim);
 
     // Basic Information
     const record = {};
     let currentIndex = 0;
 
+    let bolDelimFound = false;
     if (lines[currentIndex] !== 'H9') {
-        throw new Error('Invalid data packet format - first line should be H9');
+        // Try other delimiters
+        const delimiters = Object.keys(delimiterMap).filter(key => key !== delimiter);
+        for (let i = 0; i < delimiters.length; i++) {
+            delim = delimiterMap[delimiters[i]];
+            lines = dataPacket.split(delim);
+            if (lines[currentIndex] === 'H9') {
+                // Successfully found delimiter
+                bolDelimFound = true;
+                break;
+            }
+        } 
+    } else {
+        bolDelimFound = true;
     }
+
+    if (!bolDelimFound) {
+        throw new Error('Unsupported delimiter or wrong data format');
+    }
+
     currentIndex++; // Skip header
 
     if (lines[currentIndex] !== '1') {

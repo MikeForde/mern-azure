@@ -28,7 +28,7 @@ function QRPage() {
       let endpoint;
 
       if (mode === 'ipsbeerwithdelim') {
-        endpoint = `/ipsbeer/${selectedPatient._id}/semi`;
+        endpoint = `/ipsbeer/${selectedPatient._id}/pipe`;
       } else {
         endpoint = `/${mode}/${selectedPatient._id}`;
       }
@@ -119,7 +119,7 @@ function QRPage() {
               <Dropdown.Item eventKey="ipsmongo">IPS MongoDB</Dropdown.Item>
               <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle</Dropdown.Item>
               <Dropdown.Item eventKey="ipsbeer">IPS BEER (newline)</Dropdown.Item>
-              <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER with Delimiter (semicolon)</Dropdown.Item>
+              <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER with Delimiter (pipe |)</Dropdown.Item>
             </DropdownButton>
           </div>
         </>}

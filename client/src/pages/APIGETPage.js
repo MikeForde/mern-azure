@@ -25,7 +25,7 @@ function APIGETPage() {
       const fetchData = async () => {
         let endpoint;
         if (mode === 'ipsbeerwithdelim') {
-          endpoint = `/ipsbeer/${selectedPatient._id}/semi`;
+          endpoint = `/ipsbeer/${selectedPatient._id}/pipe`;
         } else {
           endpoint = `/${mode}/${selectedPatient._id}`;
         }
@@ -93,7 +93,7 @@ function APIGETPage() {
         setModeText('IPS BEER - /ipsbeer/:id');
         break;
       case 'ipsbeerwithdelim':
-        setModeText('IPS BEER - /ipsbeer/:id/:delim (semicolon)');
+        setModeText('IPS BEER - /ipsbeer/:id/pipe)');
         break;
      
         default:
@@ -143,7 +143,7 @@ function APIGETPage() {
                   <Dropdown.Item eventKey="ipsmongo">IPS MongoDB - /ipsmongo/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipsbasic">IPS Minimal - /ipsbasic/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipsbeer">IPS BEER - /ipsbeer/:id</Dropdown.Item>
-                  <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER - /ipsbeer/:id/:delim (semicolon)</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER - /ipsbeer/:id/pipe</Dropdown.Item>
                 </DropdownButton>
               </div>
             </>
