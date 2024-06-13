@@ -62,7 +62,7 @@ function parseBEER(dataPacket, delimiter) {
     record.patient = {
         name: lines[currentIndex++],
         given: lines[currentIndex++],
-        dob: new Date(lines[currentIndex++].replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')), // Convert yyyymmdd to yyyy-mm-dd
+        dob: dobFunction(), // Convert yyyymmdd to yyyy-mm-dd
         gender: mapGender(lines[currentIndex++]),
         practitioner: lines[currentIndex++],
         nation: lines[currentIndex++],
@@ -95,6 +95,25 @@ function parseBEER(dataPacket, delimiter) {
         }
         return medications;
     };
+
+    function dobFunction() {
+        const line = lines[currentIndex++];
+        try {
+            const dobRaw = line.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+            // check if date is valid
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(dobRaw)) {
+                throw new Error('Invalid date');
+            }
+            const dob = new Date(dobRaw);
+            return dob;
+        } catch (error) {
+            currentIndex--;
+            // return todays date minus 20 years
+            const fakeDate = new Date(new Date().getFullYear() - 20, 0, 1)
+            console.log(`Error parsing date: ${line}. Using fake date: ${fakeDate}`);
+            return fakeDate;
+        }
+    }
 
     // Helper function to parse allergies criticality
     function mapCriticality(criticality) {
