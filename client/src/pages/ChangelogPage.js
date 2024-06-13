@@ -329,6 +329,15 @@ function ChangeLogPage() {
                                 <li>Previously was not being read and was being automatically set in exports/conversions to 'UK DMS'</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_37</h5>
+                            <ul>
+                                <li><strong>Added API POST to NLD</strong></li>
+                                <li>API POST allows the sending IPS JSON Bundle to NLD WebApp</li>
+                                <li>Internal API endpoint is /pushipsnld</li>
+                                <li>External API endpoint is at https://medicalcloud.orange-synapse.nl/api/fhir/1</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

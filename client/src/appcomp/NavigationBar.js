@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { Link, useLocation} from 'react-router-dom';
 import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBeer, faBrain, faDownload, faFileMedical, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { faBeer, faBrain, faCloud, faDownload, faFileMedical, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
 import { PatientContext } from '../PatientContext';
 import { useLoading } from '../contexts/LoadingContext';
 import PatientSearch from './PatientSearch'; // Import the new component
@@ -58,7 +58,7 @@ function NavigationBar() {
             alt="IPS Logo"
             style={{ marginRight: '10px' }}
           />
-          IPS MERN Prototype 0_36
+          IPS MERN Prototype 0_37
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">
@@ -84,6 +84,14 @@ function NavigationBar() {
               </NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/offroadpost" onClick={() => handleNavItemSelect(true)}>
                 <FontAwesomeIcon icon={faDownload} /> VitalsIQ POST
+              </NavDropdown.Item>
+            </NavDropdown>
+            <NavDropdown
+              title={<span><FontAwesomeIcon icon={faCloud} /> NLD API</span>}
+              id="basic-nav-dropdown"
+            >
+              <NavDropdown.Item as={Link} to="/pushipsnld" onClick={() => handleNavItemSelect(true)}>
+                <FontAwesomeIcon icon={faDownload} /> NLD POST
               </NavDropdown.Item>
             </NavDropdown>
             <NavDropdown title="Info" id="basic-nav-dropdown">

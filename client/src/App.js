@@ -11,6 +11,7 @@ import AboutWebAppPage from './pages/AboutWebappPage';
 import APIGETPage from './pages/APIGETPage';
 import OffRoadPage from './pages/OffRoadPage';
 import OffRoadPOSTPage from './pages/OffRoadPOSTPage';
+import NLDPOSTPage from './pages/NLDPOSTPage';
 import BEERGardenPage from './pages/BEERGardenPage';
 import APIDocumentationPage from './pages/APIDocumentationPage';
 import { PatientProvider } from './PatientContext';
@@ -37,6 +38,7 @@ function App() {
               <Route path="/offroadpost/:id?" element={<OffRoadPOSTPage />} />
               <Route path="/beergarden/:id?" element={<BEERGardenPage />} />
               <Route path="/apidocumentation" element={<APIDocumentationPage />} />
+              <Route path="/pushipsnld" element={<NLDPOSTPage />} />
             </Routes>
           </div>
         </Router>

@@ -34,6 +34,13 @@ function APIDocumentationPage() {
     },
     {
       method: 'POST',
+      endpoint: '/pushipsnld',
+      description: 'Push IPS data to an external NLD system.',
+      request: 'IPS Bundle in JSON format.',
+      response: 'Response from the NLD system.'
+    },
+    {
+      method: 'POST',
       endpoint: '/ipsfrombeer',
       description: 'Create MongoDb IPS records from BEER format.',
       request: 'BEER format string.',
