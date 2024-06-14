@@ -11,8 +11,8 @@ function convertIPSToBEER(req, res) {
         const beerData = generateIPSBEER(ipsRecord, '\n'); // Convert schema to BEER format
         res.json(beerData); // Return BEER data
     } catch (error) {
-        console.error('Error converting IPS JSON to BEER format:', error);
-        res.status(500).send('Error converting IPS JSON to BEER format');
+        console.error('Error converting IPS JSON to IPS BEER format:', error);
+        res.status(500).send('Error converting IPS JSON to IPS BEER format');
     }
 };
 

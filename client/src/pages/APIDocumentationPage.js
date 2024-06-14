@@ -48,6 +48,13 @@ function APIDocumentationPage() {
     },
     {
       method: 'POST',
+      endpoint: '/ipsfromcda',
+      description: 'Create MongoDb IPS records from CDA XML format.',
+      request: 'CDA XML string.',
+      response: 'Confirmation of the creation of MongoDb IPS records.'
+    },
+    {
+      method: 'POST',
       endpoint: '/convertmongo2beer',
       description: 'Convert MongoDB format to BEER format.',
       request: 'MongoDB format JSON string.',
@@ -72,6 +79,20 @@ function APIDocumentationPage() {
       endpoint: '/convertips2beer',
       description: 'Convert IPS JSON format to BEER format.',
       request: 'IPS JSON format string.',
+      response: 'BEER format string.'
+    },
+    {
+      method: 'POST',
+      endpoint: '/convertcdatoips',
+      description: 'Convert CDA XML format to IPS JSON format.',
+      request: 'CDA XML string.',
+      response: 'IPS JSON format string.'
+    },
+    {
+      method: 'POST',
+      endpoint: '/convertcdatobeer',
+      description: 'Convert CDA XML format to BEER format.',
+      request: 'CDA XML string.',
       response: 'BEER format string.'
     },
     {

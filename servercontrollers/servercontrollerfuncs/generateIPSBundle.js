@@ -145,6 +145,17 @@ function generateIPSBundle(ipsRecord) {
                         system: "http://unitsofmeasure.org",
                         code: 'mmHg'
                     };
+                } else if (observation.value.includes('.')) {
+                    // Value contains a decimal point, assume it's a numerical value with units
+                    const valueMatch = observation.value.match(/(\d+\.\d+)(\D+)/);
+                    if (valueMatch) {
+                        observationResource.resource.valueQuantity = {
+                            value: parseFloat(valueMatch[1]),
+                            unit: valueMatch[2].trim(),
+                            system: "http://unitsofmeasure.org",
+                            code: valueMatch[2].trim()
+                        };
+                    }
                 } else {
                     // Value contains a number, assume it's numerical value with units
                     const valueMatch = observation.value.match(/(\d+)(\D+)/);

@@ -12,8 +12,8 @@ function convertBEERToIPS(req, res) {
       const ipsBundle = generateIPSBundle(mongoData);
       res.json(ipsBundle);
     } catch (error) {
-      console.error('Error converting to IPS JSON format:', error);
-      res.status(500).send('Error converting to IPS JSON format');
+      console.error('Error converting IPS BEER to IPS JSON format:', error);
+      res.status(500).send('Error converting IPS BEER to IPS JSON format');
     }
 };
 

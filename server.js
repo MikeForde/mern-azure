@@ -5,6 +5,7 @@ const ReadPreference = require("mongodb").ReadPreference;
 const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
+const xmlparser = require("express-xml-bodyparser");
 const { IPSModel } = require("./models/IPSModel");
 const { getIPSBundle } = require('./servercontrollers/ipsBundleFormat');
 const { getIPSBundleByName } = require('./servercontrollers/ipsBundleByName');
@@ -18,6 +19,7 @@ const getIPSBEER = require("./servercontrollers/ipsBEERFormat");
 const { addIPS, addIPSMany } = require('./servercontrollers/ipsNewRecord');
 const { addIPSFromBundle } = require("./servercontrollers/ipsNewRecordFromBundle");
 const { addIPSFromBEER } = require("./servercontrollers/ipsNewRecordFromBEER");
+const { addIPSFromCDA } = require('./servercontrollers/addIPSFromCDA');
 const { postIPSBundle } = require('./servercontrollers/postIPSBundle');
 const { postIPSBundleNLD } = require('./servercontrollers/postIPSBundleNLD');
 const { updateIPS, deleteIPS, deleteIPSbyPractitioner } = require('./servercontrollers/ipsCRUD_UD');
@@ -27,6 +29,8 @@ const { convertBEERToMongo } = require('./servercontrollers/convertBEERToMongo')
 const { convertBEERToIPS } = require('./servercontrollers/convertBEERToIPS');
 const { convertIPSToBEER } = require('./servercontrollers/convertIPSToBEER');
 const { updateIPSByUUID } = require('./servercontrollers/updateIPSRecordByUUID');
+const { convertCDAToIPS } = require('./servercontrollers/convertCDAToIPS');
+const { convertCDAToBEER } = require('./servercontrollers/convertCDAToBEER');
 
 
 const { DB_CONN } = process.env;
@@ -36,6 +40,7 @@ api.use(cors()); // enable CORS on all our requests
 api.use(express.json()); // parses incoming requests with JSON payloads
 api.use(express.urlencoded({ extended: false })); // parses incoming requests with urlencoded payloads
 api.use(express.text())
+api.use(xmlparser());
 
 mongoose
     .connect(DB_CONN, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -49,10 +54,13 @@ api.post("/ipsbundle", addIPSFromBundle);
 api.post('/pushipsora', postIPSBundle);
 api.post('/pushipsnld', postIPSBundleNLD);
 api.post('/ipsfrombeer', addIPSFromBEER);
+api.post('/ipsfromcda', addIPSFromCDA);
 api.post('/convertmongo2beer', convertMongoToBEER);
 api.post('/convertbeer2mongo', convertBEERToMongo);
 api.post('/convertbeer2ips', convertBEERToIPS);
 api.post('/convertips2beer', convertIPSToBEER);
+api.post('/convertcdatoips', convertCDAToIPS);
+api.post('/convertcdatobeer', convertCDAToBEER);
 
 // API GET - CRUD Read
 api.get("/ips/all", getAllIPS);

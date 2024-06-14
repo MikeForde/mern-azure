@@ -346,6 +346,15 @@ function ChangeLogPage() {
                                 <li>If no delimiter is specified then all are tried before failing</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_39 - 14th June 2024</h5>
+                            <ul>
+                                <li><strong>Added CDA Functionality</strong></li>
+                                <li>API POST to create MongoDb record from CDA XML - endpoint is /ipsfromcda</li>
+                                <li>API POST to convert CDA XML to IPS JSON Bundle - endpoint is /ipsfromcda - service only, no record is created</li>
+                                <li>API POST to convert CDS XML to BEER format - endpoint is /convertcdatobeer - service only, no record is created</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>
