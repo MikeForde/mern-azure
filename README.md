@@ -98,8 +98,8 @@ npm start
 | Endpoint                        | Description                                         | Response                              |
 |---------------------------------|-----------------------------------------------------|---------------------------------------|
 | `/ips/all`                      | Retrieve all IPS records.                           | Array of IPS records.                 |
-| `/ipsraw/:id`                   | Retrieve IPS record in raw format by ID.            | Raw IPS data.                         |
-| `/ipsmongo/:id`                 | Retrieve IPS record in MongoDB format by ID.        | MongoDB formatted IPS data.           |
+| `/ipsraw/:id`                   | Retrieve IPS record in default MongoDb format by ID.            | Default MongoDb IPS data.                         |
+| `/ipsmongo/:id`                 | Retrieve IPS record in presentation format by ID.        | Presentation formatted IPS data.           |
 | `/ips/:id`                      | Retrieve IPS JSON Bundle by its ID.                 | The IPS JSON Bundle format.           |
 | `/ipsbasic/:id`                 | Retrieve basic IPS Bundle by ID.                    | Basic IPS data.                       |
 | `/ipsbeer/:id/:delim?`          | Retrieve IPS Bundle in BEER format by ID.           | BEER formatted IPS data.              |
