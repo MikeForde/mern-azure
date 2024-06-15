@@ -121,27 +121,23 @@ npm start
 | `/ips/:id`                      | Delete an IPS record by its ID.                     | Status message.                       |
 | `/ips/practitioner/:practitioner` | Delete all IPS records by the practitioner's name. | Number of records deleted.            |
 
-
-
-## client-side-pages
-Client-Side Pages
+## Client-Side Pages
 BEER Garden Page: Convert IPS records to and from BEER format.
 Patient Management: CRUD operations on IPS records.
 API Documentation Page: Documentation of available API endpoints.
 
-## technologies-used
-Technologies Used
+## Technologies Used
 Frontend: React, React Bootstrap
 Backend: Node.js, Express
 Database: MongoDB
 Other: Axios for HTTP requests, Mongoose for MongoDB interaction
 
-## contributing
-Contributing
+
+## Contributing
 Contributions are welcome! Please read our contributing guidelines before you submit a pull request.
 
-## license
-License
+
+## License
 This project is licensed under the MIT License. See the LICENSE file for details.
 
 
