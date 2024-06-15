@@ -100,14 +100,14 @@ npm start
 | `/ips/all`                      | Retrieve all IPS records.                           | Array of IPS records.                 |
 | `/ipsraw/:id`                   | Retrieve IPS record in raw format by ID.            | Raw IPS data.                         |
 | `/ipsmongo/:id`                 | Retrieve IPS record in MongoDB format by ID.        | MongoDB formatted IPS data.           |
-| `/ips/:id`                      | Retrieve an IPS record by its ID.                   | The IPS record.                       |
-| `/ipsbasic/:id`                 | Retrieve basic IPS record by ID.                    | Basic IPS data.                       |
-| `/ipsbeer/:id/:delim?`          | Retrieve IPS record in BEER format by ID.           | BEER formatted IPS data.              |
-| `/ipsxml/:id`                   | Retrieve IPS record in XML format by ID.            | XML formatted IPS data.               |
-| `/ipslegacy/:id`                | Retrieve IPS record in legacy format by ID.         | Legacy formatted IPS data.            |
-| `/ipsbyname/:name/:given`       | Retrieve IPS record by patient's name and given name. | The IPS record.                       |
+| `/ips/:id`                      | Retrieve IPS JSON Bundle by its ID.                 | The IPS JSON Bundle format.           |
+| `/ipsbasic/:id`                 | Retrieve basic IPS Bundle by ID.                    | Basic IPS data.                       |
+| `/ipsbeer/:id/:delim?`          | Retrieve IPS Bundle in BEER format by ID.           | BEER formatted IPS data.              |
+| `/ipsxml/:id`                   | Retrieve IPS Bundle in XML format by ID.            | XML formatted IPS data.               |
+| `/ipslegacy/:id`                | Retrieve IPS Bundle in legacy format by ID.         | Legacy JSON formatted IPS data.       |
+| `/ipsbyname/:name/:given`       | Retrieve IPS Bundle by patient's name and given name. | The IPS JSON Bundle.                  |
 | `/ips/search/:name`             | Search for IPS records by patient's name.           | Array of IPS records.                 |
-| `/fetchipsora/:name/:givenName` | Fetch IPS record from ORA by patient's name and given name. | The IPS record.                       |
+| `/fetchipsora/:name/:givenName` | Fetch IPS record from ORA by patient's name and given name. | The IPS JSON Bundle.               |
 
 ### PUT Endpoints
 
