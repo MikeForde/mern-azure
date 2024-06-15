@@ -74,87 +74,54 @@ Copy code
 cd ../client
 npm start
 
-## api-documentation
-API Documentation
-## post-endpoints
-POST Endpoints
-Add IPS Record
-Endpoint: /ips
-Description: Add a new IPS record.
-Request Body:
-json
-{
-  "packageUUID": "381238c4-1f92-43a4-8734-4eb05de12bf0",
-  "timeStamp": "2024-06-01T18:56:05.429Z",
-  "patient": {
-    "name": "Doe",
-    "given": "John",
-    "dob": "1980-01-01T00:00:00.000Z",
-    "gender": "Male",
-    "nation": "US",
-    "practitioner": "Dr. Smith"
-  },
-  "medication": [],
-  "allergies": [],
-  "conditions": [],
-  "observations": []
-}
-Response: The created IPS record.
-Convert MongoDB to BEER
-Endpoint: /convertmongo2beer
-Description: Convert a MongoDB IPS record to BEER format.
-Request Body:
-{
-  "data": "{...MongoDB data...}"
-}
-Response: The BEER formatted data.
+## API Documentation
 
-## get-endpoints
-GET Endpoints
-Get All IPS Records
-Endpoint: /ips/all
-Description: Retrieve all IPS records.
-Response: Array of IPS records.
-Get IPS Record by ID
-Endpoint: /ips/:id
-Description: Retrieve an IPS record by its ID.
-Response: The IPS record.
+### POST Endpoints
 
-## put-endpoints
-PUT Endpoints
-Update IPS Record
-Endpoint: /ips/:id
-Description: Update an existing IPS record by its ID.
-Request Body:
-{
-  "patient": {
-    "name": "Updated Name",
-    "given": "Updated Given Name"
-  }
-}
-Response: The updated IPS record.
-Update IPS Record by UUID
-Endpoint: /ipsuuid/:uuid
-Description: Update an existing IPS record by its UUID.
-Request Body:
-{
-  "patient": {
-    "name": "Updated Name",
-    "given": "Updated Given Name"
-  }
-}
-Response: The updated IPS record.
+| Endpoint                        | Description                                         | Request Body                                                                                                    | Response                             |
+|---------------------------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|--------------------------------------|
+| `/ips`                          | Add a new IPS record.                                | ```json<br>{<br>"packageUUID": "381238c4-1f92-43a4-8734-4eb05de12bf0",<br>"timeStamp": "2024-06-01T18:56:05.429Z",<br>"patient": {<br>"name": "Doe",<br>"given": "John",<br>"dob": "1980-01-01T00:00:00.000Z",<br>"gender": "Male",<br>"nation": "US",<br>"practitioner": "Dr. Smith"<br>},<br>"medication": [],<br>"allergies": [],<br>"conditions": [],<br>"observations": []<br>}``` | The created IPS record.             |
+| `/ipsmany`                      | Add multiple IPS records.                           | ```json<br>[{...IPS data...}, {...IPS data...}]```                                                               | Array of created IPS records.        |
+| `/ipsbundle`                    | Add IPS records from a bundle.                      | ```json<br>{...Bundle data...}```                                                                                | The created IPS record.              |
+| `/pushipsora`                   | Push IPS records to an ORA system.                  | ```json<br>{...Bundle data...}```                                                                                | Status message.                      |
+| `/ipsfrombeer`                  | Add IPS records from BEER format.                   | ```json<br>{...BEER data...}```                                                                                  | The created IPS record.              |
+| `/convertmongo2beer`            | Convert a MongoDB IPS record to BEER format.        | ```json<br>{<br>"data": "{...MongoDB data...}"<br>}```                                                           | The BEER formatted data.             |
+| `/convertbeer2mongo`            | Convert a BEER IPS record to MongoDB format.        | ```json<br>{<br>"data": "{...BEER data...}"<br>}```                                                              | The MongoDB formatted data.          |
+| `/convertbeer2ips`              | Convert a BEER IPS record to IPS JSON format.       | ```json<br>{<br>"data": "{...BEER data...}"<br>}```                                                              | The IPS JSON formatted data.         |
+| `/convertips2beer`              | Convert an IPS JSON record to BEER format.          | ```json<br>{<br>"data": "{...IPS JSON data...}"<br>}```                                                          | The BEER formatted data.             |
+| `/ipsfromcda`                   | Add IPS records from a CDA XML format.              | ```xml<br><ClinicalDocument>...</ClinicalDocument>```                                                            | The created IPS record.              |
 
-## delete-endpoints
-DELETE Endpoints
-Delete IPS Record by ID
-Endpoint: /ips/:id
-Description: Delete an IPS record by its ID.
-Response: Status message.
-Delete IPS Records by Practitioner
-Endpoint: /ips/practitioner/:practitioner
-Description: Delete all IPS records by the practitioner's name.
-Response: Number of records deleted.
+### GET Endpoints
+
+| Endpoint                        | Description                                         | Response                              |
+|---------------------------------|-----------------------------------------------------|---------------------------------------|
+| `/ips/all`                      | Retrieve all IPS records.                           | Array of IPS records.                 |
+| `/ipsraw/:id`                   | Retrieve IPS record in raw format by ID.            | Raw IPS data.                         |
+| `/ipsmongo/:id`                 | Retrieve IPS record in MongoDB format by ID.        | MongoDB formatted IPS data.           |
+| `/ips/:id`                      | Retrieve an IPS record by its ID.                   | The IPS record.                       |
+| `/ipsbasic/:id`                 | Retrieve basic IPS record by ID.                    | Basic IPS data.                       |
+| `/ipsbeer/:id/:delim?`          | Retrieve IPS record in BEER format by ID.           | BEER formatted IPS data.              |
+| `/ipsxml/:id`                   | Retrieve IPS record in XML format by ID.            | XML formatted IPS data.               |
+| `/ipslegacy/:id`                | Retrieve IPS record in legacy format by ID.         | Legacy formatted IPS data.            |
+| `/ipsbyname/:name/:given`       | Retrieve IPS record by patient's name and given name. | The IPS record.                       |
+| `/ips/search/:name`             | Search for IPS records by patient's name.           | Array of IPS records.                 |
+| `/fetchipsora/:name/:givenName` | Fetch IPS record from ORA by patient's name and given name. | The IPS record.                       |
+
+### PUT Endpoints
+
+| Endpoint                        | Description                                         | Request Body                                                                                                     | Response                             |
+|---------------------------------|-----------------------------------------------------|------------------------------------------------------------------------------------------------------------------|--------------------------------------|
+| `/ips/:id`                      | Update an existing IPS record by its ID.            | ```json<br>{<br>"patient": {<br>"name": "Updated Name",<br>"given": "Updated Given Name"<br>}<br>}```            | The updated IPS record.              |
+| `/ipsuuid/:uuid`                | Update an existing IPS record by its UUID.          | ```json<br>{<br>"patient": {<br>"name": "Updated Name",<br>"given": "Updated Given Name"<br>}<br>}```            | The updated IPS record.              |
+
+### DELETE Endpoints
+
+| Endpoint                        | Description                                         | Response                              |
+|---------------------------------|-----------------------------------------------------|---------------------------------------|
+| `/ips/:id`                      | Delete an IPS record by its ID.                     | Status message.                       |
+| `/ips/practitioner/:practitioner` | Delete all IPS records by the practitioner's name. | Number of records deleted.            |
+
+
 
 ## client-side-pages
 Client-Side Pages
