@@ -124,9 +124,64 @@ npm start
 | `/ips/practitioner/:practitioner` | Delete all IPS records by the practitioner's name. | Number of records deleted.            |
 
 ## Client-Side Pages
-BEER Garden Page: Convert IPS records to and from BEER format.
-Patient Management: CRUD operations on IPS records.
-API Documentation Page: Documentation of available API endpoints.
+
+| Page                 | Description                                                                                           |
+|----------------------|-------------------------------------------------------------------------------------------------------|
+| **Default Page**     | Add, edit, and search for current records. You can also search for records from the navigation bar.   |
+| **API Page**         | View the various API GET endpoints, see their output, and download the output.                        |
+| **QR Page**          | Produce various forms of QR codes and download them. Formats include IPS JSON, BEER, and others.      |
+| **DMICP Page**       | Bulk upload IPS records produced in the SmartDoc format.                                              |
+| **Vitals API Pages** | GET and POST between the VitalsIQ IPS WebApp and the IPS MERN WebApp.                                 |
+| **NLD API Pages**    | POST to the NLD IPS WebApp.                                                                           |
+| **About Pages**      | Information about IPS, the WebApp, the ChangeLog, and the API Documentation page.                     |
+
+### Detailed Descriptions
+
+1. **Default Page**
+   - **Purpose:** Central page for managing IPS records. Users can add new records, edit existing records, and perform searches.
+   - **Features:** 
+     - Search for records directly from the page.
+     - Perform CRUD operations on IPS records.
+
+2. **API Page**
+   - **Purpose:** Provides an interface for interacting with API GET endpoints.
+   - **Features:** 
+     - View available API endpoints.
+     - Execute API calls and display the response.
+     - Download the response data.
+
+3. **QR Page**
+   - **Purpose:** Generate and download QR codes for IPS records.
+   - **Features:** 
+     - Create QR codes in various formats including IPS JSON and BEER.
+     - Download the generated QR codes.
+
+4. **DMICP Page**
+   - **Purpose:** Facilitates the bulk upload of IPS records in the SmartDoc format.
+   - **Features:** 
+     - Upload multiple IPS records simultaneously.
+     - Supports the SmartDoc format for bulk data entry.
+
+5. **Vitals API Pages**
+   - **Purpose:** Manage interactions with VitalsIQ IPS WebApp.
+   - **Features:** 
+     - GET and POST IPS records between VitalsIQ and the IPS MERN WebApp.
+
+6. **NLD API Pages**
+   - **Purpose:** Interface with the NLD IPS WebApp.
+   - **Features:** 
+     - POST data to the NLD WebApp.
+
+7. **About Pages**
+   - **Purpose:** Provide detailed information about the IPS system and the WebApp.
+   - **Features:** 
+     - Overview of IPS.
+     - Information about the WebApp.
+     - View the ChangeLog for recent updates.
+     - Access the API Documentation page.
+
+Each page in the application is designed to provide specific functionalities for managing and interacting with IPS records, ensuring a comprehensive and user-friendly experience.
+
 
 ## Technologies Used
 Frontend: React, React Bootstrap
