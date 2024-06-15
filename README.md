@@ -83,13 +83,13 @@ npm start
 | `/ips`                          | Add a new IPS record.                                | MongoDb IPS Record | The created IPS record.             |
 | `/ipsmany`                      | Add multiple IPS records.                           | Multiple MongoDb IPS Records | Array of created IPS records.        |
 | `/ipsbundle`                    | Add IPS records from a bundle.                      | IPS JSON Bundle | The created IPS record.              |
-| `/pushipsora`                   | Push IPS records to an ORA system.                  | ```json<br>{...Bundle data...}```                                                                                | Status message.                      |
-| `/ipsfrombeer`                  | Add IPS records from BEER format.                   | ```json<br>{...BEER data...}```                                                                                  | The created IPS record.              |
-| `/convertmongo2beer`            | Convert a MongoDB IPS record to BEER format.        | ```json<br>{<br>"data": "{...MongoDB data...}"<br>}```                                                           | The BEER formatted data.             |
-| `/convertbeer2mongo`            | Convert a BEER IPS record to MongoDB format.        | ```json<br>{<br>"data": "{...BEER data...}"<br>}```                                                              | The MongoDB formatted data.          |
-| `/convertbeer2ips`              | Convert a BEER IPS record to IPS JSON format.       | ```json<br>{<br>"data": "{...BEER data...}"<br>}```                                                              | The IPS JSON formatted data.         |
-| `/convertips2beer`              | Convert an IPS JSON record to BEER format.          | ```json<br>{<br>"data": "{...IPS JSON data...}"<br>}```                                                          | The BEER formatted data.             |
-| `/ipsfromcda`                   | Add IPS records from a CDA XML format.              | ```xml<br><ClinicalDocument>...</ClinicalDocument>```                                                            | The created IPS record.              |
+| `/pushipsora`                   | Push IPS records to an ORA system.                  | IPS JSON Bundle | Status message.                      |
+| `/ipsfrombeer`                  | Add IPS records from BEER format.                   | BEER as Plain Text  | The created IPS record.              |
+| `/convertmongo2beer`            | Convert a MongoDB IPS record to BEER format.        | Mongo IPS Record | The BEER formatted data.             |
+| `/convertbeer2mongo`            | Convert a BEER IPS record to MongoDB format.        | BEER as Plain Text  | The MongoDB formatted data. No record created |
+| `/convertbeer2ips`              | Convert a BEER IPS record to IPS JSON format.       | BEER as Plain Text | The IPS JSON formatted data. No record created |
+| `/convertips2beer`              | Convert an IPS JSON record to BEER format.          | IPS JSON Bundle | The BEER formatted data.             |
+| `/ipsfromcda`                   | Add IPS records from a CDA XML format.              | CDA XML Bundle | The created IPS record.              |
 
 ### GET Endpoints
 
