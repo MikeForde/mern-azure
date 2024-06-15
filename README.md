@@ -76,13 +76,13 @@ npm start
 
 ## api-documentation
 API Documentation
+## post-endpoints
 POST Endpoints
 Add IPS Record
 Endpoint: /ips
 Description: Add a new IPS record.
 Request Body:
 json
-Copy code
 {
   "packageUUID": "381238c4-1f92-43a4-8734-4eb05de12bf0",
   "timeStamp": "2024-06-01T18:56:05.429Z",
@@ -104,12 +104,12 @@ Convert MongoDB to BEER
 Endpoint: /convertmongo2beer
 Description: Convert a MongoDB IPS record to BEER format.
 Request Body:
-json
-Copy code
 {
   "data": "{...MongoDB data...}"
 }
 Response: The BEER formatted data.
+
+## get-endpoints
 GET Endpoints
 Get All IPS Records
 Endpoint: /ips/all
@@ -119,13 +119,13 @@ Get IPS Record by ID
 Endpoint: /ips/:id
 Description: Retrieve an IPS record by its ID.
 Response: The IPS record.
+
+## put-endpoints
 PUT Endpoints
 Update IPS Record
 Endpoint: /ips/:id
 Description: Update an existing IPS record by its ID.
 Request Body:
-json
-Copy code
 {
   "patient": {
     "name": "Updated Name",
@@ -137,8 +137,6 @@ Update IPS Record by UUID
 Endpoint: /ipsuuid/:uuid
 Description: Update an existing IPS record by its UUID.
 Request Body:
-json
-Copy code
 {
   "patient": {
     "name": "Updated Name",
@@ -146,6 +144,8 @@ Copy code
   }
 }
 Response: The updated IPS record.
+
+## delete-endpoints
 DELETE Endpoints
 Delete IPS Record by ID
 Endpoint: /ips/:id
@@ -155,36 +155,27 @@ Delete IPS Records by Practitioner
 Endpoint: /ips/practitioner/:practitioner
 Description: Delete all IPS records by the practitioner's name.
 Response: Number of records deleted.
+
+## client-side-pages
 Client-Side Pages
 BEER Garden Page: Convert IPS records to and from BEER format.
 Patient Management: CRUD operations on IPS records.
 API Documentation Page: Documentation of available API endpoints.
+
+## technologies-used
 Technologies Used
 Frontend: React, React Bootstrap
 Backend: Node.js, Express
 Database: MongoDB
 Other: Axios for HTTP requests, Mongoose for MongoDB interaction
+
+## contributing
 Contributing
 Contributions are welcome! Please read our contributing guidelines before you submit a pull request.
 
+## license
 License
 This project is licensed under the MIT License. See the LICENSE file for details.
-
-markdown
-Copy code
-
-### Explanation:
-
-- **Overview**: Gives a high-level summary of the project.
-- **Features**: Lists key features.
-- **Setup**: Provides detailed steps to set up the project locally.
-- **API Documentation**: Details the available API endpoints.
-- **Client-Side Pages**: Briefly describes the key frontend pages.
-- **Technologies Used**: Lists the technologies and libraries used in the project.
-- **Contributing**: A placeholder for contributing guidelines.
-- **License**: Specifies the project license.
-
-This README should help new developers and users understand the project, set it up, and start using it. Feel free to adjust specific details and add more sections as needed.
 
 
 
