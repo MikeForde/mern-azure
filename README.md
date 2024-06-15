@@ -88,8 +88,10 @@ npm start
 | `/convertmongo2beer`            | Convert a MongoDB IPS record to BEER format.        | Mongo IPS Record | The BEER formatted data.             |
 | `/convertbeer2mongo`            | Convert a BEER IPS record to MongoDB format.        | BEER as Plain Text  | The MongoDB formatted data. No record created |
 | `/convertbeer2ips`              | Convert a BEER IPS record to IPS JSON format.       | BEER as Plain Text | The IPS JSON formatted data. No record created |
-| `/convertips2beer`              | Convert an IPS JSON record to BEER format.          | IPS JSON Bundle | The BEER formatted data.             |
+| `/convertips2beer`              | Convert an IPS JSON record to BEER format.          | IPS JSON Bundle | The BEER formatted data. No record created            |
 | `/ipsfromcda`                   | Add IPS records from a CDA XML format.              | CDA XML Bundle | The created IPS record.              |
+| `convertcdatoips`               | Convert CDA XML format to an IPS JSON Bundle        | CDA XML Bundle | The IPS JSON formatted data. No record created |
+| `convertcdatobeer`              | Convert CDA XML format to BEER format.              | CDA XML Bundle | The BEER formatted data. No record created    |
 
 ### GET Endpoints
 
@@ -111,8 +113,8 @@ npm start
 
 | Endpoint                        | Description                                         | Request Body                                                                                                     | Response                             |
 |---------------------------------|-----------------------------------------------------|------------------------------------------------------------------------------------------------------------------|--------------------------------------|
-| `/ips/:id`                      | Update an existing IPS record by its ID.            | ```json<br>{<br>"patient": {<br>"name": "Updated Name",<br>"given": "Updated Given Name"<br>}<br>}```            | The updated IPS record.              |
-| `/ipsuuid/:uuid`                | Update an existing IPS record by its UUID.          | ```json<br>{<br>"patient": {<br>"name": "Updated Name",<br>"given": "Updated Given Name"<br>}<br>}```            | The updated IPS record.              |
+| `/ips/:id`                      | Update an existing IPS record by its ID.            | MongoDb IPS Record - complete or partial| The updated IPS record.              |
+| `/ipsuuid/:uuid`                | Update an existing IPS record by its UUID.          | MongoDb IPS Record - complete or partial  | The updated IPS record.              |
 
 ### DELETE Endpoints
 
