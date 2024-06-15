@@ -36,7 +36,7 @@ const { convertCDAToBEER } = require('./servercontrollers/convertCDAToBEER');
 const { DB_CONN } = process.env;
 
 const api = express();
-api.use(cors()); // enable CORS on all our requests
+api.use(cors()); // enable CORS on all our requests 
 api.use(express.json()); // parses incoming requests with JSON payloads
 api.use(express.urlencoded({ extended: false })); // parses incoming requests with urlencoded payloads
 api.use(express.text())
