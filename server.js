@@ -47,7 +47,7 @@ mongoose
     .then(() => console.log("DB connection successful"))
     .catch(console.error);
 
-// API POST - CRUD Create
+// API POST - CRUD Create/Convert
 api.post("/ips", addIPS);
 api.post("/ipsmany", addIPSMany);
 api.post("/ipsbundle", addIPSFromBundle);

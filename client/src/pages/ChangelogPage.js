@@ -351,7 +351,7 @@ function ChangeLogPage() {
                             <ul>
                                 <li><strong>Added CDA Functionality</strong></li>
                                 <li>API POST to create MongoDb record from CDA XML - endpoint is /ipsfromcda</li>
-                                <li>API POST to convert CDA XML to IPS JSON Bundle - endpoint is /ipsfromcda - service only, no record is created</li>
+                                <li>API POST to convert CDA XML to IPS JSON Bundle - endpoint is /convertcdatoips - service only, no record is created</li>
                                 <li>API POST to convert CDS XML to BEER format - endpoint is /convertcdatobeer - service only, no record is created</li>
                             </ul>
                         </li>
