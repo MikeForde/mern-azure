@@ -355,6 +355,16 @@ function ChangeLogPage() {
                                 <li>API POST to convert CDS XML to BEER format - endpoint is /convertcdatobeer - service only, no record is created</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_40 - 15th June 2024</h5>
+                            <ul>
+                                <li><strong>Added API Calls for IPS HL7 v2.8</strong></li>
+                                <li>API GET allows the return of an IPS Bundle with the HL7 v2.8 data format using the endpoint /ipshl728/:id</li>
+                                <li>API POST allows conversion of MongoDb record to HL7 v2.8 format - endpoint is /convertmongo2hl7</li>
+                                <li>Further endpoints for HL7 v2.8 are planned - note: there are likely formatting errors in the current implementation</li>
+                                <li>The idea is give an approximate HL7 v2.8 format - not a perfect one - to judge likely file size and content</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

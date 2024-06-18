@@ -44,7 +44,7 @@ function QRPage() {
         axios.get(endpoint)
           .then(response => {
             let responseData;
-            if (mode === 'ipsminimal' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim') {
+            if (mode === 'ipsminimal' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim' || mode === 'ipshl728') {
               responseData = response.data;
             } else {
               responseData = JSON.stringify(response.data);
@@ -120,6 +120,7 @@ function QRPage() {
               <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle</Dropdown.Item>
               <Dropdown.Item eventKey="ipsbeer">IPS BEER (newline)</Dropdown.Item>
               <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER with Delimiter (pipe |)</Dropdown.Item>
+              <Dropdown.Item eventKey="ipshl728">IPS HL7 v2.8</Dropdown.Item>
             </DropdownButton>
           </div>
         </>}

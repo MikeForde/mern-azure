@@ -34,7 +34,7 @@ function APIGETPage() {
         try {
           const response = await axios.get(endpoint);
           let responseData;
-          if (mode === 'ipsbasic' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim') {
+          if (mode === 'ipsbasic' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim' || mode === 'ipshl728') {
             responseData = response.data;
             setResponseSize(responseData.length);
           } else if (mode === 'ipsxml') {
@@ -95,6 +95,9 @@ function APIGETPage() {
       case 'ipsbeerwithdelim':
         setModeText('IPS BEER - /ipsbeer/:id/pipe)');
         break;
+      case 'ipshl728':
+        setModeText('IPS HL7 2.8 - /ipshl728/:id');
+        break;
      
         default:
           setModeText('IPS JSON Bundle - /ips/:id');
@@ -144,6 +147,7 @@ function APIGETPage() {
                   <Dropdown.Item eventKey="ipsbasic">IPS Minimal - /ipsbasic/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipsbeer">IPS BEER - /ipsbeer/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER - /ipsbeer/:id/pipe</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipshl728">IPS HL7 2.8 - /ipshl728/:id</Dropdown.Item>
                 </DropdownButton>
               </div>
             </>

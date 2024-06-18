@@ -96,6 +96,13 @@ function APIDocumentationPage() {
       response: 'BEER format string.'
     },
     {
+      method: 'POST',
+      endpoint: '/convertmongo2hl7',
+      description: 'Convert MongoDB format to HL7 2.8 format.',
+      request: 'MongoDB format JSON string.',
+      response: 'HL7 2.8 format string.'
+    },
+    {
       method: 'GET',
       endpoint: '/ips/all',
       description: 'Retrieve all IPS records.',
@@ -136,6 +143,27 @@ function APIDocumentationPage() {
       description: 'Retrieve IPS record in BEER format by ID.',
       request: 'IPS record ID and optional delimiter as URL parameters. If delimiter not stated, all delimiters will be tried before giving up',
       response: 'BEER format string of the IPS record.'
+    },
+    {
+      method: 'GET',
+      endpoint: '/ipshl728/:id',
+      description: 'Retrieve IPS record in HL7 2.8 format by ID.',
+      request: 'IPS record ID as URL parameter.',
+      response: 'HL7 2.8 format string of the IPS record.'
+    },
+    {
+      method: 'GET',
+      endpoint: '/ipsurl/:id',
+      description: 'Retrieve IPS record in URL format by ID.',
+      request: 'IPS record ID as URL parameter.',
+      response: 'URL string of the IPS record.'
+    },
+    {
+      method: 'GET',
+      endpoint: '/ipsora/:id',
+      description: 'Retrieve IPS record in ORA format by ID.',
+      request: 'IPS record ID as URL parameter.',
+      response: 'JSON object of the IPS record.'
     },
     {
       method: 'GET',
