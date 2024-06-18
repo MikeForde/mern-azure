@@ -89,7 +89,7 @@ npm start
 | `/convertbeer2mongo`            | Convert a BEER IPS record to MongoDB format.        | BEER as Plain Text  | The MongoDB formatted data. No record created |
 | `/convertbeer2ips`              | Convert a BEER IPS record to IPS JSON format.       | BEER as Plain Text | The IPS JSON formatted data. No record created |
 | `/convertips2beer`              | Convert an IPS JSON record to BEER format.          | IPS JSON Bundle | The BEER formatted data. No record created            |
-| `/convertmongo2hl7`              | Convert a MongoDB IPS record to HL7 2.8 format.          | Mongo IPS Record | The HL7 2.8 formatted data. No record created            |
+| `/convertmongo2hl7`             | Convert a MongoDB IPS record to HL7 2.8 format.          | Mongo IPS Record | The HL7 2.8 formatted data. No record created            |
 | `/ipsfromcda`                   | Add IPS records from a CDA XML format.              | CDA XML Bundle | The created IPS record.              |
 | `convertcdatoips`               | Convert CDA XML format to an IPS JSON Bundle        | CDA XML Bundle | The IPS JSON formatted data. No record created |
 | `convertcdatobeer`              | Convert CDA XML format to BEER format.              | CDA XML Bundle | The BEER formatted data. No record created    |
