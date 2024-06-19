@@ -4,7 +4,7 @@ function generateIPSHL72_8(data) {
     // Initialize HL7 message
     let hl7Message = '';
 
-    // MSH Segment
+    // MSH Segment - 
     hl7Message += `MSH|^~\\&|SendingApp|SendingFac|ReceivingApp|ReceivingFac|${moment(data.timeStamp).format('YYYYMMDDHHmmss')}||ORM^O01|${data.packageUUID}|P|2.8\n`;
 
     // PID Segment
