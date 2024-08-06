@@ -12,7 +12,8 @@ const formatDate = (dateString) => {
   if (!dateString) return "";
   const [datePart, timePart] = dateString.split("T");
   const time = timePart.split(".")[0];
-  return time === "00:00:00" ? datePart : `${datePart} ${time}`;
+  //return time === "00:00:00" ? datePart : `${datePart} ${time}`;
+  return `${datePart} ${time}`;
 };
 
 export function IPS({ ips, remove, update }) {
