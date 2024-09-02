@@ -1,12 +1,13 @@
 import React, { useContext, useState } from "react";
 import { Button, Modal, Form, OverlayTrigger, Tooltip, Row, Col } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { faDownload, faFileMedical, faQrcode, faTrash, faBeer, faEdit, faCloud } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faFileMedical, faQrcode, faTrash, faBeer, faEdit, faCloud, faFileExport } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { PatientContext } from '../../PatientContext';
 import { useLoading } from '../../contexts/LoadingContext';
 import "./components.css";
+import { generatePDF } from './generatePDF';
 
 const formatDate = (dateString) => {
   if (!dateString) return "";
@@ -86,6 +87,10 @@ export function IPS({ ips, remove, update }) {
       ...prev,
       [type]: prev[type].map((item, i) => i === index ? { ...item, [name]: value } : item),
     }));
+  };
+
+  const handleGeneratePDF = () => {
+    generatePDF(ips);
   };
 
   const renderTooltip = (text) => (
@@ -204,6 +209,12 @@ export function IPS({ ips, remove, update }) {
               <FontAwesomeIcon icon={faCloud} />
             </Button>
           </Link>
+        </OverlayTrigger>
+
+        <OverlayTrigger placement="top" overlay={renderTooltip('Generate PDF')}>
+          <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleGeneratePDF}>
+            <FontAwesomeIcon icon={faFileExport} />
+          </Button>
         </OverlayTrigger>
 
         <OverlayTrigger placement="top" overlay={renderTooltip('Edit IPS Record')}>
