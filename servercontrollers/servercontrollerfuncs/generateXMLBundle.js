@@ -13,6 +13,7 @@ function generateXMLBundle(ipsRecord) {
     const allergyIntoleranceUUIDs = ipsRecord.allergies.map(() => uuidv4());
     const conditionUUIDs = ipsRecord.conditions.map(() => uuidv4());
     const observationUUIDs = ipsRecord.observations.map(() => uuidv4());
+    const immunizationUUIDs = ipsRecord.immunizations.map(() => uuidv4());
 
     // Get current date/time
     const currentDateTime = new Date().toISOString();
@@ -127,6 +128,27 @@ function generateXMLBundle(ipsRecord) {
         xml += `
                     <entry>
                         <reference value="Observation/${observationUUID}"/>
+                    </entry>`;
+    });
+
+    // Close Observations section and start Immunizations section
+    xml += `
+                </section>
+                <section>
+                    <title value="Immunizations"/>
+                    <code>
+                        <coding>
+                            <system value="http://loinc.org"/>
+                            <code value="11369-6"/>
+                            <display value="Immunization Activity"/>
+                        </coding>
+                    </code>`;
+
+    // Add Immunization entries to Composition section
+    immunizationUUIDs.forEach((immunizationUUID) => {
+    xml += `
+                    <entry>
+                        <reference value="Immunization/${immunizationUUID}"/>
                     </entry>`;
     });
 
@@ -311,6 +333,29 @@ ipsRecord.observations.forEach((observation, index) => {
         // Close Observation resource
         xml += `
             </Observation>
+        </resource>
+    </entry>`;
+    });
+
+    // Add Immunization entries
+    ipsRecord.immunizations.forEach((immunization, index) => {
+        xml += `
+    <entry>
+        <resource>
+            <Immunization>
+                <id value="${immunizationUUIDs[index]}"/>
+                <status value="completed"/>
+                <vaccineCode>
+                    <coding>
+                        <system value="${immunization.system}"/>
+                        <code value="${immunization.name}"/>
+                    </coding>
+                </vaccineCode>
+                <patient>
+                    <reference value="Patient/${patientUUID}"/>
+                </patient>
+                <occurrenceDateTime value="${new Date(immunization.date).toISOString()}"/>
+            </Immunization>
         </resource>
     </entry>`;
     });

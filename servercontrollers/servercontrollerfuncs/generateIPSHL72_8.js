@@ -17,6 +17,13 @@ function generateIPSHL72_8(data) {
         });
     }
 
+    // RXA Segments for Immunizations
+    if (data.immunizations && data.immunizations.length) {
+        data.immunizations.forEach((immunization, index) => {
+            hl7Message += `RXA|0|1|${moment(immunization.date).format('YYYYMMDDHHmmss')}|${moment(immunization.date).format('YYYYMMDDHHmmss')}|${immunization.name}^${immunization.system}\n`;
+        });
+    }
+
     // AL1 Segments
     if (data.allergies.length) {
         data.allergies.forEach((allergy, index) => {
@@ -61,6 +68,8 @@ function generateIPSHL72_8(data) {
             hl7Message += `OBX|${index + 1}|${valueType}|^${obs.name}||${value}|${units}|||F|||${moment(obs.date).format('YYYYMMDDHHmmss')}\n`;
         });
     }
+
+    hl7Message += `PV1|1|N\n`;
 
     return hl7Message;
 }

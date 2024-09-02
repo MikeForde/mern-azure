@@ -69,7 +69,7 @@ export function IPS({ ips, remove, update }) {
   const handleAddItem = (type) => {
     setEditIPS((prev) => ({
       ...prev,
-      [type]: [...prev[type], { name: '', date: '', dosage: '', criticality: '', value: '' }],
+      [type]: [...prev[type], { name: '', date: '', dosage: '', criticality: '', value: '', system: '' }],
     }));
   };
 
@@ -148,6 +148,14 @@ export function IPS({ ips, remove, update }) {
               {ips.observations.map((observation, index) => (
                 <li key={index}>
                   <small>O:</small> {observation.name} - Date: {formatDate(observation.date)} - Value: {observation.value}
+                </li>
+              ))}
+            </ul>
+            <h4>Immunizations:</h4>
+            <ul>
+              {ips.immunizations.map((immunization, index) => (
+                <li key={index}>
+                  <small>I:</small> {immunization.name} - Date: {formatDate(immunization.date)} - System: {immunization.system}
                 </li>
               ))}
             </ul>
@@ -514,6 +522,52 @@ export function IPS({ ips, remove, update }) {
             ))}
             <Button variant="primary" onClick={() => handleAddItem('observations')}>
               Add Observation
+            </Button>
+
+            <h4>Immunizations:</h4>
+            {editIPS.immunizations.map((immunization, index) => (
+              <Row key={index} className="align-items-center">
+                <Col>
+                  <Form.Group controlId={`immunizationName-${index}`}>
+                    <Form.Control
+                      type="text"
+                      name="name"
+                      placeholder="Immunization"
+                      value={immunization.name}
+                      onChange={(e) => handleChangeItem('immunizations', index, e)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col>
+                  <Form.Group controlId={`immunizationSystem-${index}`}>
+                    <Form.Control
+                      type="text"
+                      name="system"
+                      placeholder="Coding System"
+                      value={immunization.system}
+                      onChange={(e) => handleChangeItem('immunizations', index, e)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col xs={3}>
+                  <Form.Group controlId={`immunizationDate-${index}`}>
+                    <Form.Control
+                      type="datetime-local"
+                      name="date"
+                      value={formatDate(immunization.date)}
+                      onChange={(e) => handleChangeItem('immunizations', index, e)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col xs="auto">
+                  <Button variant="outline-danger" className="custom-button" onClick={() => handleRemoveItem('immunizations', index)}                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </Button>
+                </Col>
+              </Row>
+            ))}
+            <Button variant="primary" onClick={() => handleAddItem('immunizations')}>
+              Add Immunization
             </Button>
 
           </Form>

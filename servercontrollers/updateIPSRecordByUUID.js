@@ -33,6 +33,9 @@ function updateIPSByUUID(req, res) {
                 if (updatedData.observations) {
                     ips.observations = ips.observations.concat(updatedData.observations);
                 }
+                if (updatedData.immunizations) {
+                    ips.dataValues.immunizations = ips.dataValues.immunizations.concat(updatedData.immunizations);
+                }
 
                 // Save the updated IPS
                 return ips.save();

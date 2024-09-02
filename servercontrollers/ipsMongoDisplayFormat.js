@@ -53,6 +53,11 @@ function getMongoFormatted(req, res) {
           name: observation.name,
           date: observation.date,
           value: observation.value
+        })),
+        immunizations: ips.immunizations.map(immunization => ({
+          name: immunization.name,
+          system: immunization.system,
+          date: immunization.date
         }))
       };
 

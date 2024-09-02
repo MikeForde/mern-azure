@@ -66,6 +66,13 @@ const getIPSBasic = (req, res) => {
             basicInfo += `O:\r\n${observation.name}\r\n${observationDate}\r\n${observation.value}\r\n`;
         });
 
+        // Append immunization information
+        ipsRecord.immunizations.forEach((immunization) => {
+            // Format immunization date to yyyy-mm-dd
+            const immunizationDate = immunization.date.toISOString().substring(0, 10);
+            basicInfo += `I:\r\n${immunization.name}\r\n${immunization.system}\r\n${immunizationDate}\r\n`;
+        });
+
         // Send the plain text response
         res.set('Content-Type', 'text/plain');
         res.send(basicInfo);

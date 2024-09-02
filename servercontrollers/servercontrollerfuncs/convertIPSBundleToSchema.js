@@ -12,6 +12,7 @@ function convertIPSBundleToSchema(ipsBundle) {
     let allergies = [];
     let conditions = [];
     let observations = [];
+    let immunizations = [];
 
     // Iterate over each entry in the IPS Bundle
     for (const entryItem of entry) {
@@ -112,12 +113,24 @@ function convertIPSBundleToSchema(ipsBundle) {
                 }
                 observations.push(observation);
                 break;
+            case "Immunization":
+                // Extract the first code and occurrenceDateTime
+                const immunizationCode = resource.vaccineCode.coding[0].code;
+                const immunizationSystem = resource.vaccineCode.coding[0].system;
+                const immunizationDate = new Date(resource.occurrenceDateTime).toISOString();
+                
+                immunizations.push({
+                    name: immunizationCode,
+                    system: immunizationSystem,
+                    date: immunizationDate
+                });
+                break;
             default:
                 break;
         }
     }
 
-    return { packageUUID, timeStamp, patient, medication, allergies, conditions, observations };
+    return { packageUUID, timeStamp, patient, medication, allergies, conditions, observations, immunizations };
 }
 
 module.exports = { convertIPSBundleToSchema };

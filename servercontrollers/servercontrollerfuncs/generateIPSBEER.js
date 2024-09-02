@@ -184,6 +184,16 @@ const formatVitalSigns = (vitalSigns, earliestDate) => {
         }
     }
 
+    // Immunization information
+    if (ipsRecord.immunizations && ipsRecord.immunizations.length > 0) {
+        basicInfo += `I${3}-${ipsRecord.immunizations.length}${delimiter}`;
+        ipsRecord.immunizations.forEach((immunization) => {
+            basicInfo += `${immunization.name}${delimiter}`;
+            basicInfo += `${immunization.system}${delimiter}`;
+            basicInfo += `${formatDate(immunization.date)}${delimiter}`;
+        });
+    }
+
     // New medication section
     if (futureMedications.length > 0) {
         const earliestMedication = futureMedications.reduce((earliest, current) => {

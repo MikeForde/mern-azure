@@ -172,6 +172,23 @@ function getIPSLegacyBundle(req, res) {
 
                         return observationResource;
                     }),
+                    // Immunization entries
+                    ...ips.immunizations.map((immunization) => ({
+                        resource: {
+                            resourceType: "Immunization",
+                            id: uuidv4(), // Generate UUID for immunization ID
+                            status: "completed",
+                            vaccineCode: {
+                                coding: [
+                                    {
+                                        system: immunization.system, // Immunization coding system
+                                        code: immunization.name, // Immunization name/code
+                                    },
+                                ],
+                            },
+                            occurrenceDateTime: immunization.date, // Immunization date
+                        },
+                    })),
                 ],
             };
 

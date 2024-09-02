@@ -34,12 +34,17 @@ function HomePage() {
       return item.name.trim() !== "" || item.date.trim() !== "" || item.value.trim() !== "";
     });
 
+    const cleanedImmunizations = formData.immunizations.filter(item => {
+      return item.name.trim() !== "" || item.date.trim() !== "";
+    });
+
     const cleanedFormData = {
       ...formData,
       medication: cleanedMedication,
       allergies: cleanedAllergies,
       conditions: cleanedConditions,
-      observations: cleanedObservations
+      observations: cleanedObservations,
+      immunizations: cleanedImmunizations
     };
 
     console.log("Form Data", cleanedFormData);

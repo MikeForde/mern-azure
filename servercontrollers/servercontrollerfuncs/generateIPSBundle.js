@@ -184,6 +184,31 @@ function generateIPSBundle(ipsRecord) {
         return observationResource;
     });
 
+    // Construct Immunization resources
+    const immunizations = ipsRecord.immunizations.map((immunization, index) => {
+        const immunizationUUID = uuidv4();
+        return {
+            "fullUrl": `urn:uuid:${immunizationUUID}`,
+            "resource": {
+                "resourceType": "Immunization",
+                "id": immunizationUUID,
+                "status": "completed",
+                "vaccineCode": {
+                    "coding": [
+                        {
+                            "system": immunization.system,
+                            "code": immunization.name
+                        }
+                    ]
+                },
+                "patient": {
+                    "reference": `Patient/${patientUUID}`
+                },
+                "occurrenceDateTime": immunization.date
+            }
+        };
+    });
+
     // Construct Composition resource
     const composition = {
         "fullUrl": `urn:uuid:${compositionUUID}`,
@@ -272,6 +297,21 @@ function generateIPSBundle(ipsRecord) {
                     "entry": observations.map((observation) => ({
                         "reference": `Observation/${observation.resource.id}`
                     }))
+                },
+                {
+                    "title": "Immunizations",
+                    "code": {
+                        "coding": [
+                            {
+                                "system": "http://loinc .org",
+                                "code": "11369-6",
+                                "display": "Immunization Activity"
+                            }
+                        ]
+                    },
+                    "entry": immunizations.map((immunization) => ({
+                        "reference": `Immunization/${immunization.resource.id}`
+                    }))
                 }
             ]
         }
@@ -334,7 +374,8 @@ function generateIPSBundle(ipsRecord) {
             ...medications,
             ...allergyIntolerances,
             ...conditions,
-            ...observations
+            ...observations,
+            ...immunizations
         ]
     };
 

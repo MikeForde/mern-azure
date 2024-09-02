@@ -195,6 +195,26 @@ function parseBEER(dataPacket, delimiter) {
         record.observations = [];
     }
 
+    const parseImmunizations = (count) => {
+        const immunizations = [];
+        for (let i = 0; i < count; i++) {
+            const name = lines[currentIndex++];
+            const system = lines[currentIndex++];
+            const date = new Date(lines[currentIndex++].replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
+            immunizations.push({ name, system, date });
+        }
+        return immunizations;
+    };
+
+    // Immunization entries
+    if (lines[currentIndex].startsWith('I')) {
+        const [prefix, typeInfo] = lines[currentIndex++].match(/^I(\d+)-(\d+)$/).slice(1, 3);
+        const uniqueCount = parseInt(typeInfo, 10);
+        record.immunizations = parseImmunizations(uniqueCount);
+    } else {
+        record.immunizations = [];
+    }
+
     // Medication entries on or after timeStamp
     if (/^\d{12}$/.test(lines[currentIndex])) {
         let earliestMedTime = new Date(
