@@ -5,6 +5,7 @@ function convertIPSBundleToSchema(ipsBundle) {
     let patient = {};
     patient.practitioner = "Unknown";
     let dosage = "";
+    let name = "";
 
     // Initialize arrays to store medication, allergy, condition, and observation information
     let medication = [];
@@ -59,11 +60,22 @@ function convertIPSBundleToSchema(ipsBundle) {
             case "MedicationRequest":
                 if (resource.dosageInstruction[0].text !== undefined) {
                     dosage = resource.dosageInstruction[0].text;
+                } else if (resource.dosageInstruction[0].timing !== undefined) {
+                    dosage = resource.dosageInstruction[0].timing.code.text;
                 } else {
                     dosage = "Unknown";
                 }
+                if (resource.medicationReference != undefined) {
+                    name = resource.medicationReference.display
+                } else if (resource.medicationCodeableConcept != undefined) {
+                    name = resource.medicationCodeableConcept.text
+                } else if (name = resource.contained != undefined) {
+                    name = resource.contained[0].code.text
+                } else {
+                    name = "Unknown";
+                }
                 medication.push({
-                    name: resource.medicationReference.display,
+                    name: name,
                     date: new Date(resource.authoredOn).toISOString(),
                     dosage: dosage
                 });
@@ -85,12 +97,18 @@ function convertIPSBundleToSchema(ipsBundle) {
             case "Observation":
                 const observation = {
                     name: resource.code.coding[0].display,
-                    date: new Date(resource.effectiveDateTime).toISOString()
                 };
+                if(resource.effectiveDateTime !== undefined){
+                    observation.date  = new Date(resource.effectiveDateTime).toISOString()
+                } else if (resource.issued !== undefined) {
+                    observation.date  = new Date(resource.issued).toISOString()
+                }
                 if (resource.valueQuantity !== undefined) {
                     observation.value = `${resource.valueQuantity.value} ${resource.valueQuantity.unit}`;
                 } else if (resource.bodySite !== undefined) {
                     observation.value = resource.bodySite.coding[0].display;
+                } else if (resource.valueString !== undefined) {
+                    observation.value = resource.valueString
                 }
                 observations.push(observation);
                 break;
