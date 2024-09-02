@@ -68,6 +68,13 @@ const IPSModel = mongoose.model(
                 value: String
             }
         ],
+        immunizations: [
+            {
+                name: String,
+                system: String,
+                date: Date
+            }
+        ],
     })
 );
 
