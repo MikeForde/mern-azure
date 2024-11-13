@@ -386,7 +386,26 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_43 - 13th November 2024</h5>
+                            <h5>Version 0_44 - 13th November 2024</h5>
+                            <ul>
+                                <li><strong>HL7 2.8 Conversion Functionality</strong></li>
+                                <li>Added endpoints for chaining HL7 2.8 to MongoDB, then MongoDB to IPS JSON</li>
+                                <li>Extended API documentation with complete list of available endpoints for CRUD operations, conversions, and integrations with external systems</li>
+                                <li>API documentation pages updated to reflect latest changes</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <h5>Version 0_43 - 3rd September 2024</h5>
+                            <ul>
+                                <li><strong>Added PDF Generation Feature</strong></li>
+                                <li>Implemented a new PDF generation function that allows patient reports to be viewed and downloaded as PDF documents</li>
+                                <li>The PDF document is formatted to fit within A4 page dimensions, with automatic text wrapping to ensure readability</li>
+                                <li>Patient data, including Medications, Allergies, Conditions, Observations, and Immunizations, are included in the PDF report</li>
+                                <li>PDF opens in a new tab with a dynamic filename based on the patient's name, allowing for easy download and identification</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <h5>Version 0_44 - 13th November 2024</h5>
                             <ul>
                                 <li><strong>HL7 2.8 Conversion Functionality</strong></li>
                                 <li>Added endpoints for chaining HL7 2.8 to MongoDB, then MongoDB to IPS JSON</li>
