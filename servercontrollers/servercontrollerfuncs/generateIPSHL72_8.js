@@ -8,7 +8,10 @@ function generateIPSHL72_8(data) {
     hl7Message += `MSH|^~\\&|SendingApp|SendingFac|ReceivingApp|ReceivingFac|${moment(data.timeStamp).format('YYYYMMDDHHmmss')}||ORM^O01|${data.packageUUID}|P|2.8\n`;
 
     // PID Segment
-    hl7Message += `PID|||123456^^^AssigningAuthority^ISO||${data.patient.name}^${data.patient.given}||${moment(data.patient.dob).format('YYYYMMDD')}|${data.patient.gender.charAt(0)}|||^^^${data.patient.nation}|||\n`;
+    hl7Message += `PID|||123456^^^${data.patient.organization}^ISO||${data.patient.name}^${data.patient.given}||${moment(data.patient.dob).format('YYYYMMDD')}|${data.patient.gender.charAt(0)}|||^^^${data.patient.nation}|||\n`;
+
+    // IVC Segment
+    hl7Message += `IVC||${data.patient.practitioner}\n`
 
     // RXA Segments
     if (data.medication.length) {

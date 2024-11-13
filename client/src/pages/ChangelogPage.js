@@ -280,7 +280,7 @@ function ChangeLogPage() {
                             <ul>
                                 <li><strong>Added Observation and Allergy Dropdowns</strong></li>
                                 <li>Observation dropdown for key vital signs - temperature, blood pressure, pulse, respiration etc</li>
-                                <li>Allergy dropdown for criticality - low, medium, high</li>                   
+                                <li>Allergy dropdown for criticality - low, medium, high</li>
                             </ul>
                         </li>
                         <li>
@@ -383,6 +383,15 @@ function ChangeLogPage() {
                                 <li>Name can be either a textual entry or a code, with the system indicating the coding system used (e.g., SNOMED, WHO ATC) or a reference url</li>
                                 <li>All conversions updated including 'from CDA', 'to HL7 2.8' and 'to and from BEER'</li>
                                 <li>Note: HL7 2.8 message validation may show errors due to lack of data, but the data provided is in the correct positions. Please visit <a href="https://www.parsehog.com/hl7/parser" target="_blank" rel="noopener noreferrer">Parsehog HL7 Parser</a> to validate and check the message structure yourself.</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <h5>Version 0_43 - 13th November 2024</h5>
+                            <ul>
+                                <li><strong>HL7 2.8 Conversion Functionality</strong></li>
+                                <li>Added endpoints for chaining HL7 2.8 to MongoDB, then MongoDB to IPS JSON</li>
+                                <li>Extended API documentation with complete list of available endpoints for CRUD operations, conversions, and integrations with external systems</li>
+                                <li>API documentation pages updated to reflect latest changes</li>
                             </ul>
                         </li>
                     </ul>
