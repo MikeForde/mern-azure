@@ -149,20 +149,6 @@ This API supports gzip compression to optimize data transfer.
 1. Set the header `Accept-Encoding: gzip`.
 2. The API will return the response in gzip format if supported.
 
-### Example
-
-**Request Headers for Gzip**
-
-```http
-Content-Encoding: gzip
-```
-
-**Response Headers for Gzip**
-
-```http
-Content-Encoding: gzip
-```
-
 ## Client-Side Pages
 
 | Page                 | Description                                                                                           |
