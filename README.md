@@ -12,6 +12,7 @@ This project is a MERN (MongoDB, Express, React, Node.js) stack application desi
   - [GET Endpoints](#get-endpoints)
   - [PUT Endpoints](#put-endpoints)
   - [DELETE Endpoints](#delete-endpoints)
+- [Gzip Support](#gzip-support)
 - [Client-Side Pages](#client-side-pages)
 - [Technologies Used](#technologies-used)
 - [Contributing](#contributing)
@@ -86,13 +87,15 @@ npm start
 | `/pushipsora`                   | Push IPS records to an ORA system.                  | IPS JSON Bundle | Status message.                      |
 | `/ipsfrombeer`                  | Add IPS records from BEER format.                   | BEER as Plain Text  | The created IPS record.              |
 | `/convertmongo2beer`            | Convert a MongoDB IPS record to BEER format.        | Mongo IPS Record | The BEER formatted data.             |
-| `/convertbeer2mongo`            | Convert a BEER IPS record to MongoDB format.        | BEER as Plain Text  | The MongoDB formatted data. No record created |
-| `/convertbeer2ips`              | Convert a BEER IPS record to IPS JSON format.       | BEER as Plain Text | The IPS JSON formatted data. No record created |
-| `/convertips2beer`              | Convert an IPS JSON record to BEER format.          | IPS JSON Bundle | The BEER formatted data. No record created            |
-| `/convertmongo2hl7`             | Convert a MongoDB IPS record to HL7 2.8 format.          | Mongo IPS Record | The HL7 2.8 formatted data. No record created            |
+| `/convertmongo2hl7`             | Convert a MongoDB IPS record to HL7 2.8 format.     | Mongo IPS Record | The HL7 2.8 formatted data.          |
+| `/convertbeer2mongo`            | Convert a BEER IPS record to MongoDB format.        | BEER as Plain Text  | MongoDB formatted data.              |
+| `/convertbeer2ips`              | Convert a BEER IPS record to IPS JSON format.       | BEER as Plain Text | IPS JSON formatted data.             |
+| `/convertips2beer`              | Convert an IPS JSON record to BEER format.          | IPS JSON Bundle | BEER formatted data.                 |
 | `/ipsfromcda`                   | Add IPS records from a CDA XML format.              | CDA XML Bundle | The created IPS record.              |
-| `convertcdatoips`               | Convert CDA XML format to an IPS JSON Bundle        | CDA XML Bundle | The IPS JSON formatted data. No record created |
-| `convertcdatobeer`              | Convert CDA XML format to BEER format.              | CDA XML Bundle | The BEER formatted data. No record created    |
+| `/convertcdatoips`              | Convert CDA XML format to IPS JSON Bundle.          | CDA XML Bundle | IPS JSON formatted data.             |
+| `/convertcdatobeer`             | Convert CDA XML format to BEER format.              | CDA XML Bundle | BEER formatted data.                 |
+| `/converthl728tomongo`          | Convert HL7 2.8 format to MongoDB format.           | HL7 2.8 - Plain Text | MongoDB - JSON                       |
+| `/converthl728toips`            | Convert HL7 2.8 format to IPS JSON format.          | HL7 2.8 - Plain Text | IPS Bundle - JSON                    |
 
 ### GET Endpoints
 
@@ -123,7 +126,44 @@ npm start
 | Endpoint                        | Description                                         | Response                              |
 |---------------------------------|-----------------------------------------------------|---------------------------------------|
 | `/ips/:id`                      | Delete an IPS record by its ID.                     | Status message.                       |
-| `/ips/practitioner/:practitioner` | Delete all IPS records by the practitioner's name. | Number of records deleted.            |
+
+## Gzip Support
+
+### Overview
+
+This API supports gzip compression to optimize data transfer. 
+
+- **Incoming Requests**: When sending gzip-encoded data, set the `Content-Encoding: gzip` header.
+- **Outgoing Responses**: To receive gzip-encoded responses, set the `Accept-Encoding: gzip` header.
+
+### Usage Instructions
+
+#### For Requests
+
+1. Compress your payload using gzip.
+2. Include the header `Content-Encoding: gzip`.
+3. Send the compressed payload.
+
+#### For Responses
+
+1. Set the header `Accept-Encoding: gzip`.
+2. The API will return the response in gzip format if supported.
+
+### Example
+
+**Request Headers for Gzip**
+
+```http
+Content-Type: application/json
+Content-Encoding: gzip
+```
+
+**Response Headers for Gzip**
+
+```http
+Content-Type: application/json
+Content-Encoding: gzip
+```
 
 ## Client-Side Pages
 

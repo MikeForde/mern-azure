@@ -404,6 +404,17 @@ function ChangeLogPage() {
                                 <li>API documentation pages updated to reflect latest changes</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_45 - 26th November 2024</h5>
+                            <ul>
+                                <li><strong>Gzip Compression Support</strong></li>
+                                <li>Introduced middleware to handle gzip-encoded requests and responses</li>
+                                <li>API now supports gzip encoding for both incoming and outgoing data, optimizing bandwidth usage</li>
+                                <li>Enhanced compatibility with external clients by allowing Content-Encoding and Accept-Encoding headers for gzip</li>
+                                <li>Added safeguards to bypass compression for internal calls, ensuring seamless frontend-backend communication</li>
+                            </ul>
+                        </li>
+
                     </ul>
                 </Col>
             </Row>
