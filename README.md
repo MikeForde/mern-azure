@@ -154,14 +154,12 @@ This API supports gzip compression to optimize data transfer.
 **Request Headers for Gzip**
 
 ```http
-Content-Type: application/json
 Content-Encoding: gzip
 ```
 
 **Response Headers for Gzip**
 
 ```http
-Content-Type: application/json
 Content-Encoding: gzip
 ```
 
