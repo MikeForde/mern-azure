@@ -45,37 +45,33 @@ This application allows healthcare providers to create, update, delete, and conv
    ```bash
    git clone https://github.com/yourusername/ips-mern-project.git
    cd ips-mern-project
-Install server dependencies:
-
-bash
-Copy code
+   ```
+2. Install server dependencies:
+```bash
 cd server
 npm install
-Install client dependencies:
-
-bash
-Copy code
+```
+3. Install client dependencies:
+```bash
 cd ../client
 npm install
-Set up environment variables:
+```
+4. Set up environment variables:
 
 Create a .env file in the server directory with the following content:
-bash
-Copy code
+```
 DB_CONN=mongodb://localhost:27017/ipsDB
-Start the development server:
-
-bash
-Copy code
+```
+5. Start the development server:
+```bash
 cd ../server
 npm run dev
-Start the React development server:
-
-bash
-Copy code
+```
+6. Start the React development server:
+```bash
 cd ../client
 npm start
-
+```
 ## API Documentation
 
 ### POST Endpoints
