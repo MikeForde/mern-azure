@@ -36,6 +36,7 @@ const { convertCDAToBEER } = require('./servercontrollers/convertCDAToBEER');
 const { convertHL72_8ToMongo} = require('./servercontrollers/convertHL72_8ToMongo');
 const { convertHL72_8ToIPS } = require("./servercontrollers/convertHL72_8ToIPS");
 const { gzipDecode, gzipEncode } = require("./compression/gzipUtils");
+const { encrypt, decrypt } = require('./encryption/aesUtils');
 
 
 const { DB_CONN } = process.env;
@@ -43,89 +44,144 @@ const { DB_CONN } = process.env;
 const api = express();
 api.use(cors()); // enable CORS on all our requests
 
-// Middleware to decode gzip data
+// Combined middleware to handle decryption and decompression
 api.use(async (req, res, next) => {
-    // Ignore internal API calls
+    const isEncrypted = req.headers['x-encrypted'] === 'true';
+    const isGzip = req.headers['content-encoding'] === 'gzip';
     const isInternalCall = req.headers['sec-fetch-site'] === 'same-origin';
 
-    if (req.headers['content-encoding'] === 'gzip' && !isInternalCall) {
-        //console.log("Incoming data claims to be gzip...");
+    if ((isEncrypted || isGzip) && !isInternalCall) {
         try {
-            let rawData = [];
-
-            // Collect raw binary data from the stream
-            req.on('data', (chunk) => rawData.push(chunk));
-            req.on('end', async () => {
-                try {
-                    const buffer = Buffer.concat(rawData); // Combine chunks into a single buffer
-                    //console.log("Raw Buffer Data:", buffer);
-
-                    // Decompress the gzip data
-                    const decompressedData = await gzipDecode(buffer);
-                    //console.log("Decompressed Data:", decompressedData);
-
-                    // Attempt to parse as JSON, fallback to plain text
-                    try {
-                        req.body = JSON.parse(decompressedData); // Parse as JSON
-                    } catch {
-                        req.body = decompressedData; // Keep as plain text if not JSON
-                    }
-
-                    next(); // Proceed to the next middleware
-                } catch (error) {
-                    //console.error("Error decompressing gzip data:", error);
-                    res.status(400).send("Invalid gzip data: " + error.message);
-                }
+            // Collect raw binary data from the request
+            const rawData = await new Promise((resolve, reject) => {
+                const chunks = [];
+                req.on('data', (chunk) => chunks.push(chunk));
+                req.on('end', () => resolve(Buffer.concat(chunks)));
+                req.on('error', (err) => reject(err));
             });
+
+            let data = rawData;
+
+            // If encrypted, decrypt the data
+            if (isEncrypted) {
+                console.log('Incoming data claims to be encrypted...');
+
+                // Parse the JSON payload
+                const encryptedPayload = JSON.parse(rawData.toString('utf8'));
+                console.log('Parsed Encrypted Payload:', encryptedPayload);
+
+                // Ensure payload contains necessary fields
+                if (!encryptedPayload.encryptedData || !encryptedPayload.iv) {
+                    throw new Error('Invalid encrypted payload format');
+                }
+
+                // Decrypt the data
+                data = decrypt(
+                    encryptedPayload.encryptedData,
+                    encryptedPayload.iv
+                );
+
+                data = Buffer.from(data, 'base64');
+                console.log('Decrypted Data:', data);
+                req.body = data;
+            }
+
+            // If gzip encoded, decompress the data
+            if (isGzip) {
+                console.log('Incoming data claims to be gzip...', data);
+                data = await gzipDecode(data);
+                console.log('Decompressed Data:', data);
+            }
+
+            // Attempt to parse as JSON, fallback to plain text
+            try {
+                req.body = JSON.parse(data.toString('utf8')); // Parse as JSON
+            } catch {
+                req.body = data.toString('utf8'); // Keep as plain text if not JSON
+            }
+
+            next();
         } catch (error) {
-            //console.error("Error processing gzip request:", error);
-            res.status(500).send("Server error: " + error.message);
+            console.error('Error processing request data:', error);
+            res.status(400).send('Invalid request data');
         }
-    } else if (isInternalCall) {
-        next();
     } else {
-        next(); // Proceed if not gzip
+        next();
     }
 });
 
-api.use(express.json()); // parses incoming requests with JSON payloads
+api.use((req, res, next) => {
+    if (req.headers['x-encrypted'] === 'true') {
+        // Encrypted request; body has already been parsed
+        next();
+    } else {
+        // Not encrypted; apply express.json()
+        express.json()(req, res, next);
+    }
+});
 api.use(express.urlencoded({ extended: false })); // parses incoming requests with urlencoded payloads
 api.use(express.text())
 api.use(xmlparser());
 
-// Middleware to compress data for response.
-api.use(async (req, res, next) => {
+// Middleware to handle requests for data to be returned gzipped, encrypted or both
+api.use((req, res, next) => {
     const originalSend = res.send;
 
     res.send = async function (body) {
-        // Treat accept-encoding gzip as flag to send it back as gzip
-        const acceptEncoding = req.headers['accept-encoding'] || '';
-        // Ignore internal API calls
-        const isInternalCall = req.headers['sec-fetch-site'] === 'same-origin';
-        if (acceptEncoding.includes('gzip') && !isInternalCall) {
-            console.log("Returning response using gzip compression...");
-            try {
-                // Compress the response body
-                const compressedData = await gzipEncode(typeof body === 'object' ? JSON.stringify(body) : body);
+        try {
+            console.log("body is: ", body);
+            let modifiedBody = body;
+            const acceptEncoding = req.headers["accept-encoding"] || "";
+            const isInternalCall = req.headers['sec-fetch-site'] === 'same-origin';
+            const acceptEncryption = req.headers["accept-encryption"] || "";
 
-                // Set appropriate headers
-                res.set('Content-Encoding', 'gzip');
-                res.set('Content-Type', 'application/json'); // Assuming JSON responses
+            let isCompressed = false;
 
-                // Send the compressed data
-                originalSend.call(this, compressedData);
-            } catch (error) {
-                console.error('Error compressing response data:', error);
-                return res.status(500).send('Error compressing response');
+            // Apply compression if requested and not an internal call
+            if ((acceptEncoding.includes("gzip") || acceptEncoding.includes("insomzip")) && !isInternalCall) {
+                console.log("Returning response using gzip compression...");
+                // Convert body to string if it's an object
+                if (typeof modifiedBody === "object") {
+                    modifiedBody = JSON.stringify(modifiedBody);
+                }
+                console.log("modifiedBody", modifiedBody);
+                // Compress the data
+                const compressedData = await gzipEncode(modifiedBody);
+                modifiedBody = compressedData;
+                isCompressed = true;
+                console.log("compressed data: ", compressedData);
+                // Set Content-Encoding header
+                res.set("Content-Encoding", "gzip");
+                res.set("Content-Type", "application/octet-stream");
             }
-        } else {
-            // If gzip is not supported or requested, send the response as-is
-            originalSend.call(this, body);
+
+            // Apply encryption if requested
+            if (acceptEncryption === "aes256") {
+                console.log("Returning response using AES-256 encryption...");
+                // Do NOT convert the Buffer to a Base64 string
+                // Encrypt the data directly
+                const { encryptedData, iv } = encrypt(modifiedBody);
+                modifiedBody = JSON.stringify({ encryptedData, iv });
+                // Set headers
+                res.set("Content-Type", "application/json");
+                res.set("x-encrypted", "true");
+                // Remove Content-Encoding if previously set
+                if (isCompressed) {
+                    res.removeHeader("Content-Encoding");
+                }
+            }
+
+            // Send the final modified response
+            originalSend.call(this, modifiedBody);
+        } catch (error) {
+            console.error("Error processing response data:", error);
+            res.status(500).send("Error processing response");
         }
     };
 
     next();
 });
+
 
 
 mongoose
@@ -150,6 +206,14 @@ api.post('/convertcdatoips', convertCDAToIPS);
 api.post('/convertcdatobeer', convertCDAToBEER);
 api.post('/converthl728tomongo', convertHL72_8ToMongo);
 api.post('/converthl728toips', convertHL72_8ToIPS)
+// Add a /test POST endpoint for echoing back request data
+api.post('/test', (req, res) => {
+    console.log("Request received at /test");
+
+    // Respond with the raw request body
+    res.send(req.body);
+});
+
 
 // API GET - CRUD Read
 api.get("/ips/all", getAllIPS);

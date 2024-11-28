@@ -13,6 +13,7 @@ This project is a MERN (MongoDB, Express, React, Node.js) stack application desi
   - [PUT Endpoints](#put-endpoints)
   - [DELETE Endpoints](#delete-endpoints)
 - [Gzip Support](#gzip-support)
+- [AES-256 Support](#aes-256-encryption-support)
 - [Client-Side Pages](#client-side-pages)
 - [Technologies Used](#technologies-used)
 - [Contributing](#contributing)
@@ -164,6 +165,28 @@ Content-Encoding: gzip
 Content-Type: application/json
 Content-Encoding: gzip
 ```
+
+## AES-256 Encryption Support
+
+### Overview
+
+This API supports AES-256 encryption for secure data transfer.
+
+- **Incoming Requests**: To send encrypted data, include the `x-encrypted: true` header and provide an encrypted payload.
+- **Outgoing Responses**: To receive encrypted responses, include the `Accept-Encryption: aes256` header in your request.
+
+### Usage Instructions
+
+#### For Requests
+
+1. Encrypt your payload using AES-256 encryption with the provided key and IV.
+2. Include the `x-encrypted: true` header.
+3. Send the encrypted payload in the request body.
+
+#### For Responses
+
+1. Include the `Accept-Encryption: aes256` header in your request.
+2. The API will return the response encrypted with AES-256.
 
 ## Client-Side Pages
 

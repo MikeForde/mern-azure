@@ -37,6 +37,54 @@ function APIDocumentationPage() {
     { method: 'DELETE', endpoint: '/ips/:id', description: 'Delete an IPS record by ID.', request: 'IPS record ID as URL parameter.', response: 'Confirmation of deletion.' },
   ];
 
+  const encodingEncryptionInstructions = [
+    {
+      feature: 'Gzip Compression',
+      incoming: (
+        <>
+          - Include the header <code>Content-Encoding: gzip</code> for incoming requests.
+          <br />- Compress your payload using gzip before sending.
+        </>
+      ),
+      outgoing: (
+        <>
+          - Include the header <code>Accept-Encoding: gzip</code> for responses.
+          <br />- The response will be returned in gzip format if supported.
+        </>
+      ),
+    },
+    {
+      feature: 'AES-256 Encryption',
+      incoming: (
+        <>
+          - Include the header <code>X-Encrypted: true</code> for incoming requests.
+          <br />- Encrypt your payload using AES-256 before sending.
+        </>
+      ),
+      outgoing: (
+        <>
+          - Include the header <code>Accept-Encryption: aes256</code> for responses.
+          <br />- The response will be encrypted using AES-256 if supported.
+        </>
+      ),
+    },
+    {
+      feature: 'Combined',
+      incoming: (
+        <>
+          - Use both <code>Content-Encoding: gzip</code> and <code>X-Encrypted: true</code>.
+          <br />- Compress your payload with gzip first, then encrypt with AES-256.
+        </>
+      ),
+      outgoing: (
+        <>
+          - Use both <code>Accept-Encoding: gzip</code> and <code>Accept-Encryption: aes256</code>.
+          <br />- The response will first be compressed with gzip, then encrypted with AES-256.
+        </>
+      ),
+    },
+  ];
+
   return (
     <Container className="mt-5">
       <h2>API Documentation</h2>
@@ -58,6 +106,26 @@ function APIDocumentationPage() {
               <td>{endpoint.description}</td>
               <td>{endpoint.request}</td>
               <td>{endpoint.response}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+
+      <h3 className="mt-5">Encoding and Encryption Usage</h3>
+      <Table striped bordered hover responsive>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Instructions for Incoming Requests</th>
+            <th>Instructions for Outgoing Responses</th>
+          </tr>
+        </thead>
+        <tbody>
+          {encodingEncryptionInstructions.map((row, index) => (
+            <tr key={index}>
+              <td>{row.feature}</td>
+              <td>{row.incoming}</td>
+              <td>{row.outgoing}</td>
             </tr>
           ))}
         </tbody>

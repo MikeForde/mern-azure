@@ -414,7 +414,17 @@ function ChangeLogPage() {
                                 <li>Added safeguards to bypass compression for internal calls, ensuring seamless frontend-backend communication</li>
                             </ul>
                         </li>
-
+                        <li>
+                            <h5>Version 0_46 - 28th November 2024</h5>
+                            <ul>
+                                <li><strong>Encryption Support with AES-256</strong></li>
+                                <li>Added middleware to handle AES-256 encrypted requests and responses</li>
+                                <li>API now supports encrypted communication via `x-encrypted` and `accept-encryption` headers, ensuring secure data transfer</li>
+                                <li>Implemented seamless integration of gzip compression and AES-256 encryption, allowing data to be compressed before encryption</li>
+                                <li>Introduced a `/test` endpoint to facilitate testing of combined encryption and compression functionality</li>
+                                <li>Enhanced logging and error handling to aid debugging and ensure robustness during data transformations</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>
