@@ -162,28 +162,36 @@ Content-Type: application/json
 Content-Encoding: gzip
 ```
 
-## AES-256 Encryption Support
+# AES-256 Encryption Support
 
-### Overview
+## Overview
 
 This API supports AES-256 encryption for secure data transfer.
 
 - **Incoming Requests**: To send encrypted data, include the `x-encrypted: true` header and provide an encrypted payload.
 - **Outgoing Responses**: To receive encrypted responses, include the `Accept-Encryption: aes256` header in your request.
 
-### Usage Instructions
+## Base64 Encoding Option
 
-#### For Requests
+To facilitate compatibility and efficient data transfer, the API supports returning encrypted data encoded in Base64 format. 
+
+- **Incoming Requests**: To send in base64 format, include the header `Content-Encoding: base64` with the encrypted payload. Make sure both the data and the iv are in base64 not hex.
+- **Outgoing Responses**: Use the header `Accept-Encoding: base64` The encrypted payload and IV will be returned as Base64-encoded strings.
+
+## Usage Instructions
+
+### For Requests
 
 1. Encrypt your payload using AES-256 encryption with the provided key and IV.
 2. Include the `x-encrypted: true` header.
-3. Send the encrypted payload in the request body.
+3. Send the encrypted payload in the request body as a JSON with the elements: encryptedData and iv. 
+4. Default format is hex strings for both elements. If you wish to send as base64 strings then use the `Content-Encoding: base64`.
 
-#### For Responses
+### For Responses
 
 1. Include the `Accept-Encryption: aes256` header in your request.
-2. The API will return the response encrypted with AES-256.
-
+2. Optionally, include the `Accept-Encoding: base64` header to receive the encrypted data and iv encoded in Base64.
+3. The response will be a JSON with two elements: encryptedData and iv.
 
 ## Client-Side Pages
 

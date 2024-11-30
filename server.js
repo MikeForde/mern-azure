@@ -33,7 +33,7 @@ const { convertIPSToBEER } = require('./servercontrollers/convertIPSToBEER');
 const { updateIPSByUUID } = require('./servercontrollers/updateIPSRecordByUUID');
 const { convertCDAToIPS } = require('./servercontrollers/convertCDAToIPS');
 const { convertCDAToBEER } = require('./servercontrollers/convertCDAToBEER');
-const { convertHL72_8ToMongo} = require('./servercontrollers/convertHL72_8ToMongo');
+const { convertHL72_8ToMongo } = require('./servercontrollers/convertHL72_8ToMongo');
 const { convertHL72_8ToIPS } = require("./servercontrollers/convertHL72_8ToIPS");
 const { gzipDecode, gzipEncode } = require("./compression/gzipUtils");
 const { encrypt, decrypt } = require('./encryption/aesUtils');
@@ -47,10 +47,11 @@ api.use(cors()); // enable CORS on all our requests
 // Combined middleware to handle decryption and decompression
 api.use(async (req, res, next) => {
     const isEncrypted = req.headers['x-encrypted'] === 'true';
-    const isGzip = req.headers['content-encoding'] === 'gzip';
+    const isGzip = req.headers['content-encoding']?.includes('gzip');
+    const isBase64 = req.headers['content-encoding']?.includes('base64');
     const isInternalCall = req.headers['sec-fetch-site'] === 'same-origin';
 
-    if ((isEncrypted || isGzip) && !isInternalCall) {
+    if ((isEncrypted || isGzip || isBase64) && !isInternalCall) {
         try {
             // Collect raw binary data from the request
             const rawData = await new Promise((resolve, reject) => {
@@ -62,12 +63,12 @@ api.use(async (req, res, next) => {
 
             let data = rawData;
 
-            // If encrypted, decrypt the data
+            // If encrypted, decrypt the data - could be hex or base64 format
             if (isEncrypted) {
-                console.log('Incoming data claims to be encrypted...');
+                console.log('Incoming data claims to be encrypted. Base64 flag is: ', isBase64);
 
                 // Parse the JSON payload
-                const encryptedPayload = JSON.parse(rawData.toString('utf8'));
+                const encryptedPayload = JSON.parse(data.toString('utf8'));
                 console.log('Parsed Encrypted Payload:', encryptedPayload);
 
                 // Ensure payload contains necessary fields
@@ -78,12 +79,11 @@ api.use(async (req, res, next) => {
                 // Decrypt the data
                 data = decrypt(
                     encryptedPayload.encryptedData,
-                    encryptedPayload.iv
+                    encryptedPayload.iv,
+                    isBase64
                 );
 
-                data = Buffer.from(data, 'base64');
                 console.log('Decrypted Data:', data);
-                req.body = data;
             }
 
             // If gzip encoded, decompress the data
@@ -110,6 +110,7 @@ api.use(async (req, res, next) => {
     }
 });
 
+
 api.use((req, res, next) => {
     if (req.headers['x-encrypted'] === 'true') {
         // Encrypted request; body has already been parsed
@@ -123,7 +124,7 @@ api.use(express.urlencoded({ extended: false })); // parses incoming requests wi
 api.use(express.text())
 api.use(xmlparser());
 
-// Middleware to handle requests for data to be returned gzipped, encrypted or both
+// Middleware to handle requests for data to be returned gzipped, encrypted, or both
 api.use((req, res, next) => {
     const originalSend = res.send;
 
@@ -132,13 +133,17 @@ api.use((req, res, next) => {
             console.log("body is: ", body);
             let modifiedBody = body;
             const acceptEncoding = req.headers["accept-encoding"] || "";
-            const isInternalCall = req.headers['sec-fetch-site'] === 'same-origin';
+            const isInternalCall = req.headers["sec-fetch-site"] === "same-origin";
             const acceptEncryption = req.headers["accept-encryption"] || "";
 
             let isCompressed = false;
+            let isBase64 = acceptEncoding.includes("base64");
+
+            let gzipReq = false;
 
             // Apply compression if requested and not an internal call
             if ((acceptEncoding.includes("gzip") || acceptEncoding.includes("insomzip")) && !isInternalCall) {
+                gzipReq = true;
                 console.log("Returning response using gzip compression...");
                 // Convert body to string if it's an object
                 if (typeof modifiedBody === "object") {
@@ -153,15 +158,29 @@ api.use((req, res, next) => {
                 // Set Content-Encoding header
                 res.set("Content-Encoding", "gzip");
                 res.set("Content-Type", "application/octet-stream");
+
             }
 
             // Apply encryption if requested
             if (acceptEncryption === "aes256") {
-                console.log("Returning response using AES-256 encryption...");
-                // Do NOT convert the Buffer to a Base64 string
+                console.log("Returning response using AES-256 encryption. Base64 flag is: ", isBase64);
+
+                // Ensure the body is in a string format before encryption
+                if (!gzipReq) {
+                    if (typeof modifiedBody === "object" || Buffer.isBuffer(modifiedBody)) {
+                        modifiedBody = JSON.stringify(modifiedBody);
+                    } else {
+                        modifiedBody = modifiedBody.toString(); // Ensure it's a string
+                    }
+                }
+
+                console.log("modifiedBody: ", modifiedBody);
+
                 // Encrypt the data directly
-                const { encryptedData, iv } = encrypt(modifiedBody);
+                const { encryptedData, iv } = encrypt(modifiedBody, isBase64); // Pass flag for Base64 encoding
                 modifiedBody = JSON.stringify({ encryptedData, iv });
+
+                console.log("Return payload: ", modifiedBody);
                 // Set headers
                 res.set("Content-Type", "application/json");
                 res.set("x-encrypted", "true");
@@ -181,6 +200,7 @@ api.use((req, res, next) => {
 
     next();
 });
+
 
 
 
@@ -228,7 +248,7 @@ api.get("/ipslegacy/:id", getIPSLegacyBundle);
 api.get("/ipsbyname/:name/:given", getIPSBundleByName);
 api.get("/ips/search/:name", getIPSSearch);
 api.get('/fetchipsora/:name/:givenName', getORABundleByName);
-  
+
 // API PUT - CRUD Update
 api.put("/ips/:id", updateIPS);
 api.put("/ipsuuid/:uuid", updateIPSByUUID);
@@ -245,4 +265,4 @@ api.get("/*", (req, res) => {
 const port = process.env.PORT || 5000;
 api.listen(port, () => {
     console.log(`Server is running on port: ${port}`)
-  })
+})

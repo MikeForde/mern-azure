@@ -425,6 +425,13 @@ function ChangeLogPage() {
                                 <li>Enhanced logging and error handling to aid debugging and ensure robustness during data transformations</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_47 - 30th November 2024</h5>
+                            <ul>
+                                <li><strong>Encryption Support with AES-256 base64</strong></li>
+                                <li>Introduced support for Base64-encoded encryption via <code>content-encoding: base64</code> and <code>accept-encoding: base64</code> headers</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>
