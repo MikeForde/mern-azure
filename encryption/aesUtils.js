@@ -22,7 +22,8 @@ function encrypt(data, useBase64 = false) {
 
     return {
         encryptedData: useBase64 ? encryptedBuffer.toString('base64') : encryptedBuffer.toString('hex'),
-        iv: useBase64 ? iv.toString('base64') : iv.toString('hex')
+        iv: useBase64 ? iv.toString('base64') : iv.toString('hex'),
+        key: useBase64 ? key.toString('base64') : key.toString('hex')
     };
 }
 

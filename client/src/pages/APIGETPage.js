@@ -14,6 +14,7 @@ function APIGETPage() {
   const [showNotification, setShowNotification] = useState(false);
   const [responseSize, setResponseSize] = useState(0);
   const [useCompressionAndEncryption, setUseCompressionAndEncryption] = useState(false);
+  const [useIncludeKey, setUseIncludeKey] = useState(false);
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find((record) => record._id === recordId);
@@ -35,8 +36,11 @@ function APIGETPage() {
         try {
           const headers = {};
           if (useCompressionAndEncryption) {
-            headers['Accept-Internal'] = 'insomzip, base64';
+            headers['Accept-Extra'] = 'insomzip, base64';
             headers['Accept-Encryption'] = 'aes256';
+            if(useIncludeKey) {
+              headers['Accept-Extra'] = 'insomzip, base64, includeKey';
+            }
           }
 
           const response = await axios.get(endpoint, { headers });
@@ -68,7 +72,7 @@ function APIGETPage() {
 
       fetchData();
     }
-  }, [selectedPatient, mode, useCompressionAndEncryption, stopLoading, startLoading]);
+  }, [selectedPatient, mode, useCompressionAndEncryption, stopLoading, startLoading, useIncludeKey]);
 
   const handleDownloadData = () => {
     const blob = new Blob([data], { type: 'text/plain' });
@@ -175,6 +179,18 @@ function APIGETPage() {
               />
               <label className="form-check-label" htmlFor="compressionEncryption">
                 Compress (gzip) and Encrypt (aes256 base 64)
+              </label>
+            </div>
+            <div className="form-check">
+              <input
+                type="checkbox"
+                className="form-check-input"
+                id="includeKey"
+                checked={useIncludeKey}
+                onChange={(e) => setUseIncludeKey(e.target.checked)}
+              />
+              <label className="form-check-label" htmlFor="includeKey">
+                Include key in response
               </label>
             </div>
           </>
