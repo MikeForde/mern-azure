@@ -1,202 +1,189 @@
-const { v4: uuidv4, validate: isValidUUID } = require('uuid');
-const { IPSModel } = require('../models/IPSModel');
+const { resolveId } = require('../utils/resolveId');
+const { v4: uuidv4 } = require('uuid');
 
 // Helper function to check if a string contains a number
 const containsNumber = (str) => /\d/.test(str);
 
-function getIPSLegacyBundle(req, res) {
+async function getIPSLegacyBundle(req, res) {
     const id = req.params.id;
-    let query;
 
-    // Check if the provided ID is a valid UUID
-    if (isValidUUID(id)) {
-        // Search using packageUUID if it is a valid UUID
-        query = IPSModel.findOne({ packageUUID: id });
-    } else {
-        // Otherwise, assume it is a MongoDB ObjectId
-        query = IPSModel.findById(id);
-    }
+    try {
+        const ips = await resolveId(id);
 
-    query.exec()
-        .then((ips) => {
-            if (!ips) {
-                return res.status(404).json({ message: "IPS record not found" });
-            }
+        if (!ips) {
+            return res.status(404).json({ message: "IPS record not found" });
+        }
 
-            // Constructing the JSON structure
-            const bundle = {
-                resourceType: "Bundle",
-                id: ips.packageUUID, // First ID is the packageUUID
-                timestamp: ips.timeStamp, // Time stamp
-                type: "collection",
-                total: 2 + (ips.medication.length * 2) + ips.allergies.length + ips.conditions.length + ips.observations.length, // Total resources
-                entry: [
+        // Construct the JSON structure
+        const bundle = {
+            resourceType: "Bundle",
+            id: ips.packageUUID, // First ID is the packageUUID
+            timestamp: ips.timeStamp, // Time stamp
+            type: "collection",
+            total: 2 + (ips.medication.length * 2) + ips.allergies.length + ips.conditions.length + ips.observations.length,
+            entry: [
+                {
+                    resource: {
+                        resourceType: "Patient",
+                        id: uuidv4(),
+                        name: [
+                            {
+                                family: ips.patient.name,
+                                text: `${ips.patient.given} ${ips.patient.name}`,
+                                given: [ips.patient.given, ips.patient.given.charAt(0)],
+                            },
+                        ],
+                        gender: ips.patient.gender,
+                        birthDate: ips.patient.dob,
+                        address: [
+                            {
+                                country: ips.patient.nationality,
+                            },
+                        ],
+                    },
+                },
+                {
+                    resource: {
+                        resourceType: "Practitioner",
+                        id: uuidv4(),
+                        name: [
+                            {
+                                text: ips.patient.practitioner,
+                            },
+                        ],
+                    },
+                },
+                // Medication entries
+                ...ips.medication.flatMap((med) => [
                     {
                         resource: {
-                            resourceType: "Patient",
-                            id: uuidv4(), // Generate UUID for patient ID
-                            name: [
+                            resourceType: "MedicationRequest",
+                            id: uuidv4(),
+                            intent: "order",
+                            medicationReference: {
+                                reference: `urn:uuid:${uuidv4()}`,
+                                display: med.name,
+                            },
+                            authoredOn: med.date,
+                            dosageInstruction: [
                                 {
-                                    family: ips.patient.name,
-                                    text: `${ips.patient.given} ${ips.patient.name}`,
-                                    given: [ips.patient.given, ips.patient.given.charAt(0)],
-                                },
-                            ],
-                            gender: ips.patient.gender,
-                            birthDate: ips.patient.dob, // Date of birth
-                            address: [
-                                {
-                                    country: ips.patient.nationality, // Nationality
+                                    text: med.dosage,
                                 },
                             ],
                         },
                     },
                     {
                         resource: {
-                            resourceType: "Practitioner",
-                            id: uuidv4(), // Generate UUID for practitioner ID
-                            name: [
+                            resourceType: "Medication",
+                            id: uuidv4(),
+                            code: {
+                                coding: [
+                                    {
+                                        display: med.name,
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                ]),
+                // Allergy entries
+                ...ips.allergies.map((allergy) => ({
+                    resource: {
+                        resourceType: "AllergyIntolerance",
+                        id: uuidv4(),
+                        category: ["medication"],
+                        criticality: "high",
+                        code: {
+                            coding: [
                                 {
-                                    text: ips.patient.practitioner, // Practitioner name
+                                    display: allergy.name,
                                 },
                             ],
                         },
+                        onsetDateTime: allergy.date,
                     },
-                    // Medication entries
-                    ...ips.medication.flatMap((med) => [
-                        {
-                            resource: {
-                                resourceType: "MedicationRequest",
-                                id: uuidv4(), // Generate UUID for medication request ID
-                                intent: "order",
-                                medicationReference: {
-                                    reference: `urn:uuid:${uuidv4()}`, // Generate UUID for medication reference
-                                    display: med.name, // Medication name
+                })),
+                // Condition entries
+                ...ips.conditions.map((condition) => ({
+                    resource: {
+                        resourceType: "Condition",
+                        id: uuidv4(),
+                        code: {
+                            coding: [
+                                {
+                                    display: condition.name,
                                 },
-                                authoredOn: med.date, // Date
-                                dosageInstruction: [
-                                    {
-                                        text: med.dosage, // Dosage
-                                        // Other dosage instructions
-                                    },
-                                ],
-                            },
+                            ],
                         },
-                        {
-                            resource: {
-                                resourceType: "Medication",
-                                id: uuidv4(), // Generate UUID for medication ID
-                                code: {
-                                    coding: [
-                                        {
-                                            display: med.name, // Medication name
-                                        },
-                                    ],
-                                },
-                            },
-                        },
-                    ]),
-                    // Allergy entries
-                    ...ips.allergies.map((allergy) => ({
+                        onsetDateTime: condition.date,
+                    },
+                })),
+                // Observation entries
+                ...ips.observations.map((observation) => {
+                    const observationUUID = uuidv4();
+                    let observationResource = {
                         resource: {
-                            resourceType: "AllergyIntolerance",
-                            id: uuidv4(), // Generate UUID for allergy ID
-                            category: ["medication"],
-                            criticality: "high",
+                            resourceType: "Observation",
+                            id: observationUUID,
                             code: {
                                 coding: [
                                     {
-                                        display: allergy.name, // Allergy name
+                                        display: observation.name,
                                     },
                                 ],
                             },
-                            onsetDateTime: allergy.date, // Onset date
-                        },
-                    })),
-                    // Condition entries
-                    ...ips.conditions.map((condition) => ({
-                        resource: {
-                            resourceType: "Condition",
-                            id: uuidv4(), // Generate UUID for condition ID
-                            code: {
-                                coding: [
-                                    {
-                                        display: condition.name, // Condition name
-                                    },
-                                ],
-                            },
-                            onsetDateTime: condition.date, // Onset date
-                        },
-                    })),
-                    // Observation entries
-                    ...ips.observations.map((observation) => {
-                        const observationUUID = uuidv4();
-                        let observationResource = {
-                            resource: {
-                                resourceType: "Observation",
-                                id: observationUUID,
-                                code: {
-                                    coding: [
-                                        {
-                                            display: observation.name, // Observation name
-                                        },
-                                    ],
-                                },
-                                effectiveDateTime: observation.date, // Effective date
-                            }
-                        };
+                            effectiveDateTime: observation.date,
+                        }
+                    };
 
-                        if (observation.value) {
-                            if (containsNumber(observation.value)) {
-                                // Value contains a number, assume it's numerical value with units
-                                const valueMatch = observation.value.match(/(\d+\.?\d*)(\D+)/);
-                                if (valueMatch) {
-                                    observationResource.resource.valueQuantity = {
-                                        value: parseFloat(valueMatch[1]),
-                                        unit: valueMatch[2].trim(),
-                                        system: "http://unitsofmeasure.org",
-                                        code: valueMatch[2].trim()
-                                    };
-                                }
-                            } else {
-                                // Value is just text, assume it's body site related
-                                observationResource.resource.bodySite = {
-                                    coding: [
-                                        {
-                                            display: observation.value
-                                        }
-                                    ]
+                    if (observation.value) {
+                        if (containsNumber(observation.value)) {
+                            const valueMatch = observation.value.match(/(\d+\.?\d*)(\D+)/);
+                            if (valueMatch) {
+                                observationResource.resource.valueQuantity = {
+                                    value: parseFloat(valueMatch[1]),
+                                    unit: valueMatch[2].trim(),
+                                    system: "http://unitsofmeasure.org",
+                                    code: valueMatch[2].trim()
                                 };
                             }
-                        }
-
-                        return observationResource;
-                    }),
-                    // Immunization entries
-                    ...ips.immunizations.map((immunization) => ({
-                        resource: {
-                            resourceType: "Immunization",
-                            id: uuidv4(), // Generate UUID for immunization ID
-                            status: "completed",
-                            vaccineCode: {
+                        } else {
+                            observationResource.resource.bodySite = {
                                 coding: [
                                     {
-                                        system: immunization.system, // Immunization coding system
-                                        code: immunization.name, // Immunization name/code
-                                    },
-                                ],
-                            },
-                            occurrenceDateTime: immunization.date, // Immunization date
-                        },
-                    })),
-                ],
-            };
+                                        display: observation.value
+                                    }
+                                ]
+                            };
+                        }
+                    }
 
-            res.json(bundle);
-        })
-        .catch((err) => {
-            res.status(400).send(err);
-        });
+                    return observationResource;
+                }),
+                // Immunization entries
+                ...ips.immunizations.map((immunization) => ({
+                    resource: {
+                        resourceType: "Immunization",
+                        id: uuidv4(),
+                        status: "completed",
+                        vaccineCode: {
+                            coding: [
+                                {
+                                    system: immunization.system,
+                                    code: immunization.name,
+                                },
+                            ],
+                        },
+                        occurrenceDateTime: immunization.date,
+                    },
+                })),
+            ],
+        };
+
+        res.json(bundle);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
 }
 
 module.exports = { getIPSLegacyBundle };

@@ -432,6 +432,15 @@ function ChangeLogPage() {
                                 <li>Introduced support for Base64-encoded encryption via <code>content-encoding: base64</code> and <code>accept-encoding: base64</code> headers</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_48 - 4th December 2024</h5>
+                            <ul>
+                                <li><strong>Enhanced ID Handling for IPS Records</strong></li>
+                                <li>Implemented logic to seamlessly handle IPS records with non-UUID identifiers</li>
+                                <li>All API endpoints now support retrieving records using non-UUID identifiers, resolving issues where such records could not be accessed after creation via API calls using those identifiers</li>
+                                <li>Improved validation ensures compatibility with both UUID and non-UUID MongoDB identifiers</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

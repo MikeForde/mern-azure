@@ -1,23 +1,13 @@
-const { IPSModel } = require('../models/IPSModel');
-const { validate: isValidUUID } = require('uuid');
+const { resolveId } = require('../utils/resolveId');
 const { generateIPSHL72_8 } = require('./servercontrollerfuncs/generateIPSHL72_8');
 
 // Define the getIPSHL72_8 function
-const getIPSHL72_8 = async (req, res) => {
+async function getIPSHL72_8(req, res) {
     const { id } = req.params;
-    let query;
-
-    // Check if the provided ID is a valid UUID
-    if (isValidUUID(id)) {
-        // Search using packageUUID if it is a valid UUID
-        query = IPSModel.findOne({ packageUUID: id });
-    } else {
-        // Otherwise, assume it is a MongoDB ObjectId
-        query = IPSModel.findById(id);
-    }
 
     try {
-        const ipsRecord = await query.exec();
+        // Resolve the ID and fetch the IPS record
+        const ipsRecord = await resolveId(id);
 
         // If the record is not found, return a 404 error
         if (!ipsRecord) {
@@ -37,4 +27,4 @@ const getIPSHL72_8 = async (req, res) => {
 };
 
 // Export the getIPSHL72_8 function
-module.exports = getIPSHL72_8;
+module.exports = {getIPSHL72_8};

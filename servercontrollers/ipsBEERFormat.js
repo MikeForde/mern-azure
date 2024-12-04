@@ -1,21 +1,9 @@
-// servercontrollers/ipsNewRecordFromBEER.js
-const { IPSModel } = require('../models/IPSModel');
-const { validate: isValidUUID } = require('uuid');
+const { resolveId } = require('../utils/resolveId');
 const { generateIPSBEER } = require('./servercontrollerfuncs/generateIPSBEER');
 
 // Define the getIPSBEER function
-const getIPSBEER = async (req, res) => {
+async function getIPSBEER(req, res) {
     const { id, delim } = req.params;
-    let query;
-
-    // Check if the provided ID is a valid UUID
-    if (isValidUUID(id)) {
-        // Search using packageUUID if it is a valid UUID
-        query = IPSModel.findOne({ packageUUID: id });
-    } else {
-        // Otherwise, assume it is a MongoDB ObjectId
-        query = IPSModel.findById(id);
-    }
 
     // Determine the delimiter based on the parameter
     const delimiterMap = {
@@ -28,7 +16,8 @@ const getIPSBEER = async (req, res) => {
     const delimiter = delimiterMap[delim] || '\n';
 
     try {
-        const ipsRecord = await query.exec();
+        // Resolve the ID to fetch the IPS record
+        const ipsRecord = await resolveId(id);
 
         // If the record is not found, return a 404 error
         if (!ipsRecord) {
@@ -48,4 +37,4 @@ const getIPSBEER = async (req, res) => {
 };
 
 // Export the getIPSBEER function
-module.exports = getIPSBEER;
+module.exports = {getIPSBEER};

@@ -1,49 +1,42 @@
-// In ipsRawFormat.js
-const { validate: isValidUUID } = require('uuid');
+const { resolveId } = require('../utils/resolveId');
 const { IPSModel } = require('../models/IPSModel');
 
-function getIPSRaw(req, res) {
-  const id = req.params.id;
-  let query;
+// Fetch a single IPS record by ID in raw format
+async function getIPSRaw(req, res) {
+    const id = req.params.id;
 
-    // Check if the provided ID is a valid UUID
-    if (isValidUUID(id)) {
-        // Search using packageUUID if it is a valid UUID
-        query = IPSModel.findOne({ packageUUID: id });
-    } else {
-        // Otherwise, assume it is a MongoDB ObjectId
-        query = IPSModel.findById(id);
+    try {
+        // Resolve the ID and fetch the IPS record
+        const ips = await resolveId(id);
+
+        if (!ips) {
+            return res.status(404).json({ message: "IPS record not found" });
+        }
+
+        // Check if 'pretty' query parameter is true and format accordingly
+        if (req.query.pretty === 'true') {
+            const formattedJson = JSON.stringify(ips, null, "\t");
+            res.send(formattedJson);
+        } else {
+            res.json(ips);
+        }
+    } catch (error) {
+        console.error("Error fetching IPS record:", error);
+        res.status(400).send(error.message || "Invalid request");
     }
-
-    // Execute the query
-    query.exec()
-    .then((ips) => {
-      if (!ips) {
-        return res.status(404).json({ message: "IPS record not found" });
-      }
-      if (req.query.pretty === 'true') {
-          // Return formatted JSON with indentation for readability
-          const formattedJson = JSON.stringify(ips, null, "\t");
-          res.send(formattedJson);
-      } else {
-          // Return JSON without formatting
-          res.json(ips);
-      }
-    })
-    .catch((err) => {
-      res.status(400).send(err);
-    });
 }
 
+// Fetch all IPS records
 function getAllIPS(req, res) {
-  IPSModel.find({})
-    .exec()
-    .then((ipss) => {
-      res.json(ipss);
-    })
-    .catch((err) => {
-      res.status(400).send(err);
-    });
+    IPSModel.find({})
+        .exec()
+        .then((ipss) => {
+            res.json(ipss);
+        })
+        .catch((error) => {
+            console.error("Error fetching all IPS records:", error);
+            res.status(400).send(error.message || "Invalid request");
+        });
 }
 
 module.exports = { getIPSRaw, getAllIPS };
