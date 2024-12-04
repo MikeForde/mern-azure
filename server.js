@@ -130,19 +130,20 @@ api.use((req, res, next) => {
 
     res.send = async function (body) {
         try {
-            console.log("body is: ", body);
+            //console.log("body is: ", body);
             let modifiedBody = body;
             const acceptEncoding = req.headers["accept-encoding"] || "";
             const isInternalCall = req.headers["sec-fetch-site"] === "same-origin";
+            const acceptInternal = req.headers["accept-internal"] || "";
             const acceptEncryption = req.headers["accept-encryption"] || "";
 
             let isCompressed = false;
-            let isBase64 = acceptEncoding.includes("base64");
+            let isBase64 = acceptEncoding.includes("base64") || acceptInternal.includes("base64");
 
             let gzipReq = false;
 
             // Apply compression if requested and not an internal call
-            if ((acceptEncoding.includes("gzip") || acceptEncoding.includes("insomzip")) && !isInternalCall) {
+            if ((acceptEncoding.includes("gzip")  && !isInternalCall) || acceptEncoding.includes("insomzip") || acceptInternal.includes("insomzip")) {
                 gzipReq = true;
                 console.log("Returning response using gzip compression...");
                 // Convert body to string if it's an object

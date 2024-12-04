@@ -435,10 +435,12 @@ function ChangeLogPage() {
                         <li>
                             <h5>Version 0_48 - 4th December 2024</h5>
                             <ul>
-                                <li><strong>Enhanced ID Handling for IPS Records</strong></li>
+                                <li><strong>Enhanced ID Handling and Compression/Encryption Preview</strong></li>
                                 <li>Implemented logic to seamlessly handle IPS records with non-UUID identifiers</li>
                                 <li>All API endpoints now support retrieving records using non-UUID identifiers, resolving issues where such records could not be accessed after creation via API calls using those identifiers</li>
-                                <li>Improved validation ensures compatibility with both UUID and non-UUID MongoDB identifiers</li>
+                                <li>New checkbox feature on APi Page allows users to toggle encryption and compression for API responses</li>
+                                <li>The existing file size display can then be used for comparisons</li>
+                                <li>Likewise, the download feature can then be used for the compressed/encrypted versions</li>
                             </ul>
                         </li>
                     </ul>
