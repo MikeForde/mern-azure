@@ -4,8 +4,13 @@ const { v4: uuidv4 } = require('uuid');
 // Helper function to check if a string contains a number
 const containsNumber = (str) => /\d/.test(str);
 
-async function getIPSLegacyBundle(req, res) {
+async function getIPSUnifiedBundle(req, res) {
     const id = req.params.id;
+
+    var medcount = 0;
+    var algcount = 0;
+    var condcount = 0;
+    var obscount = 0;
 
     try {
         const ips = await resolveId(id);
@@ -20,17 +25,16 @@ async function getIPSLegacyBundle(req, res) {
             id: ips.packageUUID, // First ID is the packageUUID
             timestamp: ips.timeStamp, // Time stamp
             type: "collection",
-            total: 2 + (ips.medication.length * 2) + ips.allergies.length + ips.conditions.length + ips.observations.length + ips.immunizations.length,
+            total: 2 + (ips.medication.length * 2) + ips.allergies.length + ips.conditions.length + ips.observations.length,
             entry: [
                 {
                     resource: {
                         resourceType: "Patient",
-                        id: uuidv4(),
+                        id: "pt1",
                         name: [
                             {
                                 family: ips.patient.name,
-                                text: `${ips.patient.given} ${ips.patient.name}`,
-                                given: [ips.patient.given, ips.patient.given.charAt(0)],
+                                given: [ips.patient.given],
                             },
                         ],
                         gender: ips.patient.gender,
@@ -44,24 +48,20 @@ async function getIPSLegacyBundle(req, res) {
                 },
                 {
                     resource: {
-                        resourceType: "Practitioner",
-                        id: uuidv4(),
-                        name: [
-                            {
-                                text: ips.patient.practitioner,
-                            },
-                        ],
-                    },
+                        resourceType: "Organization",
+                        id: "org1",
+                        name: ips.patient.organization,
+                    }, 
                 },
                 // Medication entries
                 ...ips.medication.flatMap((med) => [
                     {
                         resource: {
                             resourceType: "MedicationRequest",
-                            id: uuidv4(),
+                            id: "medreq" + ++medcount,
                             intent: "order",
                             medicationReference: {
-                                reference: `urn:uuid:${uuidv4()}`,
+                                reference: "med" + medcount,
                                 display: med.name,
                             },
                             authoredOn: med.date,
@@ -75,7 +75,7 @@ async function getIPSLegacyBundle(req, res) {
                     {
                         resource: {
                             resourceType: "Medication",
-                            id: uuidv4(),
+                            id: "med" + medcount,
                             code: {
                                 coding: [
                                     {
@@ -92,13 +92,15 @@ async function getIPSLegacyBundle(req, res) {
                 ...ips.allergies.map((allergy) => ({
                     resource: {
                         resourceType: "AllergyIntolerance",
-                        id: uuidv4(),
+                        id: "allergy" + ++algcount,
                         category: ["medication"],
                         criticality: "high",
                         code: {
                             coding: [
                                 {
                                     display: allergy.name,
+                                    system: allergy.system,
+                                    code: allergy.code,
                                 },
                             ],
                         },
@@ -109,11 +111,13 @@ async function getIPSLegacyBundle(req, res) {
                 ...ips.conditions.map((condition) => ({
                     resource: {
                         resourceType: "Condition",
-                        id: uuidv4(),
+                        id: "condition" + ++condcount,
                         code: {
                             coding: [
                                 {
                                     display: condition.name,
+                                    system: condition.system,
+                                    code: condition.code,
                                 },
                             ],
                         },
@@ -122,7 +126,7 @@ async function getIPSLegacyBundle(req, res) {
                 })),
                 // Observation entries
                 ...ips.observations.map((observation) => {
-                    const observationUUID = uuidv4();
+                    const observationUUID = "ob" + ++obscount;
                     let observationResource = {
                         resource: {
                             resourceType: "Observation",
@@ -131,6 +135,8 @@ async function getIPSLegacyBundle(req, res) {
                                 coding: [
                                     {
                                         display: observation.name,
+                                        system: observation.system,
+                                        code: observation.code,
                                     },
                                 ],
                             },
@@ -162,23 +168,6 @@ async function getIPSLegacyBundle(req, res) {
 
                     return observationResource;
                 }),
-                // Immunization entries
-                ...ips.immunizations.map((immunization) => ({
-                    resource: {
-                        resourceType: "Immunization",
-                        id: uuidv4(),
-                        status: "completed",
-                        vaccineCode: {
-                            coding: [
-                                {
-                                    system: immunization.system,
-                                    code: immunization.name,
-                                },
-                            ],
-                        },
-                        occurrenceDateTime: immunization.date,
-                    },
-                })),
             ],
         };
 
@@ -188,4 +177,4 @@ async function getIPSLegacyBundle(req, res) {
     }
 }
 
-module.exports = { getIPSLegacyBundle };
+module.exports = { getIPSUnifiedBundle };

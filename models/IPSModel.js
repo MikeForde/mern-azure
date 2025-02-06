@@ -46,33 +46,46 @@ const IPSModel = mongoose.model(
                 name: String,
                 date: Date,
                 dosage: String,
+                system: String,
+                code: String,
+                status: String,
             }
         ],
         allergies: [
             {
                 name: String,
                 criticality: String,
-                date: Date
+                date: Date,
+                system: String,
+                code: String
             }
         ],
         conditions: [
             {
                 name: String,
-                date: Date
+                date: Date,
+                system: String,
+                code: String
             }
         ],
         observations: [
             {
                 name: String,
                 date: Date,
-                value: String
+                system: String,
+                code: String,
+                value: String,
+                valueCode: String,
+                bodySite: String,
             }
         ],
         immunizations: [
             {
                 name: String,
                 system: String,
-                date: Date
+                code: String,
+                date: Date,
+                status: String,
             }
         ],
     })

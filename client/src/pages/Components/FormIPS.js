@@ -24,11 +24,11 @@ export function FormIPS({ add }) {
       practitioner: "",
       organization: "",
     },
-    medication: [{ name: "", date: "", dosage: "" }],
-    allergies: [{ name: "", criticality: "", date: "" }],
-    conditions: [{ name: "", date: "" }],
-    observations: [{ name: "", date: "", value: "" }],
-    immunizations: [{ name: "", system: "", date: "" }]
+    medication: [{ name: "", code: "", system: "", date: "", dosage: "" }],
+    allergies: [{ name: "", code: "", system: "", criticality: "", date: "" }],
+    conditions: [{ name: "", code: "", system: "", date: "" }],
+    observations: [{ name: "", code: "", system: "", date: "", value: "" }],
+    immunizations: [{ name: "", code: "", system: "", date: "" }]
   });
 
   const [showAlert, setShowAlert] = useState(false);
@@ -97,35 +97,35 @@ export function FormIPS({ add }) {
   const handleAddMedication = () => {
     setFormData({
       ...formData,
-      medication: [...formData.medication, { name: "", date: "", dosage: "" }],
+      medication: [...formData.medication, { name: "", code: "", system: "", date: "", dosage: "" }],
     });
   };
 
   const handleAddAllergy = () => {
     setFormData({
       ...formData,
-      allergies: [...formData.allergies, { name: "", criticality: "", date: "" }],
+      allergies: [...formData.allergies, { name: "", code: "", system: "", criticality: "", date: "" }],
     });
   };
 
   const handleAddCondition = () => {
     setFormData({
       ...formData,
-      conditions: [...formData.conditions, { name: "", date: "" }],
+      conditions: [...formData.conditions, { name: "", code: "", system: "", date: "" }],
     });
   };
 
   const handleAddObservation = () => {
     setFormData({
       ...formData,
-      observations: [...formData.observations, { name: "", date: "", value: "" }],
+      observations: [...formData.observations, { name: "", code: "", system: "", date: "", value: "" }],
     });
   };
 
   const handleAddImmunization = () => {
     setFormData({
       ...formData,
-      immunizations: [...formData.immunizations, { name: "", system: "", date: "" }],
+      immunizations: [...formData.immunizations, { name: "", code: "", system: "",  date: "" }],
     });
   };
 
@@ -165,11 +165,11 @@ export function FormIPS({ add }) {
         practitioner: "",
         organization: "",
       },
-      medication: [{ name: "", date: "", dosage: "" }],
-      allergies: [{ name: "", criticality: "", date: "" }],
-      conditions: [{ name: "", date: "" }],
-      observations: [{ name: "", date: "", value: "" }],
-      immunizations: [{ name: "", system: "", date: "" }]
+      medication: [{ name: "", code: "", system: "", date: "", dosage: "" }],
+      allergies: [{ name: "", code: "", system: "", criticality: "", date: "" }],
+      conditions: [{ name: "", code: "", system: "", date: "" }],
+      observations: [{ name: "", code: "", system: "", date: "", value: "" }],
+      immunizations: [{ name: "", code: "", system: "", date: "" }]
     });
   };
 
@@ -302,6 +302,28 @@ export function FormIPS({ add }) {
                 </div>
               </Form.Group>
               <Form.Group className="row">
+                <Form.Label className="col-sm-2">Code</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="text"
+                    name="code"
+                    value={med.code}
+                    onChange={(e) => handleMedicationChange(index, e)}
+                    placeholder="Medication Code" />
+                </div>
+              </Form.Group>
+              <Form.Group className="row">
+                <Form.Label className="col-sm-2">System</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="text"
+                    name="system"
+                    value={med.system}
+                    onChange={(e) => handleMedicationChange(index, e)}
+                    placeholder="Medication Code System" />
+                </div>
+              </Form.Group>
+              <Form.Group className="row">
                 <Form.Label className="col-sm-2">Date</Form.Label>
                 <div className="col-sm-10">
                   <Form.Control
@@ -338,6 +360,28 @@ export function FormIPS({ add }) {
                     value={allergy.name}
                     onChange={(e) => handleAllergyChange(index, e)}
                     placeholder="Allergy Name" />
+                </div>
+              </Form.Group>
+              <Form.Group className="row">
+                <Form.Label className="col-sm-2">Code</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="text"
+                    name="code"
+                    value={allergy.code}
+                    onChange={(e) => handleAllergyChange(index, e)}
+                    placeholder="Allergy Code" />
+                </div>
+              </Form.Group>
+              <Form.Group className="row">
+                <Form.Label className="col-sm-2">System</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="text"
+                    name="system"
+                    value={allergy.system}
+                    onChange={(e) => handleAllergyChange(index, e)}
+                    placeholder="Allergy Code System" />
                 </div>
               </Form.Group>
               <Form.Group className="row">
@@ -384,6 +428,28 @@ export function FormIPS({ add }) {
                 </div>
               </Form.Group>
               <Form.Group className="row">
+                <Form.Label className="col-sm-2">Code</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="text"
+                    name="code"
+                    value={condition.code}
+                    onChange={(e) => handleConditionChange(index, e)}
+                    placeholder="Condition/Problem Code" />
+                </div>
+              </Form.Group>
+              <Form.Group className="row">
+                <Form.Label className="col-sm-2">System</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="text"
+                    name="system"
+                    value={condition.system}
+                    onChange={(e) => handleConditionChange(index, e)}
+                    placeholder="Condition/Problem Code System" />
+                </div>
+              </Form.Group>
+              <Form.Group className="row">
                 <Form.Label className="col-sm-2">Date</Form.Label>
                 <div className="col-sm-10">
                   <Form.Control
@@ -415,6 +481,8 @@ export function FormIPS({ add }) {
                     <option value="Temperature">Temperature</option>
                     <option value="Oxygen Sats">Oxygen Sats</option>
                     <option value="AVPU">AVPU</option>
+                    <option value="Weight">Weight</option>
+                    <option value="Blood Group">Blood Group</option>
                   </Form.Control>
                   <Form.Control
                     type="text"
@@ -424,6 +492,28 @@ export function FormIPS({ add }) {
                     placeholder="Custom Observation"
                     className="mt-2"
                   />
+                </div>
+              </Form.Group>
+              <Form.Group className="row">
+                <Form.Label className="col-sm-2">Code</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="text"
+                    name="code"
+                    value={formatDate(observation.code)}
+                    onChange={(e) => handleObservationChange(index, e)}
+                    placeholder="Observation Code" />
+                </div>
+              </Form.Group>
+              <Form.Group className="row">
+                <Form.Label className="col-sm-2">System</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="text"
+                    name="system"
+                    value={formatDate(observation.system)}
+                    onChange={(e) => handleObservationChange(index, e)}
+                    placeholder="Observation Code System" />
                 </div>
               </Form.Group>
               <Form.Group className="row">

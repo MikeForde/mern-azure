@@ -1,11 +1,11 @@
 const moment = require('moment');
 
-function generateIPSHL72_8(data) {
+function generateIPSHL72_x(data) {
     // Initialize HL7 message
     let hl7Message = '';
 
     // MSH Segment - 
-    hl7Message += `MSH|^~\\&|SendingApp|SendingFac|ReceivingApp|ReceivingFac|${moment(data.timeStamp).format('YYYYMMDDHHmmss')}||ORM^O01|${data.packageUUID}|P|2.8\n`;
+    hl7Message += `MSH|^~\\&|SendingApp|SendingFac|ReceivingApp|ReceivingFac|${moment(data.timeStamp).format('YYYYMMDDHHmmss')}||ORM^O01|${data.packageUUID}|P|2.3\n`;
 
     // PID Segment
     hl7Message += `PID|||123456^^^${data.patient.organization}^ISO||${data.patient.name}^${data.patient.given}||${moment(data.patient.dob).format('YYYYMMDD')}|${data.patient.gender.charAt(0)}|||^^^${data.patient.nation}|||\n`;
@@ -77,5 +77,5 @@ function generateIPSHL72_8(data) {
     return hl7Message;
 }
 
-module.exports = { generateIPSHL72_8 };
+module.exports = { generateIPSHL72_x };
 

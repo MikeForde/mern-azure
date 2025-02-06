@@ -1,8 +1,8 @@
 const { IPSModel } = require('../models/IPSModel');
-const { parseHL72_8ToMongo } = require('./servercontrollerfuncs/convertHL72_8ToSchema');
+const { parseHL72_xToMongo } = require('./servercontrollerfuncs/convertHL72_xToSchema');
 const { generateIPSBundle } = require('./servercontrollerfuncs/generateIPSBundle');
 
-async function convertHL72_8ToIPS(req, res) {
+async function convertHL72_xToIPS(req, res) {
     try {
         // Check if 'data' is provided in the body, otherwise assume entire body is the HL7 message
         if (req.body.data) {
@@ -29,9 +29,9 @@ async function convertHL72_8ToIPS(req, res) {
         // Send the generated IPS JSON bundle as response
         res.json(ipsBundle);
     } catch (error) {
-        console.error('Error converting HL7 2.8 to IPS JSON format:', error);
-        res.status(500).send('Error converting HL7 2.8 to IPS JSON format');
+        console.error('Error converting HL7 2.x to IPS JSON format:', error);
+        res.status(500).send('Error converting HL7 2.x to IPS JSON format');
     }
 }
 
-module.exports = { convertHL72_8ToIPS };
+module.exports = { convertHL72_xToIPS };

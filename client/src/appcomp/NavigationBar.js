@@ -58,7 +58,7 @@ function NavigationBar() {
             alt="IPS Logo"
             style={{ marginRight: '10px' }}
           />
-          IPS MERN Prototype 0_48
+          IPS MERN Prototype 0_49
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">

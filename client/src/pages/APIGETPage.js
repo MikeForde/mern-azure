@@ -49,7 +49,7 @@ function APIGETPage() {
           if(useCompressionAndEncryption) {
             setResponseSize(JSON.stringify(response.data).length);
             responseData = JSON.stringify(response.data, null, 2);
-          } else if (mode === 'ipsbasic' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim' || mode === 'ipshl728') {
+          } else if (mode === 'ipsbasic' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim' || mode === 'ipshl72x') {
             responseData = response.data;
             setResponseSize(responseData.length);
           } else if (mode === 'ipsxml') {
@@ -98,6 +98,9 @@ function APIGETPage() {
       case 'ipslegacy':
         setModeText('IPS Legacy JSON Bundle - /ipslegacy/:id');
         break;
+        case 'ipsunified':
+          setModeText('IPS Unified JSON Bundle - /ipsunified/:id');
+          break;
       case 'ipsmongo':
         setModeText('IPS MongoDB - /ipsmongo/:id');
         break;
@@ -110,8 +113,8 @@ function APIGETPage() {
       case 'ipsbeerwithdelim':
         setModeText('IPS BEER - /ipsbeer/:id/pipe)');
         break;
-      case 'ipshl728':
-        setModeText('IPS HL7 2.8 - /ipshl728/:id');
+      case 'ipshl72x':
+        setModeText('IPS HL7 2.x - /ipshl72x/:id');
         break;
       default:
         setModeText('IPS JSON Bundle - /ips/:id');
@@ -159,6 +162,7 @@ function APIGETPage() {
                 onSelect={handleModeChange}
                 className="dropdown-button"
               >
+                <Dropdown.Item eventKey="ipsunified">IPS Unified JSON Bundle - /ipsunified/:id</Dropdown.Item>
                 <Dropdown.Item eventKey="ips">IPS JSON Bundle - /ips/:id or /ipsbyname/:name/:given</Dropdown.Item>
                 <Dropdown.Item eventKey="ipsxml">IPS XML Bundle - /ipsxml/:id</Dropdown.Item>
                 <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle - /ipslegacy/:id</Dropdown.Item>
@@ -166,7 +170,7 @@ function APIGETPage() {
                 <Dropdown.Item eventKey="ipsbasic">IPS Minimal - /ipsbasic/:id</Dropdown.Item>
                 <Dropdown.Item eventKey="ipsbeer">IPS BEER - /ipsbeer/:id</Dropdown.Item>
                 <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER - /ipsbeer/:id/pipe</Dropdown.Item>
-                <Dropdown.Item eventKey="ipshl728">IPS HL7 2.8 - /ipshl728/:id</Dropdown.Item>
+                <Dropdown.Item eventKey="ipshl72x">IPS HL7 2.3 - /ipshl72x/:id</Dropdown.Item>
               </DropdownButton>
             </div>
             <div className="form-check">

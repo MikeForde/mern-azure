@@ -25,7 +25,9 @@ function generateIPSBundle(ipsRecord) {
                 "code": {
                     "coding": [
                         {
-                            "display": med.name
+                            "display": med.name,
+                            "system": med.system,
+                            "code": med.code
                         }
                     ]
                 }

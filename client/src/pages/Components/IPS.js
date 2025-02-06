@@ -70,7 +70,7 @@ export function IPS({ ips, remove, update }) {
   const handleAddItem = (type) => {
     setEditIPS((prev) => ({
       ...prev,
-      [type]: [...prev[type], { name: '', date: '', dosage: '', criticality: '', value: '', system: '' }],
+      [type]: [...prev[type], { name: '', date: '', dosage: '', criticality: '', value: '', system: '', code: '' }],
     }));
   };
 
@@ -125,45 +125,121 @@ export function IPS({ ips, remove, update }) {
             <p>Practitioner: {ips.patient.practitioner}</p>
             <p>Organization: {ips.patient.organization}</p>
             <h4>Medications:</h4>
-            <ul>
-              {ips.medication.map((med, index) => (
-                <li key={index}>
-                  <small>M:</small> {med.name} - Date: {formatDate(med.date)} - Dosage: {med.dosage}
-                </li>
-              ))}
-            </ul>
+            <table className="table table-striped">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Code</th>
+                  <th>System</th>
+                  <th>Date</th>
+                  <th>Dosage</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ips.medication.map((med, index) => (
+                  <tr key={index}>
+                    <td>{med.name}</td>
+                    <td>{med.code}</td>
+                    <td>{med.system}</td>
+                    <td>{formatDate(med.date)}</td>
+                    <td>{med.dosage}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
             <h4>Allergies:</h4>
-            <ul>
-              {ips.allergies.map((allergy, index) => (
-                <li key={index}>
-                  <small>A:</small> {allergy.name} - Criticality: {allergy.criticality} - Date: {formatDate(allergy.date)}
-                </li>
-              ))}
-            </ul>
+            <table className="table table-striped">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Code</th>
+                  <th>System</th>
+                  <th>Criticality</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ips.allergies.map((allergy, index) => (
+                  <tr key={index}>
+                    <td>{allergy.name}</td>
+                    <td>{allergy.code}</td>
+                    <td>{allergy.system}</td>
+                    <td>{allergy.criticality}</td>
+                    <td>{formatDate(allergy.date)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
             <h4>Conditions:</h4>
-            <ul>
-              {ips.conditions.map((condition, index) => (
-                <li key={index}>
-                  <small>C:</small> {condition.name} - Date: {formatDate(condition.date)}
-                </li>
-              ))}
-            </ul>
+            <table className="table table-striped">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Code</th>
+                  <th>System</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ips.conditions.map((condition, index) => (
+                  <tr key={index}>
+                    <td>{condition.name}</td>
+                    <td>{condition.code}</td>
+                    <td>{condition.system}</td>
+                    <td>{formatDate(condition.date)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
             <h4>Observations:</h4>
-            <ul>
-              {ips.observations.map((observation, index) => (
-                <li key={index}>
-                  <small>O:</small> {observation.name} - Date: {formatDate(observation.date)} - Value: {observation.value}
-                </li>
-              ))}
-            </ul>
+            <table className="table table-striped">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Code</th>
+                  <th>System</th>
+                  <th>Date</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ips.observations.map((observation, index) => (
+                  <tr key={index}>
+                    <td>{observation.name}</td>
+                    <td>{observation.code}</td>
+                    <td>{observation.system}</td>
+                    <td>{formatDate(observation.date)}</td>
+                    <td>{observation.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
             <h4>Immunizations:</h4>
-            <ul>
-              {ips.immunizations.map((immunization, index) => (
-                <li key={index}>
-                  <small>I:</small> {immunization.name} - Date: {formatDate(immunization.date)} - System: {immunization.system}
-                </li>
-              ))}
-            </ul>
+            <table className="table table-striped">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Date</th>
+                  <th>System</th>
+                  <th>Code</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ips.immunizations.map((immunization, index) => (
+                  <tr key={index}>
+                    <td>{immunization.name}</td>
+                    <td>{formatDate(immunization.date)}</td>
+                    <td>{immunization.system}</td>
+                    <td>{immunization.code}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
             <Button variant="link" onClick={() => setExpanded(false)}>
               Show Less
             </Button>
@@ -251,6 +327,7 @@ export function IPS({ ips, remove, update }) {
         </Modal.Header>
         <Modal.Body>
           <Form>
+            {/* Patient Details */}
             <Row>
               <Col>
                 <Form.Group controlId="formPatientName">
@@ -295,7 +372,7 @@ export function IPS({ ips, remove, update }) {
                     name="gender"
                     value={editIPS.patient.gender}
                     onChange={handleEditChange}
-                    >
+                  >
                     <option value="">Select Gender</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -328,8 +405,6 @@ export function IPS({ ips, remove, update }) {
                   />
                 </Form.Group>
               </Col>
-            </Row>
-            <Row>
               <Col>
                 <Form.Group controlId="formPatientOrganization">
                   <Form.Label>Organization</Form.Label>
@@ -343,246 +418,340 @@ export function IPS({ ips, remove, update }) {
               </Col>
             </Row>
 
+            {/* Medications Table */}
             <h4>Medications:</h4>
-            {editIPS.medication.map((med, index) => (
-              <Row key={index} className="align-items-center">
-                <Col>
-                  <Form.Group controlId={`medicationName-${index}`}>
-                    <Form.Control
-                      type="text"
-                      name="name"
-                      placeholder="Medication"
-                      value={med.name}
-                      onChange={(e) => handleChangeItem('medication', index, e)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col xs={3}>
-                  <Form.Group controlId={`medicationDate-${index}`}>
-                    <Form.Control
-                      type="datetime-local"
-                      name="date"
-                      value={formatDate(med.date)}
-                      onChange={(e) => handleChangeItem('medication', index, e)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col>
-                  <Form.Group controlId={`medicationDosage-${index}`}>
-                    <Form.Control
-                      type="text"
-                      name="dosage"
-                      placeholder="Dosage"
-                      value={med.dosage}
-                      onChange={(e) => handleChangeItem('medication', index, e)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col xs="auto">
-                  <Button variant="outline-danger" className="custom-button" onClick={() => handleRemoveItem('medication', index)}>
-                    <FontAwesomeIcon icon={faTrash} />
-                  </Button>
-                </Col>
-              </Row>
-            ))}
-            <Button variant="primary" onClick={() => handleAddItem('medication')}>
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Code</th>
+                  <th>System</th>
+                  <th>Date</th>
+                  <th>Dosage</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {editIPS.medication.map((med, index) => (
+                  <tr key={index}>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="name"
+                        value={med.name}
+                        onChange={(e) => handleChangeItem("medication", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="code"
+                        value={med.code}
+                        onChange={(e) => handleChangeItem("medication", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="system"
+                        value={med.system}
+                        onChange={(e) => handleChangeItem("medication", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="datetime-local"
+                        name="date"
+                        value={formatDate(med.date)}
+                        onChange={(e) => handleChangeItem("medication", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="dosage"
+                        value={med.dosage}
+                        onChange={(e) => handleChangeItem("medication", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Button variant="outline-danger" onClick={() => handleRemoveItem("medication", index)}>
+                        <FontAwesomeIcon icon={faTrash} />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <Button variant="primary" onClick={() => handleAddItem("medication")}>
               Add Medication
             </Button>
 
+            {/* Allergies Table */}
             <h4>Allergies:</h4>
-            {editIPS.allergies.map((allergy, index) => (
-              <Row key={index} className="align-items-center">
-                <Col>
-                  <Form.Group controlId={`allergyName-${index}`}>
-                    <Form.Control
-                      type="text"
-                      name="name"
-                      placeholder="Allergy"
-                      value={allergy.name}
-                      onChange={(e) => handleChangeItem('allergies', index, e)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col xs={2}>
-                  <Form.Group controlId={`allergyCriticality-${index}`}>
-                    <Form.Control
-                      as="select"
-                      name="criticality"
-                      placeholder="Criticality:High/Moderate/Low"
-                      value={allergy.criticality}
-                      onChange={(e) => handleChangeItem('allergies', index, e)}
-                    > 
-                      <option value="">Select Criticality</option>
-                      <option value="High">High</option>
-                      <option value="Medium">Medium</option>
-                      <option value="Low">Low</option>
-                    </Form.Control>
-                  </Form.Group>
-                </Col>
-                <Col xs={2}>
-                  <Form.Group controlId={`allergyDate-${index}`}>
-                    <Form.Control
-                      type="date"
-                      name="date"
-                      value={allergy.date.split("T")[0]}
-                      onChange={(e) => handleChangeItem('allergies', index, e)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col xs="auto">
-                  <Button variant="outline-danger" className="custom-button" onClick={() => handleRemoveItem('allergies', index)}>
-                    <FontAwesomeIcon icon={faTrash} />
-                  </Button>
-                </Col>
-              </Row>
-            ))}
-            <Button variant="primary" onClick={() => handleAddItem('allergies')}>
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Code</th>
+                  <th>System</th>
+                  <th>Criticality</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {editIPS.allergies.map((allergy, index) => (
+                  <tr key={index}>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="name"
+                        value={allergy.name}
+                        onChange={(e) => handleChangeItem("allergies", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="code"
+                        value={allergy.code}
+                        onChange={(e) => handleChangeItem("allergies", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="system"
+                        value={allergy.system}
+                        onChange={(e) => handleChangeItem("allergies", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        as="select"
+                        name="criticality"
+                        value={allergy.criticality}
+                        onChange={(e) => handleChangeItem("allergies", index, e)}
+                      >
+                        <option value="">Select Criticality</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                      </Form.Control>
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="date"
+                        name="date"
+                        value={allergy.date.split("T")[0]}
+                        onChange={(e) => handleChangeItem("allergies", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Button variant="outline-danger" onClick={() => handleRemoveItem("allergies", index)}>
+                        <FontAwesomeIcon icon={faTrash} />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <Button variant="primary" onClick={() => handleAddItem("allergies")}>
               Add Allergy
             </Button>
 
+            {/* Conditions Table */}
             <h4>Conditions:</h4>
-            {editIPS.conditions.map((condition, index) => (
-              <Row key={index} className="align-items-center">
-                <Col>
-                  <Form.Group controlId={`conditionName-${index}`}>
-                    <Form.Control
-                      type="text"
-                      name="name"
-                      value={condition.name}
-                      onChange={(e) => handleChangeItem('conditions', index, e)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col xs={2}>
-                  <Form.Group controlId={`conditionDate-${index}`}>
-                    <Form.Control
-                      type="date"
-                      name="date"
-                      value={condition.date.split("T")[0]}
-                      onChange={(e) => handleChangeItem('conditions', index, e)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col xs="auto">
-                  <Button variant="outline-danger" className="custom-button" onClick={() => handleRemoveItem('conditions', index)}>
-                    <FontAwesomeIcon icon={faTrash} />
-                  </Button>
-                </Col>
-              </Row>
-            ))}
-            <Button variant="primary" onClick={() => handleAddItem('conditions')}>
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Code</th>
+                  <th>System</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {editIPS.conditions.map((condition, index) => (
+                  <tr key={index}>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="name"
+                        value={condition.name}
+                        onChange={(e) => handleChangeItem("conditions", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="code"
+                        value={condition.code}
+                        onChange={(e) => handleChangeItem("conditions", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="system"
+                        value={condition.system}
+                        onChange={(e) => handleChangeItem("conditions", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="date"
+                        name="date"
+                        value={condition.date.split("T")[0]}
+                        onChange={(e) => handleChangeItem("conditions", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Button variant="outline-danger" onClick={() => handleRemoveItem("conditions", index)}>
+                        <FontAwesomeIcon icon={faTrash} />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <Button variant="primary" onClick={() => handleAddItem("conditions")}>
               Add Condition
             </Button>
 
+            {/* Observations Table */}
             <h4>Observations:</h4>
-            {editIPS.observations.map((observation, index) => (
-              <Row key={index} className="align-items-center">
-                <Col>
-                  <Form.Group controlId={`observationName-${index}`}>
-                    <Form.Control
-                      as="select"
-                      name="name"
-                      value={observation.name}
-                      onChange={(e) => handleChangeItem('observations', index, e)}
-                    >
-                      <option value="">Select an observation or enter custom</option>
-                      <option value="Blood Pressure">Blood Pressure</option>
-                      <option value="Pulse">Pulse</option>
-                      <option value="Resp Rate">Resp Rate</option>
-                      <option value="Temperature">Temperature</option>
-                      <option value="Oxygen Sats">Oxygen Sats</option>
-                      <option value="AVPU">AVPU</option>
-                    </Form.Control>
-                    <Form.Control
-                      type="text"
-                      name="name"
-                      value={observation.name}
-                      onChange={(e) => handleChangeItem('observations', index, e)}
-                      placeholder="Custom Observation"
-                      className="mt-2"
-                    />
-                  </Form.Group>
-                </Col>
-                <Col xs={3}>
-                  <Form.Group controlId={`observationDate-${index}`}>
-                    <Form.Control
-                      type="datetime-local"
-                      name="date"
-                      value={formatDate(observation.date)}
-                      onChange={(e) => handleChangeItem('observations', index, e)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col>
-                  <h6>Numerical=Vitals, Text=Body site else blank</h6>
-                  <Form.Group controlId={`observationValue-${index}`}>
-                    <Form.Control
-                      type="text"
-                      name="value"
-                      value={observation.value}
-                      onChange={(e) => handleChangeItem('observations', index, e)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col xs="auto">
-                  <Button variant="outline-danger" className="custom-button" onClick={() => handleRemoveItem('observations', index)}>
-                    <FontAwesomeIcon icon={faTrash} />
-                  </Button>
-                </Col>
-              </Row>
-            ))}
-            <Button variant="primary" onClick={() => handleAddItem('observations')}>
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Code</th>
+                  <th>System</th>
+                  <th>Date</th>
+                  <th>Value</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {editIPS.observations.map((observation, index) => (
+                  <tr key={index}>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="name"
+                        value={observation.name}
+                        onChange={(e) => handleChangeItem("observations", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="code"
+                        value={observation.code}
+                        onChange={(e) => handleChangeItem("observations", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="system"
+                        value={observation.system}
+                        onChange={(e) => handleChangeItem("observations", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="datetime-local"
+                        name="date"
+                        value={formatDate(observation.date)}
+                        onChange={(e) => handleChangeItem("observations", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="value"
+                        value={observation.value}
+                        onChange={(e) => handleChangeItem("observations", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Button variant="outline-danger" onClick={() => handleRemoveItem("observations", index)}>
+                        <FontAwesomeIcon icon={faTrash} />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <Button variant="primary" onClick={() => handleAddItem("observations")}>
               Add Observation
             </Button>
 
+            {/* Immunizations Table */}
             <h4>Immunizations:</h4>
-            {editIPS.immunizations.map((immunization, index) => (
-              <Row key={index} className="align-items-center">
-                <Col>
-                  <Form.Group controlId={`immunizationName-${index}`}>
-                    <Form.Control
-                      type="text"
-                      name="name"
-                      placeholder="Immunization"
-                      value={immunization.name}
-                      onChange={(e) => handleChangeItem('immunizations', index, e)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col>
-                  <Form.Group controlId={`immunizationSystem-${index}`}>
-                    <Form.Control
-                      type="text"
-                      name="system"
-                      placeholder="Coding System"
-                      value={immunization.system}
-                      onChange={(e) => handleChangeItem('immunizations', index, e)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col xs={3}>
-                  <Form.Group controlId={`immunizationDate-${index}`}>
-                    <Form.Control
-                      type="datetime-local"
-                      name="date"
-                      value={formatDate(immunization.date)}
-                      onChange={(e) => handleChangeItem('immunizations', index, e)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col xs="auto">
-                  <Button variant="outline-danger" className="custom-button" onClick={() => handleRemoveItem('immunizations', index)}                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </Button>
-                </Col>
-              </Row>
-            ))}
-            <Button variant="primary" onClick={() => handleAddItem('immunizations')}>
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>System</th>
+                  <th>Code</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {editIPS.immunizations.map((immunization, index) => (
+                  <tr key={index}>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="name"
+                        value={immunization.name}
+                        onChange={(e) => handleChangeItem("immunizations", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="system"
+                        value={immunization.system}
+                        onChange={(e) => handleChangeItem("immunizations", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        name="code"
+                        value={immunization.code}
+                        onChange={(e) => handleChangeItem("immunizations", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="datetime-local"
+                        name="date"
+                        value={formatDate(immunization.date)}
+                        onChange={(e) => handleChangeItem("immunizations", index, e)}
+                      />
+                    </td>
+                    <td>
+                      <Button variant="outline-danger" onClick={() => handleRemoveItem("immunizations", index)}>
+                        <FontAwesomeIcon icon={faTrash} />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <Button variant="primary" onClick={() => handleAddItem("immunizations")}>
               Add Immunization
             </Button>
-
           </Form>
         </Modal.Body>
+
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowEditModal(false)}>
             Cancel

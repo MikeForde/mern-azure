@@ -1,6 +1,6 @@
 const moment = require('moment');
 
-function parseHL72_8ToMongo(hl7Message) {
+function parseHL72_xToMongo(hl7Message) {
     const lines = hl7Message.split('\n').filter(line => line); // Split by new lines and remove any empty lines
     const data = {
         patient: {},
@@ -81,4 +81,4 @@ function parseHL72_8ToMongo(hl7Message) {
     return data;
 }
 
-module.exports = { parseHL72_8ToMongo };
+module.exports = { parseHL72_xToMongo };

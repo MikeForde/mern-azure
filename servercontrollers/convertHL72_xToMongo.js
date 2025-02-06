@@ -1,6 +1,6 @@
-const { parseHL72_8ToMongo } = require('./servercontrollerfuncs/convertHL72_8ToSchema');
+const { parseHL72_xToMongo } = require('./servercontrollerfuncs/convertHL72_xToSchema');
 
-function convertHL72_8ToMongo(req, res) {
+function convertHL72_xToMongo(req, res) {
   let hl7Message;
 
   // Check if 'data' is provided in the body, otherwise assume entire body is the HL7 message
@@ -19,12 +19,12 @@ function convertHL72_8ToMongo(req, res) {
 
   try {
     // Parse the HL7 message into a MongoDB-compatible format
-    const mongoRecord = parseHL72_8ToMongo(hl7Message);
+    const mongoRecord = parseHL72_xToMongo(hl7Message);
     res.json(mongoRecord); // Send back as JSON response
   } catch (error) {
-    console.error('Error converting HL7 2.8 to MongoDB format:', error);
-    res.status(500).send('Error converting to MongoDB format');
+    console.error('Error converting HL7 2.x to MongoDB format:', error);
+    res.status(500).send('Error converting HL7 2.x to MongoDB format');
   }
 }
 
-module.exports = { convertHL72_8ToMongo };
+module.exports = { convertHL72_xToMongo };

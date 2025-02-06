@@ -1,6 +1,6 @@
-const { generateIPSHL72_8 } = require('./servercontrollerfuncs/generateIPSHL72_8');
+const { generateIPSHL72_x } = require('./servercontrollerfuncs/generateIPSHL72_x');
 
-function convertMongoToHL72_8(req, res) {
+function convertMongoToHL72_x(req, res) {
   let mongoRecord;
 
   // Check if 'data' is already an object or needs to be parsed from a string
@@ -33,5 +33,5 @@ function convertMongoToHL72_8(req, res) {
   }
 }
 
-module.exports = { convertMongoToHL72_8 };
+module.exports = { convertMongoToHL72_x };
 

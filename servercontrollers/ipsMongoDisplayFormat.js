@@ -25,16 +25,22 @@ function getMongoFormatted(req, res) {
                 medication: ips.medication.map(med => ({
                     name: med.name,
                     date: med.date,
-                    dosage: med.dosage
+                    dosage: med.dosage,
+                    code: med.code,
+                    system: med.system
                 })),
                 allergies: ips.allergies.map(allergy => ({
                     name: allergy.name,
                     criticality: allergy.criticality,
-                    date: allergy.date
+                    date: allergy.date,
+                    code: allergy.code,
+                    system: allergy.system
                 })),
                 conditions: ips.conditions.map(condition => ({
                     name: condition.name,
-                    date: condition.date
+                    date: condition.date,
+                    code: condition.code,
+                    system: condition.system
                 })),
                 observations: ips.observations.map(observation => ({
                     name: observation.name,

@@ -20,7 +20,7 @@ function NLDPOSTPage() {
 
   useEffect(() => {
     if (selectedPatient) {
-      const endpoint = `/ipslegacy/${selectedPatient._id}`;
+      const endpoint = `/ipsunified/${selectedPatient._id}`;
 
       axios.get(endpoint)
         .then(response => {
