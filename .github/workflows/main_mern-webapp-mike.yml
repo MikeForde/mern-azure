@@ -22,6 +22,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
+          
+      - name: Update Browserslist DB
+        run: npx update-browserslist-db@latest
 
       - name: npm install, build, and test
         run: |
