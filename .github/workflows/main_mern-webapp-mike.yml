@@ -27,6 +27,8 @@ jobs:
         run: npx update-browserslist-db@latest
 
       - name: npm install, build, and test
+        env:
+          CI: false
         run: |
           npm install
           npm run build --if-present
