@@ -9,8 +9,8 @@ function APIGETPage() {
   const { selectedPatients, selectedPatient, setSelectedPatient } = useContext(PatientContext);
   const { startLoading, stopLoading } = useLoading();
   const [data, setData] = useState('');
-  const [mode, setMode] = useState('ips');
-  const [modeText, setModeText] = useState('IPS JSON Bundle - /ips/:id or /ipsbyname/:name/:given');
+  const [mode, setMode] = useState('ipsunified');
+  const [modeText, setModeText] = useState('IPS Unified JSON Bundle - /ipsunified/:id');
   const [showNotification, setShowNotification] = useState(false);
   const [responseSize, setResponseSize] = useState(0);
   const [useCompressionAndEncryption, setUseCompressionAndEncryption] = useState(false);
@@ -90,10 +90,10 @@ function APIGETPage() {
     setMode(selectedMode);
     switch (selectedMode) {
       case 'ips':
-        setModeText('IPS JSON Bundle - /ips/:id or /ipsbyname/:name/:given');
+        setModeText('IPS Prev JSON Bundle - /ips/:id or /ipsbyname/:name/:given');
         break;
       case 'ipsxml':
-        setModeText('IPS XML Bundle - /ipsxml/:id');
+        setModeText('IPS Prev XML Bundle - /ipsxml/:id');
         break;
       case 'ipslegacy':
         setModeText('IPS Legacy JSON Bundle - /ipslegacy/:id');
@@ -102,7 +102,7 @@ function APIGETPage() {
           setModeText('IPS Unified JSON Bundle - /ipsunified/:id');
           break;
       case 'ipsmongo':
-        setModeText('IPS MongoDB - /ipsmongo/:id');
+        setModeText('IPS NoSQL - /ipsmongo/:id');
         break;
       case 'ipsbasic':
         setModeText('IPS Minimal - /ipsbasic/:id');
@@ -117,7 +117,7 @@ function APIGETPage() {
         setModeText('IPS HL7 2.x - /ipshl72x/:id');
         break;
       default:
-        setModeText('IPS JSON Bundle - /ips/:id');
+        setModeText('IPS Unified JSON Bundle - /ipsunified/:id');
     }
   };
 
@@ -163,14 +163,14 @@ function APIGETPage() {
                 className="dropdown-button"
               >
                 <Dropdown.Item eventKey="ipsunified">IPS Unified JSON Bundle - /ipsunified/:id</Dropdown.Item>
-                <Dropdown.Item eventKey="ips">IPS JSON Bundle - /ips/:id or /ipsbyname/:name/:given</Dropdown.Item>
-                <Dropdown.Item eventKey="ipsxml">IPS XML Bundle - /ipsxml/:id</Dropdown.Item>
-                <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle - /ipslegacy/:id</Dropdown.Item>
-                <Dropdown.Item eventKey="ipsmongo">IPS MongoDB - /ipsmongo/:id</Dropdown.Item>
-                <Dropdown.Item eventKey="ipsbasic">IPS Minimal - /ipsbasic/:id</Dropdown.Item>
+                <Dropdown.Item eventKey="ipshl72x">IPS HL7 2.3 - /ipshl72x/:id</Dropdown.Item>
+                <Dropdown.Item eventKey="ipsmongo">IPS NoSQL - /ipsmongo/:id</Dropdown.Item>
                 <Dropdown.Item eventKey="ipsbeer">IPS BEER - /ipsbeer/:id</Dropdown.Item>
                 <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER - /ipsbeer/:id/pipe</Dropdown.Item>
-                <Dropdown.Item eventKey="ipshl72x">IPS HL7 2.3 - /ipshl72x/:id</Dropdown.Item>
+                <Dropdown.Item eventKey="ipsbasic">IPS Minimal - /ipsbasic/:id</Dropdown.Item>
+                <Dropdown.Item eventKey="ips">IPS Prev JSON Bundle - /ips/:id or /ipsbyname/:name/:given</Dropdown.Item>
+                <Dropdown.Item eventKey="ipsxml">IPS Prev XML Bundle - /ipsxml/:id</Dropdown.Item>
+                <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle - /ipslegacy/:id</Dropdown.Item>
               </DropdownButton>
             </div>
             <div className="form-check">

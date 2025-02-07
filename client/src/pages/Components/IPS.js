@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { Button, Modal, Form, OverlayTrigger, Tooltip, Row, Col } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { faDownload, faFileMedical, faQrcode, faTrash, faBeer, faEdit, faCloud, faFileExport } from '@fortawesome/free-solid-svg-icons';
+import { faFileMedical, faQrcode, faTrash, faBeer, faEdit, faFileExport, faUpload } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { PatientContext } from '../../PatientContext';
@@ -124,121 +124,142 @@ export function IPS({ ips, remove, update }) {
             <p>Country: {ips.patient.nation}</p>
             <p>Practitioner: {ips.patient.practitioner}</p>
             <p>Organization: {ips.patient.organization}</p>
-            <h4>Medications:</h4>
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Code</th>
-                  <th>System</th>
-                  <th>Date</th>
-                  <th>Dosage</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ips.medication.map((med, index) => (
-                  <tr key={index}>
-                    <td>{med.name}</td>
-                    <td>{med.code}</td>
-                    <td>{med.system}</td>
-                    <td>{formatDate(med.date)}</td>
-                    <td>{med.dosage}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
 
-            <h4>Allergies:</h4>
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Code</th>
-                  <th>System</th>
-                  <th>Criticality</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ips.allergies.map((allergy, index) => (
-                  <tr key={index}>
-                    <td>{allergy.name}</td>
-                    <td>{allergy.code}</td>
-                    <td>{allergy.system}</td>
-                    <td>{allergy.criticality}</td>
-                    <td>{formatDate(allergy.date)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {ips.medication && ips.medication.length > 0 && (
+              <>
+                <h4>Medications:</h4>
+                <table className="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Code</th>
+                      <th>System</th>
+                      <th>Date</th>
+                      <th>Dosage</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ips.medication.map((med, index) => (
+                      <tr key={index}>
+                        <td>{med.name}</td>
+                        <td>{med.code}</td>
+                        <td>{med.system}</td>
+                        <td>{formatDate(med.date)}</td>
+                        <td>{med.dosage}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
 
-            <h4>Conditions:</h4>
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Code</th>
-                  <th>System</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ips.conditions.map((condition, index) => (
-                  <tr key={index}>
-                    <td>{condition.name}</td>
-                    <td>{condition.code}</td>
-                    <td>{condition.system}</td>
-                    <td>{formatDate(condition.date)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {ips.allergies && ips.allergies.length > 0 && (
+              <>
+                <h4>Allergies:</h4>
+                <table className="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Code</th>
+                      <th>System</th>
+                      <th>Criticality</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ips.allergies.map((allergy, index) => (
+                      <tr key={index}>
+                        <td>{allergy.name}</td>
+                        <td>{allergy.code}</td>
+                        <td>{allergy.system}</td>
+                        <td>{allergy.criticality}</td>
+                        <td>{formatDate(allergy.date)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
 
-            <h4>Observations:</h4>
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Code</th>
-                  <th>System</th>
-                  <th>Date</th>
-                  <th>Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ips.observations.map((observation, index) => (
-                  <tr key={index}>
-                    <td>{observation.name}</td>
-                    <td>{observation.code}</td>
-                    <td>{observation.system}</td>
-                    <td>{formatDate(observation.date)}</td>
-                    <td>{observation.value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {ips.conditions && ips.conditions.length > 0 && (
+              <>
+                <h4>Conditions:</h4>
+                <table className="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Code</th>
+                      <th>System</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ips.conditions.map((condition, index) => (
+                      <tr key={index}>
+                        <td>{condition.name}</td>
+                        <td>{condition.code}</td>
+                        <td>{condition.system}</td>
+                        <td>{formatDate(condition.date)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
 
-            <h4>Immunizations:</h4>
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Date</th>
-                  <th>System</th>
-                  <th>Code</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ips.immunizations.map((immunization, index) => (
-                  <tr key={index}>
-                    <td>{immunization.name}</td>
-                    <td>{formatDate(immunization.date)}</td>
-                    <td>{immunization.system}</td>
-                    <td>{immunization.code}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {ips.observations && ips.observations.length > 0 && (
+              <>
+                <h4>Observations:</h4>
+                <table className="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Code</th>
+                      <th>System</th>
+                      <th>Date</th>
+                      <th>Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ips.observations.map((observation, index) => (
+                      <tr key={index}>
+                        <td>{observation.name}</td>
+                        <td>{observation.code}</td>
+                        <td>{observation.system}</td>
+                        <td>{formatDate(observation.date)}</td>
+                        <td>{observation.value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
+
+            {ips.immunizations && ips.immunizations.length > 0 && (
+              <>
+                <h4>Immunizations:</h4>
+                <table className="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Date</th>
+                      <th>System</th>
+                      <th>Code</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ips.immunizations.map((immunization, index) => (
+                      <tr key={index}>
+                        <td>{immunization.name}</td>
+                        <td>{formatDate(immunization.date)}</td>
+                        <td>{immunization.system}</td>
+                        <td>{immunization.code}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
 
             <Button variant="link" onClick={() => setExpanded(false)}>
               Show Less
@@ -271,18 +292,10 @@ export function IPS({ ips, remove, update }) {
           </Link>
         </OverlayTrigger>
 
-        <OverlayTrigger placement="top" overlay={renderTooltip('View VitalsIQ POST Page')}>
-          <Link to="/offroadpost">
+        <OverlayTrigger placement="top" overlay={renderTooltip('View External POST Page')}>
+          <Link to="/puships">
             <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
-              <FontAwesomeIcon icon={faDownload} />
-            </Button>
-          </Link>
-        </OverlayTrigger>
-
-        <OverlayTrigger placement="top" overlay={renderTooltip('View NLD POST Page')}>
-          <Link to="/pushipsnld">
-            <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
-              <FontAwesomeIcon icon={faCloud} />
+              <FontAwesomeIcon icon={faUpload} />
             </Button>
           </Link>
         </OverlayTrigger>

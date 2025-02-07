@@ -454,6 +454,17 @@ function ChangeLogPage() {
                                 <li>UI changes made to better accomodate increased number of fields per resource</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_50 - 7th February 2025</h5>
+                            <ul>
+                                <li><strong>Generic External GET and POST Pages</strong></li>
+                                <li>Added target drop-down for external endpoint selection (VitalsIQ, NLD, IPS SERN) and allowed manual endpoint editing</li>
+                                <li>Implemented data format selection options: IPS Unified, IPS Prev JSON, and IPS Legacy</li>
+                                <li>Introduced a HL7 wrapper toggle to optionally wrap fetched IPS data</li>
+                                <li>Modified GET page to dynamically construct API calls based on selected data format and endpoint</li>
+                                <li>Updated UI to conditionally render section headers (e.g. Medications, Allergies, Conditions, Observations, Immunizations) only when data is present</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>
