@@ -33,9 +33,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Update Browserslist DB
-        run: npx update-browserslist-db@latest
-
       - name: npm install, build, and test
         env:
           CI: false
