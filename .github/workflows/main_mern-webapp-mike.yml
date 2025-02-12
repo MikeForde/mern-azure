@@ -12,7 +12,7 @@ on:
 env:
   AZURE_WEBAPP_NAME: mern-webapp-mike         # Your Azure Web App name
   AZURE_WEBAPP_PACKAGE_PATH: '.'              # Path to your project (here, the repository root)
-  NODE_VERSION: '18.x'                        # Set your preferred Node.js version
+  NODE_VERSION: '14.x'                        # Set your preferred Node.js version
 
 jobs:
   build-and-deploy:
@@ -32,9 +32,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Update Browserslist DB
-        run: npx update-browserslist-db@latest
 
       - name: npm install, build, and test
         env:
