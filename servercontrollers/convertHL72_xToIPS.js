@@ -19,7 +19,7 @@ async function convertHL72_xToIPS(req, res) {
         }
 
         // Convert HL7 2.8 data to MongoDB schema format
-        const ipsRecord = parseHL72_8ToMongo(hl7Message);
+        const ipsRecord = parseHL72_xToMongo(hl7Message);
 
 
 

@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Link, useLocation} from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBeer, faCloud, faDownload, faFileMedical, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
@@ -28,7 +28,7 @@ function NavigationBar() {
     // Check if the current path matches one of the specified routes
     const currentPath = location.pathname;
     const shouldStartLoading = ['/api', '/qr', '/beergarden', '/offroadpost'].includes(currentPath);
-    
+
     if (shouldStartLoading) {
       startLoading();
     }
@@ -46,6 +46,8 @@ function NavigationBar() {
     setExpanded(false);
   };
 
+  const isHostedOnAzure = window.location.href.includes("azure");
+
   return (
     <Navbar expanded={expanded} expand="lg" bg="dark" variant="dark" fixed="top">
       <Container>
@@ -58,7 +60,17 @@ function NavigationBar() {
             alt="IPS Logo"
             style={{ marginRight: '10px' }}
           />
-          IPS MERN Prototype 0_50
+          IPS MERN
+          {isHostedOnAzure ? (
+            <>
+              {' '} Azure {' '}
+            </>
+          ) : (
+            <>
+              {' '} Local {' '}
+            </>
+          )}
+          0_51
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">
@@ -131,7 +143,7 @@ function NavigationBar() {
               </NavDropdown>
             </Nav>
           )}
-          <PatientSearch collapseNavbar={collapseNavbar}/>
+          <PatientSearch collapseNavbar={collapseNavbar} />
         </Navbar.Collapse>
       </Container>
     </Navbar>

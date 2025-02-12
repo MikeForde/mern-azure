@@ -465,6 +465,15 @@ function ChangeLogPage() {
                                 <li>Updated UI to conditionally render section headers (e.g. Medications, Allergies, Conditions, Observations, Immunizations) only when data is present</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_51 - 12th February 2025</h5>
+                            <ul>
+                                <li><strong>New HL7 2.x Format with Common Code System (CCS)</strong></li>
+                                <li>Added CCS elements to HL7 2.x format - both extraction and creation</li>
+                                <li>Note: This will no longer be compatible with previous implementation</li>
+                                <li>Added CCS element extraction from CDA XML format</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

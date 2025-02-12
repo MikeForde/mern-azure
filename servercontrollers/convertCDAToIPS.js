@@ -12,8 +12,8 @@ async function convertCDAToIPS(req, res) {
         const ipsBundle = generateIPSBundle(ipsRecord);
         res.json(ipsBundle);
     } catch (error) {
-        console.error('Error converting CDA to IPS JSON format:', error);
-        res.status(500).send('Error converting CDA to IPS JSON format');
+        console.error('Error converting CDA to IPS FHiR JSON format:', error);
+        res.status(500).send('Error converting CDA to IPS FHiR JSON format');
     }
 }
 

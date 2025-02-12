@@ -10,6 +10,8 @@ function convertCDAToSchema(cdaJSON) {
 
     const getCode = (element) => element?.$?.code || '';
 
+    const getSystem = (element) => element?.$?.codeSystemName || '';
+
     const getDateValue = (element) => {
         if (!element || !element.$) return null;
         const date = element.$.value;
@@ -101,6 +103,8 @@ function convertCDAToSchema(cdaJSON) {
 
                 medication.push({
                     name: getCodeValue(substanceAdmin?.consumable?.[0]?.manufacturedproduct?.[0]?.manufacturedmaterial?.[0]?.code?.[0]),
+                    code: getCode(substanceAdmin?.consumable?.[0]?.manufacturedproduct?.[0]?.manufacturedmaterial?.[0]?.code?.[0]),
+                    system: getSystem(substanceAdmin?.consumable?.[0]?.manufacturedproduct?.[0]?.manufacturedmaterial?.[0]?.code?.[0]),
                     date: parseTimestamp(substanceAdmin?.effectivetime?.[0]?.low?.[0]?.$?.value),
                     dosage: doseQuantity ? `${doseQuantity.value} per ${doseQuantity.unit}` : ''
                 });
@@ -120,6 +124,8 @@ function convertCDAToSchema(cdaJSON) {
                 if (allergy) {
                     allergies.push({
                         name: allergy,
+                        code: getCode(entry.act?.[0].entryrelationship[0].observation[0].participant[0].participantrole[0].playingentity[0].code[0]),
+                        system: getSystem(entry.act?.[0].entryrelationship[0].observation[0].participant[0].participantrole[0].playingentity[0].code[0]),
                         criticality: entry.act?.[0].entryrelationship[0].observation[0].entryrelationship[1].observation[0].value[0]?.$?.displayName || 'Moderate',
                         date: parseTimestamp(entry.act[0].entryrelationship[0].observation[0].effectivetime?.[0]?.low?.[0]?.$?.value)
                     });
@@ -139,6 +145,8 @@ function convertCDAToSchema(cdaJSON) {
 
                 conditions.push({
                     name: condition,
+                    code: getCode(entry.act?.[0].entryrelationship[0].observation[0].value[0]),
+                    system: getSystem(entry.act?.[0].entryrelationship[0].observation[0].value[0]),
                     date: new Date(parseDate(entry.act?.[0].entryrelationship[0].observation[0].effectivetime[0].low[0].$?.value)) || ''
                 });
             });
@@ -160,6 +168,8 @@ function convertCDAToSchema(cdaJSON) {
                 if (element.observation) {
                     observations.push({
                         name: element.observation[0].code[0]?.$?.displayName || '',
+                        code: element.observation[0].code[0]?.$?.code || '',
+                        system: element.observation[0].code[0]?.$?.codeSystemName || '',
                         date: parseTimestamp(element.observation[0].effectivetime[0].$?.value),
                         value: element.observation[0].value[0]?.$?.value + element.observation[0].value[0]?.$?.unit || ''
                     });
@@ -169,6 +179,8 @@ function convertCDAToSchema(cdaJSON) {
 
                     observations.push({
                         name: 'Blood Pressure',
+                        code: '55284-4',
+                        system: 'LOINC',
                         date: parseTimestamp(element.organizer[0].component[0].observation[0].effectivetime[0].$?.value),
                         value: `${systolic}-${diastolic}mmHg`
                     });
@@ -191,6 +203,7 @@ function convertCDAToSchema(cdaJSON) {
 
                 immunizations.push({
                     name: immunizationName,
+                    code: getCode(immunization?.consumable?.[0]?.manufacturedproduct?.[0]?.manufacturedmaterial?.[0]?.code?.[0]),
                     date: immunizationDate,
                     system: immunizationSystem
                 });
