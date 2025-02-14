@@ -1,6 +1,6 @@
 // servercontrollerfuncs/convertCDAToSchema.js
 function convertCDAToSchema(cdaJSON) {
-    const cdaObject = cdaJSON.clinicaldocument;
+    const cdaObject = cdaJSON.ClinicalDocument;
 
     const getValue = (path) => {
         return path?._ || '';
@@ -73,19 +73,19 @@ function convertCDAToSchema(cdaJSON) {
     const immunizations = [];
 
     // Extract patient details
-    const recordTarget = cdaObject.recordtarget[0]?.patientrole?.[0]?.patient?.[0];
+    const recordTarget = cdaObject.recordTarget[0]?.patientRole?.[0]?.patient?.[0];
     patient.name = getValue(recordTarget?.name?.[0]?.family?.[0]);
     patient.given = getValue(recordTarget?.name?.[0]?.given?.[0]);
-    patient.dob = parseDate(recordTarget?.birthtime?.[0]?.$?.value || '');
-    patient.gender = mapGender(recordTarget?.administrativegendercode?.[0]?.$?.code || 'U');
-    patient.nation = cdaObject.realmcode?.[0]?.$?.code || 'Unknown';
+    patient.dob = parseDate(recordTarget?.birthTime?.[0]?.$?.value || '');
+    patient.gender = mapGender(recordTarget?.administrativeGenderCode?.[0]?.$?.code || 'U');
+    patient.nation = cdaObject.realmCode?.[0]?.$?.code || 'Unknown';
 
     // Extract practitioner and organization details
     const participant = cdaObject.participant?.[0];
-    patient.practitioner = `${getValue(participant?.associatedentity?.[0]?.associatedperson?.[0]?.name?.[0]?.given?.[0])} ${getValue(participant?.associatedentity?.[0]?.associatedperson?.[0]?.name?.[0]?.family?.[0])}`;
+    patient.practitioner = `${getValue(participant?.associatedEntity?.[0]?.associatedPerson?.[0]?.name?.[0]?.given?.[0])} ${getValue(participant?.associatedEntity?.[0]?.associatedPerson?.[0]?.name?.[0]?.family?.[0])}`;
     patient.organization = getValue(cdaObject.author?.[0]?.assignedAuthor?.[0]?.representedOrganization?.[0]?.name?.[0]) || 'NL MOD';
 
-    const components = cdaObject.component?.[0]?.structuredbody?.[0]?.component;
+    const components = cdaObject.component?.[0]?.structuredBody?.[0]?.component;
     if (components) {
         // Extract medication details
         const medicationSection = components.find(c =>
@@ -95,17 +95,17 @@ function convertCDAToSchema(cdaJSON) {
 
         if (medicationSection) {
             medicationSection.section?.[0]?.entry?.forEach(entry => {
-                const substanceAdmin = entry?.substanceadministration?.[0];
+                const substanceAdmin = entry?.substanceAdministration?.[0];
 
                 // Find the first entryRelationship of type 'COMP'
-                const compEntryRelationship = substanceAdmin?.entryrelationship?.find(er => er?.$?.typeCode === 'COMP');
-                const doseQuantity = compEntryRelationship?.substanceadministration?.[0]?.effectivetime?.[0]?.['hl7nl:frequency']?.[0]?.['hl7nl:denominator']?.[0]?.$;
+                const compEntryRelationship = substanceAdmin?.entryRelationship?.find(er => er?.$?.typeCode === 'COMP');
+                const doseQuantity = compEntryRelationship?.substanceAdministration?.[0]?.effectiveTime?.[0]?.['hl7nl:frequency']?.[0]?.['hl7nl:denominator']?.[0]?.$;
 
                 medication.push({
-                    name: getCodeValue(substanceAdmin?.consumable?.[0]?.manufacturedproduct?.[0]?.manufacturedmaterial?.[0]?.code?.[0]),
-                    code: getCode(substanceAdmin?.consumable?.[0]?.manufacturedproduct?.[0]?.manufacturedmaterial?.[0]?.code?.[0]),
-                    system: getSystem(substanceAdmin?.consumable?.[0]?.manufacturedproduct?.[0]?.manufacturedmaterial?.[0]?.code?.[0]),
-                    date: parseTimestamp(substanceAdmin?.effectivetime?.[0]?.low?.[0]?.$?.value),
+                    name: getCodeValue(substanceAdmin?.consumable?.[0]?.manufacturedProduct?.[0]?.manufacturedMaterial?.[0]?.code?.[0]),
+                    code: getCode(substanceAdmin?.consumable?.[0]?.manufacturedProduct?.[0]?.manufacturedMaterial?.[0]?.code?.[0]),
+                    system: getSystem(substanceAdmin?.consumable?.[0]?.manufacturedProduct?.[0]?.manufacturedMaterial?.[0]?.code?.[0]),
+                    date: parseTimestamp(substanceAdmin?.effectiveTime?.[0]?.low?.[0]?.$?.value),
                     dosage: doseQuantity ? `${doseQuantity.value} per ${doseQuantity.unit}` : ''
                 });
             });
@@ -119,15 +119,15 @@ function convertCDAToSchema(cdaJSON) {
 
         if (allergySection) {
             allergySection.section?.[0]?.entry?.forEach(entry => {
-                const allergy = getCodeValue(entry.act?.[0].entryrelationship[0].observation[0].participant[0].participantrole[0].playingentity[0].code[0]);
+                const allergy = getCodeValue(entry.act?.[0].entryRelationship[0].observation[0].participant[0].participantRole[0].playingEntity[0].code[0]);
 
                 if (allergy) {
                     allergies.push({
                         name: allergy,
-                        code: getCode(entry.act?.[0].entryrelationship[0].observation[0].participant[0].participantrole[0].playingentity[0].code[0]),
-                        system: getSystem(entry.act?.[0].entryrelationship[0].observation[0].participant[0].participantrole[0].playingentity[0].code[0]),
-                        criticality: entry.act?.[0].entryrelationship[0].observation[0].entryrelationship[1].observation[0].value[0]?.$?.displayName || 'Moderate',
-                        date: parseTimestamp(entry.act[0].entryrelationship[0].observation[0].effectivetime?.[0]?.low?.[0]?.$?.value)
+                        code: getCode(entry.act?.[0].entryRelationship[0].observation[0].participant[0].participantRole[0].playingEntity[0].code[0]),
+                        system: getSystem(entry.act?.[0].entryRelationship[0].observation[0].participant[0].participantRole[0].playingEntity[0].code[0]),
+                        criticality: entry.act?.[0].entryRelationship[0].observation[0].entryRelationship[1].observation[0].value[0]?.$?.displayName || 'Moderate',
+                        date: parseTimestamp(entry.act[0].entryRelationship[0].observation[0].effectiveTime?.[0]?.low?.[0]?.$?.value)
                     });
                 }
             });
@@ -141,13 +141,13 @@ function convertCDAToSchema(cdaJSON) {
 
         if (conditionSection) {
             conditionSection.section?.[0]?.entry?.forEach(entry => {
-                const condition = getCodeValue(entry.act?.[0].entryrelationship[0].observation[0].value[0]);
+                const condition = getCodeValue(entry.act?.[0].entryRelationship[0].observation[0].value[0]);
 
                 conditions.push({
                     name: condition,
-                    code: getCode(entry.act?.[0].entryrelationship[0].observation[0].value[0]),
-                    system: getSystem(entry.act?.[0].entryrelationship[0].observation[0].value[0]),
-                    date: new Date(parseDate(entry.act?.[0].entryrelationship[0].observation[0].effectivetime[0].low[0].$?.value)) || ''
+                    code: getCode(entry.act?.[0].entryRelationship[0].observation[0].value[0]),
+                    system: getSystem(entry.act?.[0].entryRelationship[0].observation[0].value[0]),
+                    date: new Date(parseDate(entry.act?.[0].entryRelationship[0].observation[0].effectiveTime[0].low[0].$?.value)) || ''
                 });
             });
         }
@@ -170,7 +170,7 @@ function convertCDAToSchema(cdaJSON) {
                         name: element.observation[0].code[0]?.$?.displayName || '',
                         code: element.observation[0].code[0]?.$?.code || '',
                         system: element.observation[0].code[0]?.$?.codeSystemName || '',
-                        date: parseTimestamp(element.observation[0].effectivetime[0].$?.value),
+                        date: parseTimestamp(element.observation[0].effectiveTime[0].$?.value),
                         value: element.observation[0].value[0]?.$?.value + element.observation[0].value[0]?.$?.unit || ''
                     });
                 } else if (element.organizer) {
@@ -181,7 +181,7 @@ function convertCDAToSchema(cdaJSON) {
                         name: 'Blood Pressure',
                         code: '55284-4',
                         system: 'LOINC',
-                        date: parseTimestamp(element.organizer[0].component[0].observation[0].effectivetime[0].$?.value),
+                        date: parseTimestamp(element.organizer[0].component[0].observation[0].effectiveTime[0].$?.value),
                         value: `${systolic}-${diastolic}mmHg`
                     });
                 }
@@ -196,14 +196,14 @@ function convertCDAToSchema(cdaJSON) {
 
         if (immunizationSection) {
             immunizationSection.section?.[0]?.entry?.forEach(entry => {
-                const immunization = entry.substanceadministration?.[0];
-                const immunizationName = getCodeValue(immunization?.consumable?.[0]?.manufacturedproduct?.[0]?.manufacturedmaterial?.[0]?.code?.[0]);
-                const immunizationDate = parseTimestamp(immunization?.effectivetime?.[0]?.$?.value);
-                const immunizationSystem = immunization?.consumable?.[0]?.manufacturedproduct?.[0]?.manufacturedmaterial?.[0]?.code?.[0]?.$?.codeSystemName || '';
+                const immunization = entry.substanceAdministration?.[0];
+                const immunizationName = getCodeValue(immunization?.consumable?.[0]?.manufacturedProduct?.[0]?.manufacturedMaterial?.[0]?.code?.[0]);
+                const immunizationDate = parseTimestamp(immunization?.effectiveTime?.[0]?.$?.value);
+                const immunizationSystem = immunization?.consumable?.[0]?.manufacturedProduct?.[0]?.manufacturedMaterial?.[0]?.code?.[0]?.$?.codeSystemName || '';
 
                 immunizations.push({
                     name: immunizationName,
-                    code: getCode(immunization?.consumable?.[0]?.manufacturedproduct?.[0]?.manufacturedmaterial?.[0]?.code?.[0]),
+                    code: getCode(immunization?.consumable?.[0]?.manufacturedProduct?.[0]?.manufacturedMaterial?.[0]?.code?.[0]),
                     date: immunizationDate,
                     system: immunizationSystem
                 });
@@ -214,7 +214,7 @@ function convertCDAToSchema(cdaJSON) {
 
 
     const packageUUID = cdaObject.id?.[0]?.$?.root || '';
-    const effectivetime = cdaObject.effectivetime?.[0]?.$?.value || '';
+    const effectivetime = cdaObject.effectiveTime?.[0]?.$?.value || '';
     const formattedeffectivetime = parseTimestamp(effectivetime);
     const timeStamp = new Date(formattedeffectivetime);
 

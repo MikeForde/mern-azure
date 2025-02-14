@@ -474,6 +474,19 @@ function ChangeLogPage() {
                                 <li>Added CCS element extraction from CDA XML format</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_52 - 14th February 2025</h5>
+                            <ul>
+                                <li><strong>FHiR XML to FHiR JSON Conversion Added</strong></li>
+                                <li>Developed a specialized conversion function that handles the nuances of FHiR XML (including capitalization, array enforcement, and HTML reassembly) to produce proper IPS JSON. (There is also a more generic version for other uses for not sufficient for FHiR)</li>
+                                <li><strong>Expanded IPS Bundle Parser</strong></li>
+                                <li>Updated the IPS Bundle parser to accept additional XML formats and variations present in the 'SF' samples (e.g. MedicationAdministration resources used for the medication element).</li>
+                                <li><strong>XML Support for IPS Bundle Endpoints</strong></li>
+                                <li>Endpoints that previously accepted only FHiR JSON now seamlessly process FHiR XML data without requiring special headers. That includes if the data has first been encrypted and/or compressed.</li>
+                                <li><strong>Enhanced /test Endpoint Functionality</strong></li>
+                                <li>The /test endpoint now supports decryption/encryption and compression/decompression of XML, returning the raw XML as plain text.</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

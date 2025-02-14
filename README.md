@@ -81,33 +81,39 @@ npm start
 | `/ips`                          | Add a new IPS record.                                | MongoDb IPS Record | The created IPS record.             |
 | `/ipsmany`                      | Add multiple IPS records.                           | Multiple MongoDb IPS Records | Array of created IPS records.        |
 | `/ipsbundle`                    | Add IPS records from a bundle.                      | IPS JSON Bundle | The created IPS record.              |
-| `/pushipsora`                   | Push IPS records to an ORA system.                  | IPS JSON Bundle | Status message.                      |
+| `/pushipsora`                   | Push IPS records to an ORA system.                  | IPS JSON Bundle | Response from the ORA system.                      |
+| `/pushipsnld`                   | Push IPS records to an ORA system.                  | IPS JSON Bundle | Response from the NLD system.                      |
 | `/ipsfrombeer`                  | Add IPS records from BEER format.                   | BEER as Plain Text  | The created IPS record.              |
+| `/ipsfromcda`                  | Add IPS records from CDA XML format.                   | CDA as XML  | The created IPS record.              |
+| `/ipsfromhl72x`                  | Add IPS records from HL7 2.x format.                   | HL7 2.x as Plain Text  | The created IPS record.              |
 | `/convertmongo2beer`            | Convert a MongoDB IPS record to BEER format.        | Mongo IPS Record | The BEER formatted data.             |
-| `/convertmongo2hl7`             | Convert a MongoDB IPS record to HL7 2.8 format.     | Mongo IPS Record | The HL7 2.8 formatted data.          |
+| `/convertmongo2hl7`             | Convert a MongoDB IPS record to HL7 2.3 format.     | Mongo IPS Record | The HL7 2.3 formatted data.          |
 | `/convertbeer2mongo`            | Convert a BEER IPS record to MongoDB format.        | BEER as Plain Text  | MongoDB formatted data.              |
 | `/convertbeer2ips`              | Convert a BEER IPS record to IPS JSON format.       | BEER as Plain Text | IPS JSON formatted data.             |
 | `/convertips2beer`              | Convert an IPS JSON record to BEER format.          | IPS JSON Bundle | BEER formatted data.                 |
-| `/ipsfromcda`                   | Add IPS records from a CDA XML format.              | CDA XML Bundle | The created IPS record.              |
 | `/convertcdatoips`              | Convert CDA XML format to IPS JSON Bundle.          | CDA XML Bundle | IPS JSON formatted data.             |
 | `/convertcdatobeer`             | Convert CDA XML format to BEER format.              | CDA XML Bundle | BEER formatted data.                 |
-| `/converthl728tomongo`          | Convert HL7 2.8 format to MongoDB format.           | HL7 2.8 - Plain Text | MongoDB - JSON                       |
-| `/converthl728toips`            | Convert HL7 2.8 format to IPS JSON format.          | HL7 2.8 - Plain Text | IPS Bundle - JSON                    |
+| `/convertcdatomongo`             | Convert CDA XML format to MongoDb format.              | CDA XML Bundle | MongoDb - JSON                 |
+| `/converthl72xtomongo`          | Convert HL7 2.x format to MongoDB format.           | HL7 2.x - Plain Text | MongoDB - JSON                       |
+| `/converthl72xtoips`            | Convert HL7 2.x format to IPS JSON format.          | HL7 2.x - Plain Text | IPS Bundle - JSON                    |
+| `/convertxml`            | Generic convert XML format to JSON format.          | XML | JSON                    |
+| `/convertfhirxml`            | Convert FHiR XML format to FHiR JSON format.          | FHiR XML | FHiR JSON                    |
 
 ### GET Endpoints
 
 | Endpoint                        | Description                                         | Response                              |
 |---------------------------------|-----------------------------------------------------|---------------------------------------|
-| `/ips/all`                      | Retrieve all IPS records.                           | Array of IPS records.                 |
+| `/ips/all`                      | Retrieve all IPS records.                           | Array of MongoDb IPS records.                 |
 | `/ipsraw/:id`                   | Retrieve IPS record in default MongoDb format by ID.            | Default MongoDb IPS data.                         |
 | `/ipsmongo/:id`                 | Retrieve IPS record in presentation format by ID.        | Presentation formatted IPS data.           |
-| `/ips/:id`                      | Retrieve IPS JSON Bundle by its ID.                 | The IPS JSON Bundle format.           |
+| `/ips/:id`                      | Retrieve Expanded IPS JSON Bundle by its ID.                 | The Expanded IPS JSON Bundle format.           |
 | `/ipsbasic/:id`                 | Retrieve basic IPS Bundle by ID.                    | Basic IPS data.                       |
 | `/ipsbeer/:id/:delim?`          | Retrieve IPS Bundle in BEER format by ID.           | BEER formatted IPS data.              |
-| `/ipshl728/:id`          | Retrieve IPS Bundle in HL7 2.8 format by ID.           | HL7 2.8 formatted IPS data.              |
-| `/ipsxml/:id`                   | Retrieve IPS Bundle in XML format by ID.            | XML formatted IPS data.               |
+| `/ipshl72x/:id`          | Retrieve IPS Bundle in HL7 2.3 format by ID.           | HL7 2.3 formatted IPS data.              |
+| `/ipsxml/:id`                   | Retrieve IPS Bundle in Expanded XML format by ID.            | Expanded XML formatted IPS data.               |
 | `/ipslegacy/:id`                | Retrieve IPS Bundle in legacy format by ID.         | Legacy JSON formatted IPS data.       |
-| `/ipsbyname/:name/:given`       | Retrieve IPS Bundle by patient's name and given name. | The IPS JSON Bundle.                  |
+| `/ipsunified/:id`                | Retrieve IPS Bundle in compact unified format by ID.         | Compact unified JSON formatted IPS data.       |
+| `/ipsbyname/:name/:given`       | Retrieve Expanded IPS Bundle by patient's name and given name. | The Expanded IPS JSON Bundle.                  |
 | `/ips/search/:name`             | Search for IPS records by patient's name.           | Array of IPS records.                 |
 | `/fetchipsora/:name/:givenName` | Fetch IPS record from ORA by patient's name and given name. | The IPS JSON Bundle.               |
 
