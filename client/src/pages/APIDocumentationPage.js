@@ -40,6 +40,34 @@ function APIDocumentationPage() {
     { method: 'PUT', endpoint: '/ips/:id', description: 'Update an IPS record by ID.', request: 'Partial JSON object representing the updated IPS record.', response: 'MongoDB object of the updated IPS record - JSON' },
     { method: 'PUT', endpoint: '/ipsuuid/:uuid', description: 'Update an IPS record by UUID.', request: 'Partial JSON object representing the updated IPS record.', response: 'MongoDB object of the updated IPS record - JSON' },
     { method: 'DELETE', endpoint: '/ips/:id', description: 'Delete an IPS record by ID.', request: 'IPS record ID as URL parameter.', response: 'Confirmation of deletion.' },
+    {
+      method: 'GET',
+      endpoint: '/xmpp/test-send-message',
+      description: 'Send a test message to the configured XMPP group chat.',
+      request: 'Optional query parameter ?msg=some text to customize the message',
+      response: 'A text response indicating success.'
+    },
+    {
+      method: 'POST',
+      endpoint: '/xmpp/xmpp-post',
+      description: 'Send a message to the XMPP group chat, optionally specifying a custom room.',
+      request: 'JSON body: { "msg": "<message text>", "room": "<roomJid>" } (room is optional)',
+      response: 'JSON response with status, the target room, and the message sent.'
+    },
+    {
+      method: 'POST',
+      endpoint: '/xmpp/xmpp-ips',
+      description: 'Fetch an IPS record by ID and broadcast it (as plain text) to the configured XMPP group chat.',
+      request: 'JSON body: { "id": "<IPS record ID>" }',
+      response: 'JSON response confirming the record was retrieved and sent.'
+    },
+    {
+      method: 'POST',
+      endpoint: '/xmpp/xmpp-ips-private',
+      description: 'Fetch an IPS record by ID and send it privately (type="chat") to a specific occupant.',
+      request: 'JSON body: { "id": "<IPS record ID>", "from": "<occupant name or user>" }',
+      response: 'JSON response confirming the record was retrieved and sent privately.'
+    },
   ];
 
   const encodingEncryptionInstructions = [

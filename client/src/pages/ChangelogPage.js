@@ -487,6 +487,23 @@ function ChangeLogPage() {
                                 <li>The /test endpoint now supports decryption/encryption and compression/decompression of XML, returning the raw XML as plain text.</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_53 - 3rd March 2025</h5>
+                            <ul>
+                                <li><strong>Experimental XMPP Integration</strong></li>
+                                <li>
+                                    Introduced new endpoints that enable integration with an external XMPP server to send and receive messages.
+                                    <br />
+                                    <em>Important:</em> This functionality is still experimental and requires:
+                                    <ul>
+                                        <li>An XMPP server reachable over a <strong>non-encrypted WebSocket</strong> (e.g. <code>ws://</code>).</li>
+                                        <li>Proper environment variables set in the <code>.env</code> file or via Azure/OpenShift mechanisms (e.g., <code>XMPP_SERVICE</code>, <code>XMPP_DOMAIN</code>, <code>XMPP_USERNAME</code>, <code>XMPP_PASSWORD</code>, <code>XMPP_ROOM</code>).</li>
+                                    </ul>
+                                    If these conditions are not met, the XMPP features will not function as intended.
+                                </li>
+                            </ul>
+                        </li>
+
                     </ul>
                 </Col>
             </Row>
