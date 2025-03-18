@@ -84,26 +84,28 @@ api.use(async (req, res, next) => {
 
             // If encrypted, decrypt the data - could be hex or base64 format
             if (isEncrypted) {
-                console.log('Incoming data claims to be encrypted. Base64 flag is: ', isBase64);
+                console.log('Incoming data claims to be encrypted. Base64 flag is:', isBase64);
 
-                // Parse the JSON payload
-                const encryptedPayload = JSON.parse(data.toString('utf8'));
-                console.log('Parsed Encrypted Payload:', encryptedPayload);
+                try {
+                    // Parse the JSON payload
+                    const encryptedPayload = JSON.parse(data.toString('utf8'));
+                    console.log('Parsed Encrypted Payload:', encryptedPayload);
 
-                // Ensure payload contains necessary fields
-                if (!encryptedPayload.encryptedData || !encryptedPayload.iv) {
-                    throw new Error('Invalid encrypted payload format');
+                    // Ensure payload contains necessary fields
+                    if (!encryptedPayload.encryptedData || !encryptedPayload.iv || !encryptedPayload.mac) {
+                        throw new Error('Invalid encrypted payload format. Missing required fields.');
+                    }
+
+                    // Decrypt the data using the new JSON-based decrypt function
+                    data = decrypt(encryptedPayload, isBase64);
+
+                    console.log('Decrypted Data:', data.toString('utf8'));
+                } catch (error) {
+                    console.error('Decryption failed:', error.message);
+                    throw new Error('Failed to decrypt request data.');
                 }
-
-                // Decrypt the data
-                data = decrypt(
-                    encryptedPayload.encryptedData,
-                    encryptedPayload.iv,
-                    isBase64
-                );
-
-                console.log('Decrypted Data:', data);
             }
+
 
             // If gzip encoded, decompress the data
             if (isGzip) {
@@ -120,7 +122,7 @@ api.use(async (req, res, next) => {
                 req.body = rawStr;
                 return next();
             }
-            
+
             try {
                 // First, try to parse as JSON.
                 req.body = JSON.parse(rawStr);
@@ -158,26 +160,26 @@ api.use(express.urlencoded({ extended: false })); // parses incoming requests wi
 api.use(express.text())
 api.use(async (req, res, next) => {
     if (req.path === '/test') {
-      // If Content-Type indicates text, just proceed.
-      if (req.headers['content-type'] && req.headers['content-type'].includes('text')) {
-        return next();
-      }
-      // Otherwise, if not already parsed, read the raw body as UTF-8 text.
-      try {
-        // Only read if req.body is not already set or is empty.
-        if (!req.body || Object.keys(req.body).length === 0) {
-          req.body = await getRawBody(req, { encoding: 'utf8' });
+        // If Content-Type indicates text, just proceed.
+        if (req.headers['content-type'] && req.headers['content-type'].includes('text')) {
+            return next();
         }
-        //console.log("Raw text from /test:", req.body);
-        next();
-      } catch (err) {
-        next(err);
-      }
+        // Otherwise, if not already parsed, read the raw body as UTF-8 text.
+        try {
+            // Only read if req.body is not already set or is empty.
+            if (!req.body || Object.keys(req.body).length === 0) {
+                req.body = await getRawBody(req, { encoding: 'utf8' });
+            }
+            //console.log("Raw text from /test:", req.body);
+            next();
+        } catch (err) {
+            next(err);
+        }
     } else {
-      // For all other routes, use the XML parser middleware.
-      xmlparser({ normalizeTags: false })(req, res, next);
+        // For all other routes, use the XML parser middleware.
+        xmlparser({ normalizeTags: false })(req, res, next);
     }
-  });
+});
 
 // Middleware to handle requests for data to be returned gzipped, encrypted, or both
 api.use((req, res, next) => {
@@ -234,11 +236,11 @@ api.use((req, res, next) => {
 
                 // Encrypt the data directly
                 if (acceptExtra.includes("includeKey")) {
-                    const { encryptedData, iv, key } = encrypt(modifiedBody, isBase64); // Pass flag for Base64 encoding
-                    modifiedBody = JSON.stringify({ encryptedData, iv, key });
+                    const { encryptedData, iv, mac, key } = encrypt(modifiedBody, isBase64); // Pass flag for Base64 encoding
+                    modifiedBody = JSON.stringify({ encryptedData, iv, mac, key });
                 } else {
-                    const { encryptedData, iv } = encrypt(modifiedBody, isBase64); // Pass flag for Base64 encoding
-                    modifiedBody = JSON.stringify({ encryptedData, iv });
+                    const { encryptedData, iv, mac } = encrypt(modifiedBody, isBase64); // Pass flag for Base64 encoding
+                    modifiedBody = JSON.stringify({ encryptedData, mac, iv });
                 }
 
                 console.log("Return payload: ", modifiedBody);
@@ -331,12 +333,12 @@ api.get("/*", (req, res) => {
 
 // Initialize XMPP once
 initXMPP_WebSocket()
-  .then(() => {
-    console.log("XMPP connection initialized.");
-  })
-  .catch((err) => {
-    console.error("Failed to init XMPP:", err);
-  });
+    .then(() => {
+        console.log("XMPP connection initialized.");
+    })
+    .catch((err) => {
+        console.error("Failed to init XMPP:", err);
+    });
 
 
 const port = process.env.PORT || 5000;

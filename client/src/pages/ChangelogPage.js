@@ -503,7 +503,15 @@ function ChangeLogPage() {
                                 </li>
                             </ul>
                         </li>
-
+                        <li>
+                            <h5>Version 0_54 - 18th March 2025</h5>
+                            <ul>
+                                <li><strong>Updated Encryption System with HMAC</strong></li>
+                                <li>Encryption and decryption functions to use a 16-byte (128-bit) HMAC instead of the full 32-byte version for compatibility with joint project requirements.</li>
+                                <li>Refactored middleware to validate and process encrypted JSON payloads, ensuring HMAC verification before decryption. Improved error handling and logging for malformed requests.</li>
+                                <li>Encryption now includes the truncated HMAC (16 bytes) alongside the IV and ciphertext, ensuring integrity while reducing payload size.</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

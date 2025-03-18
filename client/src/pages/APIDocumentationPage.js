@@ -77,7 +77,7 @@ function APIDocumentationPage() {
         <>
           - Include the header <code>X-Encrypted: true</code> for incoming requests.
           <br />- Encrypt your payload using AES-256 before sending.
-          <br />- Default format for the encrypted payload and IV is <code>hex</code>.
+          <br />- Default format for the encrypted payload, MAC and IV is <code>hex</code>.
           <br />- To send in Base64 format, include the header <code>Content-Encoding: base64</code>. Ensure both <code>encryptedData</code> and <code>iv</code> are Base64-encoded.
         </>
       ),
@@ -85,7 +85,7 @@ function APIDocumentationPage() {
         <>
           - Include the header <code>Accept-Encryption: aes256</code> for responses.
           <br />- The response will be encrypted using AES-256 if supported.
-          <br />- Default format for the encrypted payload and IV is <code>hex</code>.
+          <br />- Default format for the encrypted payload, MAC and IV is <code>hex</code>.
           <br />- To receive in Base64 format, include the header <code>Accept-Encoding: base64</code>.
         </>
       ),
