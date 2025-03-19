@@ -71,7 +71,7 @@ api.use((req, res, next) => {
 
 // ──────────────────────────────────────────────────────────
 //   1. Raw Binary Middleware (Handles application/octet-stream)
-//      Assume: [first 16 bytes: IV] + [next 32 bytes: HMAC] + [rest: encrypted & gzipped data]
+//      Assume: [first 16 bytes: IV] + [next 16 bytes: HMAC] + [rest: encrypted & gzipped data]
 // ──────────────────────────────────────────────────────────
 api.use(async (req, res, next) => {
     const isBinary = req.headers['content-type'] === 'application/octet-stream';
@@ -143,7 +143,7 @@ api.use(async (req, res, next) => {
                     console.log('Parsed Encrypted Payload:', encryptedPayload);
 
                     // Ensure payload contains necessary fields
-                    if (!encryptedPayload.encryptedData || !encryptedPayload.iv || !encryptedPayload.mac) {
+                    if (!encryptedPayload.encryptedData || !encryptedPayload.iv) {
                         throw new Error('Invalid encrypted payload format. Missing required fields.');
                     }
 

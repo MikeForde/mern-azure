@@ -35,25 +35,31 @@ function encrypt(data, useBase64 = false) {
 }
 
 function decrypt(encryptedPayload, useBase64 = false) {
-    if (!encryptedPayload.encryptedData || !encryptedPayload.iv || !encryptedPayload.mac) {
+    if (!encryptedPayload.encryptedData || !encryptedPayload.iv) {
         throw new Error("Invalid encrypted payload format. Missing required fields.");
     }
 
     const encryptedBuffer = Buffer.from(encryptedPayload.encryptedData, useBase64 ? 'base64' : 'hex');
     const ivBuffer = Buffer.from(encryptedPayload.iv, useBase64 ? 'base64' : 'hex');
-    const macBuffer = Buffer.from(encryptedPayload.mac, useBase64 ? 'base64' : 'hex');
 
-    // Verify HMAC integrity
-    const hmac = crypto.createHmac('sha256', hmacKey);
-    hmac.update(ivBuffer);
-    hmac.update(encryptedBuffer);
-    const expectedMac = hmac.digest().slice(0, 16); // Truncate to 16 bytes
+    // Optional MAC verification
+    if (encryptedPayload.mac) {
+        const macBuffer = Buffer.from(encryptedPayload.mac, useBase64 ? 'base64' : 'hex');
 
-    if (!crypto.timingSafeEqual(macBuffer, expectedMac)) {
-        throw new Error("HMAC verification failed! Data integrity compromised.");
+        // Verify HMAC integrity
+        const hmac = crypto.createHmac('sha256', hmacKey);
+        hmac.update(ivBuffer);
+        hmac.update(encryptedBuffer);
+        const expectedMac = hmac.digest().slice(0, 16); // Truncate to 16 bytes
+
+        if (!crypto.timingSafeEqual(macBuffer, expectedMac)) {
+            throw new Error("HMAC verification failed! Data integrity compromised.");
+        }
+    } else {
+        console.warn("Warning: No MAC provided. Skipping integrity verification.");
     }
 
-    // Proceed with decryption only if MAC is valid
+    // Proceed with decryption
     const decipher = crypto.createDecipheriv(algorithm, key, ivBuffer);
     const decryptedBuffer = Buffer.concat([
         decipher.update(encryptedBuffer),
