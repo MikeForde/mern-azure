@@ -6,13 +6,9 @@ const algorithm = 'aes-256-cbc';
 // Fixed key for testing (32 bytes)
 const key = Buffer.from("YOUR_AES_256_KEY_123456789012345", 'utf8');
 
-//const iv = crypto.randomBytes(16); // Replace with a fixed iv for testing
-// Fixed IV for testing (16 bytes)
-const iv = Buffer.from("1234567890123456", 'utf8'); // Replace with your desired fixed IV
+const iv = crypto.randomBytes(16); // Replace with a fixed iv for testing
 
-//const hmacKey = crypto.randomBytes(32);
-// Fixed HMAC key for testing (32 bytes)
-const hmacKey  = Buffer.from("01234567890123456789012345678901", 'utf8');
+const hmacKey = crypto.randomBytes(32);
 
 
 /**

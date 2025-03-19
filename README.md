@@ -1,6 +1,6 @@
 # IPS MERN Project
 
-This project is a MERN (MongoDB, Express, React, Node.js) stack application designed to manage and manipulate IPS (International Patient Summary) records. It includes features to convert between MongoDB, BEER, and IPS JSON formats, and supports various CRUD operations on IPS data. 
+This project is a MERN (MongoDB, Express, React, Node.js) stack application designed to manage and manipulate IPS (International Patient Summary) records. It includes features to convert between MongoDB, BEER, and IPS JSON formats, and supports various CRUD operations on IPS data. It also offers **raw binary data encryption** (using IV + MAC + compressed ciphertext) for secure and efficient data handling.
 
 ## Table of Contents
 
@@ -21,15 +21,18 @@ This project is a MERN (MongoDB, Express, React, Node.js) stack application desi
 
 ## Overview
 
-This application allows healthcare providers to create, update, delete, and convert patient records stored in MongoDB. The records can be converted into different formats, including BEER (Basic Emergency Exchange Record) and IPS JSON, to facilitate data sharing and interoperability.
+This application allows healthcare providers to create, update, delete, and convert patient records stored in MongoDB. The records can be transformed into different formats, including BEER (Basic Emergency Exchange Record) and IPS JSON, to facilitate data sharing and interoperability. Additionally, the application supports **both JSON-based and raw binary** encryption flows, giving users the flexibility to optimize performance and security.
 
 ## Features
 
-- **CRUD Operations**: Create, Read, Update, Delete IPS records.
+- **CRUD Operations**: Create, Read, Update, and Delete IPS records.
 - **Format Conversion**: Convert IPS records between MongoDB, BEER, and IPS JSON formats.
 - **API Endpoints**: Comprehensive set of endpoints to manage IPS records.
 - **Responsive Frontend**: User-friendly interface for managing and converting records.
 - **Search and Filter**: Find records by various attributes.
+- **Advanced Encryption Options**:
+  - JSON-based AES-256 encryption with HMAC verification.
+  - **Raw Binary** support using a 16-byte IV, 32-byte HMAC, and gzipped ciphertext for optimal security and space efficiency.
 
 ## Setup
 
@@ -198,6 +201,34 @@ To facilitate compatibility and efficient data transfer, the API supports return
 1. Include the `Accept-Encryption: aes256` header in your request.
 2. Optionally, include the `Accept-Encoding: base64` header to receive the encrypted data and iv encoded in Base64.
 3. The response will be a JSON with two elements: encryptedData and iv.
+
+## Raw Binary Format (IV + MAC + Gzipped Data) 
+his API also supports sending and receiving raw binary data via application/octet-stream. This is useful when you want a single binary payload that includes:
+1. A 16-byte IV (initialization vector).
+2. A 16-byte MAC (HMAC-SHA256 for integrity).
+3. The encrypted + gzipped data. + +### Incoming Requests (Raw Binary)
+
+## Usage Instructions
+
+### For Requests
+1. Set the header: `Content-Type: application/octet-stream`
+2. The first 16 bytes of your binary payload must be the IV, the next 16 bytes must be the MAC, and the remainder is the AES-256-CBC-encrypted, gzip-compressed data. 
+3. The server will:
+  - Verify the MAC to check integrity.
+  - Decrypt the payload using AES-256-CBC.
+  - Decompress the result from gzip.
+
+### Responses (Raw Binary)
+1. Send a request with: `Accept: application/octet-stream`
+2. The server will:
+  - Take the plaintext response body.
+  - Compress it with gzip.
+  - Encrypt it using AES-256-CBC.
+  - Compute the MAC for integrity.
+  - Return a binary payload consisting of [16-byte IV] + [32-byte MAC] + [Encrypted Gzipped Data]
+3. The response will have: 
+- Content-Type: `application/octet-stream`
+- X-Encrypted: true
 
 ## Client-Side Pages
 

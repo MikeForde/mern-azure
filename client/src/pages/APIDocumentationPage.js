@@ -70,23 +70,23 @@ function APIDocumentationPage() {
     },
   ];
 
+  // Additional instructions for encryption, compression, and raw binary usage
   const encodingEncryptionInstructions = [
     {
       feature: 'AES-256 Encryption',
       incoming: (
         <>
-          - Include the header <code>X-Encrypted: true</code> for incoming requests.
-          <br />- Encrypt your payload using AES-256 before sending.
-          <br />- Default format for the encrypted payload, MAC and IV is <code>hex</code>.
-          <br />- To send in Base64 format, include the header <code>Content-Encoding: base64</code>. Ensure both <code>encryptedData</code> and <code>iv</code> are Base64-encoded.
+          - Include header <code>X-Encrypted: true</code> for AES-256-encrypted requests.
+          <br />- Encrypt your payload with AES-256 before sending.
+          <br />- Default format is <code>hex</code> for <em>encryptedData</em>, <em>iv</em>, and <em>mac</em>.
+          <br />- To send in Base64, include header <code>Content-Encoding: base64</code>.
         </>
       ),
       outgoing: (
         <>
-          - Include the header <code>Accept-Encryption: aes256</code> for responses.
-          <br />- The response will be encrypted using AES-256 if supported.
-          <br />- Default format for the encrypted payload, MAC and IV is <code>hex</code>.
-          <br />- To receive in Base64 format, include the header <code>Accept-Encoding: base64</code>.
+          - Include header <code>Accept-Encryption: aes256</code> if you want the response encrypted.
+          <br />- Default format is <code>hex</code>.
+          <br />- To receive Base64, include <code>Accept-Encoding: base64</code>.
         </>
       ),
     },
@@ -94,16 +94,35 @@ function APIDocumentationPage() {
       feature: 'Combined (AES-256 + Gzip)',
       incoming: (
         <>
-          - Use both <code>Content-Encoding: gzip</code> and <code>X-Encrypted: true</code>.
-          <br />- Compress your payload with gzip first, then encrypt with AES-256.
-          <br />- To send in Base64 format, include <code>Content-Encoding: gzip, base64</code>.
+          - Use <code>Content-Encoding: gzip</code> <em>and</em> <code>X-Encrypted: true</code>.
+          <br />- Compress your payload with gzip, then encrypt via AES-256.
+          <br />- If using Base64, set <code>Content-Encoding: gzip, base64</code>.
         </>
       ),
       outgoing: (
         <>
-          - Use both <code>Accept-Encoding: gzip</code> and <code>Accept-Encryption: aes256</code>.
-          <br />- The response will first be compressed with gzip, then encrypted with AES-256.
-          <br />- To receive in Base64 format, include <code>Accept-Encoding: gzip, base64</code>.
+          - Use <code>Accept-Encoding: gzip</code> <em>and</em> <code>Accept-Encryption: aes256</code>.
+          <br />- The server gzips the response first, then encrypts.
+          <br />- Add <code>base64</code> in <code>Accept-Encoding</code> if you need Base64 output.
+        </>
+      ),
+    },
+    {
+      feature: 'Raw Binary (IV + MAC + Gzipped Data)',
+      incoming: (
+        <>
+          - Set <code>Content-Type: application/octet-stream</code>.
+          <br />- The payload <strong>must</strong> start with a 16-byte IV, followed by a 16-byte HMAC, and then the gzipped+encrypted data.
+          <br />- The server will verify HMAC, decrypt using AES-256-CBC, then decompress.
+          <br />- No JSON or Base64 fields are required in the body.
+        </>
+      ),
+      outgoing: (
+        <>
+          - Set <code>Accept: application/octet-stream</code> to get a binary response.
+          <br />- The server will compress, encrypt, and prepend 16-byte IV + 16-byte MAC to the payload.
+          <br />- The response has <code>Content-Type: application/octet-stream</code>, and <code>X-Encrypted: true</code>.
+          <br />- You can save this binary file and send it back in future requests.
         </>
       ),
     },

@@ -512,6 +512,15 @@ function ChangeLogPage() {
                                 <li>Encryption now includes the truncated HMAC (16 bytes) alongside the IV and ciphertext, ensuring integrity while reducing payload size.</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_55 - 19th March 2025</h5>
+                            <ul>
+                                <li><strong>New Raw Binary Format for Encrypted Payloads</strong></li>
+                                <li>Introduced support for <code>application/octet-stream</code> requests and responses, featuring a 16-byte IV, 16-byte HMAC, and gzipped data.</li>
+                                <li>This allows clients to send and receive encrypted &amp; compressed data more efficiently without JSON overhead, improving performance.</li>
+                                <li>Updated documentation to clarify how to use the binary format alongside existing JSON encryption methods.</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

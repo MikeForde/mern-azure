@@ -8,6 +8,8 @@ const path = require("path");
 const xmlparser = require("express-xml-bodyparser");
 const xml2js = require('xml2js');
 const getRawBody = require('raw-body');
+
+// ───── Models & Controllers ─────
 const { IPSModel } = require("./models/IPSModel");
 const { getIPSBundle } = require('./servercontrollers/ipsBundleFormat');
 const { getIPSBundleByName } = require('./servercontrollers/ipsBundleByName');
@@ -42,29 +44,104 @@ const { convertCDAToBEER } = require('./servercontrollers/convertCDAToBEER');
 const { convertCDAToMongo } = require('./servercontrollers/convertCDAToMongo');
 const { convertHL72_xToMongo } = require('./servercontrollers/convertHL72_xToMongo');
 const { convertHL72_xToIPS } = require("./servercontrollers/convertHL72_xToIPS");
+
+// ───── Compression & Encryption Utils ─────
 const { gzipDecode, gzipEncode } = require("./compression/gzipUtils");
-const { encrypt, decrypt } = require('./encryption/aesUtils');
+const { encrypt, decrypt } = require('./encryption/aesUtils'); // JSON-based (IV, MAC, encryptedData) usage
+const crypto = require('crypto'); // Needed if not already in aesUtils
 const { convertXmlEndpoint } = require('./servercontrollers/convertXmlEndpoint');
 const { convertFhirXmlEndpoint } = require('./servercontrollers/convertFhirXmlEndpoint');
 const { initXMPP_WebSocket } = require("./xmpp/xmppConnection");
 const xmppRoutes = require("./xmpp/xmppRoutes");
 
+// Example keys; in real code, store securely in .env or key management
+const algorithm = 'aes-256-cbc';
+const key = Buffer.from("YOUR_AES_256_KEY_123456789012345", 'utf8'); // 32 bytes
+const hmacKey = crypto.randomBytes(32); // separate HMAC key
+
 const { DB_CONN } = process.env;
 
 const api = express();
-api.use(cors()); // enable CORS on all our requests
+api.use(cors()); // enable CORS on all requests
 
-// output request data to console
+// ──────────────────────────────────────────────────────────
+//                  Logging Middleware
+// ──────────────────────────────────────────────────────────
 api.use((req, res, next) => {
     console.log("Incoming request:", req.method, req.url);
     console.log("Request headers:", req.headers);
-    //console.log("Request body:", req.body);
     console.log("Request path:", req.path);
     next();
 });
 
-// Combined middleware to handle decryption and decompression
+// ──────────────────────────────────────────────────────────
+//   1. Raw Binary Middleware (Handles application/octet-stream)
+//      Assume: [first 16 bytes: IV] + [next 32 bytes: HMAC] + [rest: encrypted & gzipped data]
+// ──────────────────────────────────────────────────────────
 api.use(async (req, res, next) => {
+    const isBinary = req.headers['content-type'] === 'application/octet-stream';
+
+    if (isBinary) {
+        try {
+            const rawData = await new Promise((resolve, reject) => {
+                const chunks = [];
+                req.on('data', (chunk) => chunks.push(chunk));
+                req.on('end', () => resolve(Buffer.concat(chunks)));
+                req.on('error', (err) => reject(err));
+            });
+
+            // Must be at least 32 bytes: 16 (IV) + 16 (MAC) + 0 or more for ciphertext
+            if (rawData.length < 32) {
+                throw new Error('Invalid binary payload: Too short to contain IV, MAC, and encrypted data.');
+            }
+
+            // Extract IV, MAC, and encrypted data
+            const ivBuffer = rawData.slice(0, 16);
+            const macBuffer = rawData.slice(16, 32);
+            const encryptedBuffer = rawData.slice(32);
+
+            // Verify HMAC
+            const hmac = crypto.createHmac('sha256', hmacKey);
+            hmac.update(ivBuffer);
+            hmac.update(encryptedBuffer);
+            const expectedMac = hmac.digest().slice(0, 16);
+
+            if (!crypto.timingSafeEqual(macBuffer, expectedMac)) {
+                throw new Error("HMAC verification failed! Data integrity compromised.");
+            }
+
+            // Decrypt using AES-256-CBC
+            const decipher = crypto.createDecipheriv(algorithm, key, ivBuffer);
+            let decryptedBuffer = Buffer.concat([
+                decipher.update(encryptedBuffer),
+                decipher.final()
+            ]);
+
+            // Decompress the decrypted buffer (assuming gzip)
+            decryptedBuffer = await gzipDecode(decryptedBuffer);
+
+            // Convert final result to string
+            req.body = decryptedBuffer.toString('utf8');
+            next();
+        } catch (error) {
+            console.error('Error processing raw binary request:', error);
+            return res.status(400).send('Invalid binary request data.');
+        }
+    } else {
+        next();
+    }
+});
+
+// ──────────────────────────────────────────────────────────
+//   2. Combined Middleware for JSON-based Encryption/Decryption
+//      (Headers x-encrypted=true, content-encoding=gzip/base64, etc.)
+// ──────────────────────────────────────────────────────────
+api.use(async (req, res, next) => {
+    // If we've already processed binary data, skip
+    if (req.headers['content-type'] === 'application/octet-stream') {
+        return next();
+    }
+
     const isEncrypted = req.headers['x-encrypted'] === 'true';
     const isGzip = req.headers['content-encoding']?.includes('gzip');
     const isBase64 = req.headers['content-encoding']?.includes('base64');
@@ -82,12 +159,11 @@ api.use(async (req, res, next) => {
 
             let data = rawData;
 
-            // If encrypted, decrypt the data - could be hex or base64 format
+            // If encrypted, decrypt the data (JSON-based approach)
             if (isEncrypted) {
                 console.log('Incoming data claims to be encrypted. Base64 flag is:', isBase64);
 
                 try {
-                    // Parse the JSON payload
                     const encryptedPayload = JSON.parse(data.toString('utf8'));
                     console.log('Parsed Encrypted Payload:', encryptedPayload);
 
@@ -96,16 +172,14 @@ api.use(async (req, res, next) => {
                         throw new Error('Invalid encrypted payload format. Missing required fields.');
                     }
 
-                    // Decrypt the data using the new JSON-based decrypt function
+                    // Decrypt using our existing JSON-based approach in aesUtils
                     data = decrypt(encryptedPayload, isBase64);
-
                     console.log('Decrypted Data:', data.toString('utf8'));
                 } catch (error) {
                     console.error('Decryption failed:', error.message);
                     throw new Error('Failed to decrypt request data.');
                 }
             }
-
 
             // If gzip encoded, decompress the data
             if (isGzip) {
@@ -129,9 +203,12 @@ api.use(async (req, res, next) => {
             } catch (jsonError) {
                 try {
                     // Next, try to parse as XML.
-                    req.body = await xml2js.parseStringPromise(rawStr, { explicitArray: false, normalizeTags: false });
+                    req.body = await xml2js.parseStringPromise(rawStr, {
+                        explicitArray: false,
+                        normalizeTags: false
+                    });
                 } catch (xmlError) {
-                    // If both JSON and XML parsing fail, fallback to plain text.
+                    // If both JSON and XML fail, fallback to plain text.
                     req.body = rawStr;
                 }
             }
@@ -146,18 +223,24 @@ api.use(async (req, res, next) => {
     }
 });
 
-
+// ──────────────────────────────────────────────────────────
+//   3. Fallback JSON Parsing for Unencrypted Requests
+// ──────────────────────────────────────────────────────────
 api.use((req, res, next) => {
     if (req.headers['x-encrypted'] === 'true') {
-        // Encrypted request; body has already been parsed
+        // Already decrypted in prior middleware
         next();
     } else {
         // Not encrypted; apply express.json()
         express.json()(req, res, next);
     }
 });
-api.use(express.urlencoded({ extended: false })); // parses incoming requests with urlencoded payloads
-api.use(express.text())
+api.use(express.urlencoded({ extended: false }));
+api.use(express.text());
+
+// ──────────────────────────────────────────────────────────
+//   4. XML Parser for Non-/test Endpoints
+// ──────────────────────────────────────────────────────────
 api.use(async (req, res, next) => {
     if (req.path === '/test') {
         // If Content-Type indicates text, just proceed.
@@ -166,11 +249,9 @@ api.use(async (req, res, next) => {
         }
         // Otherwise, if not already parsed, read the raw body as UTF-8 text.
         try {
-            // Only read if req.body is not already set or is empty.
             if (!req.body || Object.keys(req.body).length === 0) {
                 req.body = await getRawBody(req, { encoding: 'utf8' });
             }
-            //console.log("Raw text from /test:", req.body);
             next();
         } catch (err) {
             next(err);
@@ -181,80 +262,123 @@ api.use(async (req, res, next) => {
     }
 });
 
-// Middleware to handle requests for data to be returned gzipped, encrypted, or both
+// ──────────────────────────────────────────────────────────
+//   5. Response Middleware for Gzip & Encryption
+//      + Raw Binary Output if Accept: application/octet-stream
+// ──────────────────────────────────────────────────────────
 api.use((req, res, next) => {
     const originalSend = res.send;
 
     res.send = async function (body) {
         try {
-            //console.log("body is: ", body);
             let modifiedBody = body;
+
+            // Check headers
             const acceptEncoding = req.headers["accept-encoding"] || "";
-            const isInternalCall = req.headers["sec-fetch-site"] === "same-origin";
             const acceptExtra = req.headers["accept-extra"] || "";
             const acceptEncryption = req.headers["accept-encryption"] || "";
+            const isInternalCall = req.headers["sec-fetch-site"] === "same-origin";
+            const isBinaryRequested = req.headers["accept"] === "application/octet-stream";
 
             let isCompressed = false;
             let isBase64 = acceptEncoding.includes("base64") || acceptExtra.includes("base64");
-
             let gzipReq = false;
 
-            // Apply compression if requested and not an internal call
-            if ((acceptEncoding.includes("gzip") && !isInternalCall) || acceptEncoding.includes("insomzip") || acceptExtra.includes("insomzip")) {
+            // 5A. If client wants raw binary, we skip the old JSON approach
+            if (isBinaryRequested) {
+                console.log("Returning response as encrypted + compressed binary.");
+
+                // Convert to string if it's an object
+                if (typeof modifiedBody === "object") {
+                    modifiedBody = JSON.stringify(modifiedBody);
+                } else if (Buffer.isBuffer(modifiedBody)) {
+                    // Just ensure it's a string for compression
+                    modifiedBody = modifiedBody.toString();
+                }
+
+                // 1) Compress
+                let compressedData = await gzipEncode(Buffer.from(modifiedBody, 'utf8'));
+
+                // 2) Encrypt
+                const ivBuffer = crypto.randomBytes(16);
+                const cipher = crypto.createCipheriv(algorithm, key, ivBuffer);
+                const encryptedBuffer = Buffer.concat([
+                    cipher.update(compressedData),
+                    cipher.final()
+                ]);
+
+                // 3) Generate HMAC
+                const hmac = crypto.createHmac('sha256', hmacKey);
+                hmac.update(ivBuffer);
+                hmac.update(encryptedBuffer);
+                const macBuffer = hmac.digest().slice(0, 16);
+
+                // 4) Concatenate IV + MAC + Encrypted Data
+                const binaryResponse = Buffer.concat([ivBuffer, macBuffer, encryptedBuffer]);
+
+                // Set headers
+                res.set("Content-Type", "application/octet-stream");
+                res.set("Content-Length", binaryResponse.length);
+                res.set("X-Encrypted", "true");
+
+                return originalSend.call(this, binaryResponse);
+            }
+
+            // 5B. Otherwise, fallback to your existing logic for encryption/gzip JSON
+            // Apply compression if requested & not an internal call
+            if ((acceptEncoding.includes("gzip") && !isInternalCall)
+                || acceptEncoding.includes("insomzip")
+                || acceptExtra.includes("insomzip")) {
                 gzipReq = true;
                 console.log("Returning response using gzip compression...");
+
                 // Convert body to string if it's an object
                 if (typeof modifiedBody === "object") {
                     modifiedBody = JSON.stringify(modifiedBody);
+                } else if (Buffer.isBuffer(modifiedBody)) {
+                    modifiedBody = modifiedBody.toString();
                 }
-                console.log("modifiedBody", modifiedBody);
-                // Compress the data
+
+                // Compress
                 const compressedData = await gzipEncode(modifiedBody);
                 modifiedBody = compressedData;
                 isCompressed = true;
-                console.log("compressed data: ", compressedData);
-                // Set Content-Encoding header
                 res.set("Content-Encoding", "gzip");
                 res.set("Content-Type", "application/octet-stream");
-
             }
 
-            // Apply encryption if requested
+            // Apply JSON-based encryption if requested
             if (acceptEncryption === "aes256") {
-                console.log("Returning response using AES-256 encryption. Base64 flag is: ", isBase64);
+                console.log("Returning response using AES-256 encryption. Base64 flag is:", isBase64);
 
-                // Ensure the body is in a string format before encryption
                 if (!gzipReq) {
                     if (typeof modifiedBody === "object" || Buffer.isBuffer(modifiedBody)) {
                         modifiedBody = JSON.stringify(modifiedBody);
                     } else {
-                        modifiedBody = modifiedBody.toString(); // Ensure it's a string
+                        modifiedBody = modifiedBody.toString();
                     }
                 }
 
-                console.log("modifiedBody: ", modifiedBody);
-
-                // Encrypt the data directly
+                // Use existing aesUtils.encrypt() for JSON approach
                 if (acceptExtra.includes("includeKey")) {
-                    const { encryptedData, iv, mac, key } = encrypt(modifiedBody, isBase64); // Pass flag for Base64 encoding
-                    modifiedBody = JSON.stringify({ encryptedData, iv, mac, key });
+                    const { encryptedData, iv, mac, key: devKey } = encrypt(modifiedBody, isBase64);
+                    modifiedBody = JSON.stringify({ encryptedData, iv, mac, key: devKey });
                 } else {
-                    const { encryptedData, iv, mac } = encrypt(modifiedBody, isBase64); // Pass flag for Base64 encoding
-                    modifiedBody = JSON.stringify({ encryptedData, mac, iv });
+                    const { encryptedData, iv, mac } = encrypt(modifiedBody, isBase64);
+                    modifiedBody = JSON.stringify({ encryptedData, iv, mac });
                 }
 
-                console.log("Return payload: ", modifiedBody);
-                // Set headers
                 res.set("Content-Type", "application/json");
                 res.set("x-encrypted", "true");
+
                 // Remove Content-Encoding if previously set
                 if (isCompressed) {
                     res.removeHeader("Content-Encoding");
                 }
             }
 
-            // Send the final modified response
-            originalSend.call(this, modifiedBody);
+            // Send the final response
+            return originalSend.call(this, modifiedBody);
         } catch (error) {
             console.error("Error processing response data:", error);
             res.status(500).send("Error processing response");
@@ -264,10 +388,17 @@ api.use((req, res, next) => {
     next();
 });
 
+// ──────────────────────────────────────────────────────────
+//              Database Connection
+// ──────────────────────────────────────────────────────────
 mongoose
     .connect(DB_CONN, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log("DB connection successful"))
     .catch(console.error);
+
+// ──────────────────────────────────────────────────────────
+//                 API Routes
+// ──────────────────────────────────────────────────────────
 
 // API POST - CRUD Create/Convert
 api.post("/ips", addIPS);
@@ -288,16 +419,15 @@ api.post('/convertcdatoips', convertCDAToIPS);
 api.post('/convertcdatobeer', convertCDAToBEER);
 api.post('/convertcdatomongo', convertCDAToMongo);
 api.post('/converthl72xtomongo', convertHL72_xToMongo);
-api.post('/converthl72xtoips', convertHL72_xToIPS)
+api.post('/converthl72xtoips', convertHL72_xToIPS);
 api.post('/convertxml', convertXmlEndpoint);
 api.post('/convertfhirxml', convertFhirXmlEndpoint);
+
 // Add a /test POST endpoint for echoing back request data
 api.post('/test', (req, res) => {
-
     // Respond with the raw request body
     res.send(req.body);
 });
-
 
 // API GET - CRUD Read
 api.get("/ips/all", getAllIPS);
@@ -326,6 +456,7 @@ api.put("/ipsuuid/:uuid", updateIPSByUUID);
 api.delete("/ips/:id", deleteIPS);
 api.delete("/ipsdeletebypractitioner/:practitioner", deleteIPSbyPractitioner);
 
+// Static front-end
 api.use(express.static(path.join(__dirname, "client", "build")));
 api.get("/*", (req, res) => {
     res.sendFile(path.join(__dirname, "client", "build", "index.html"));
@@ -340,8 +471,8 @@ initXMPP_WebSocket()
         console.error("Failed to init XMPP:", err);
     });
 
-
+// Start server
 const port = process.env.PORT || 5000;
 api.listen(port, () => {
-    console.log(`Server is running on port: ${port}`)
-})
+    console.log(`Server is running on port: ${port}`);
+});
