@@ -47,17 +47,12 @@ const { convertHL72_xToIPS } = require("./servercontrollers/convertHL72_xToIPS")
 
 // ───── Compression & Encryption Utils ─────
 const { gzipDecode, gzipEncode } = require("./compression/gzipUtils");
-const { encrypt, decrypt } = require('./encryption/aesUtils'); // JSON-based (IV, MAC, encryptedData) usage
+const { encrypt, decrypt, encryptBinary, decryptBinary } = require('./encryption/aesUtils'); // JSON-based (IV, MAC, encryptedData) usage
 const crypto = require('crypto'); // Needed if not already in aesUtils
 const { convertXmlEndpoint } = require('./servercontrollers/convertXmlEndpoint');
 const { convertFhirXmlEndpoint } = require('./servercontrollers/convertFhirXmlEndpoint');
 const { initXMPP_WebSocket } = require("./xmpp/xmppConnection");
 const xmppRoutes = require("./xmpp/xmppRoutes");
-
-// Example keys; in real code, store securely in .env or key management
-const algorithm = 'aes-256-cbc';
-const key = Buffer.from("YOUR_AES_256_KEY_123456789012345", 'utf8'); // 32 bytes
-const hmacKey = crypto.randomBytes(32); // separate HMAC key
 
 const { DB_CONN } = process.env;
 
@@ -95,27 +90,7 @@ api.use(async (req, res, next) => {
                 throw new Error('Invalid binary payload: Too short to contain IV, MAC, and encrypted data.');
             }
 
-            // Extract IV, MAC, and encrypted data
-            const ivBuffer = rawData.slice(0, 16);
-            const macBuffer = rawData.slice(16, 32);
-            const encryptedBuffer = rawData.slice(32);
-
-            // Verify HMAC
-            const hmac = crypto.createHmac('sha256', hmacKey);
-            hmac.update(ivBuffer);
-            hmac.update(encryptedBuffer);
-            const expectedMac = hmac.digest().slice(0, 16);
-
-            if (!crypto.timingSafeEqual(macBuffer, expectedMac)) {
-                throw new Error("HMAC verification failed! Data integrity compromised.");
-            }
-
-            // Decrypt using AES-256-CBC
-            const decipher = crypto.createDecipheriv(algorithm, key, ivBuffer);
-            let decryptedBuffer = Buffer.concat([
-                decipher.update(encryptedBuffer),
-                decipher.final()
-            ]);
+            let decryptedBuffer = await decryptBinary(rawData);
 
             // Decompress the decrypted buffer (assuming gzip)
             decryptedBuffer = await gzipDecode(decryptedBuffer);
@@ -299,22 +274,7 @@ api.use((req, res, next) => {
                 // 1) Compress
                 let compressedData = await gzipEncode(Buffer.from(modifiedBody, 'utf8'));
 
-                // 2) Encrypt
-                const ivBuffer = crypto.randomBytes(16);
-                const cipher = crypto.createCipheriv(algorithm, key, ivBuffer);
-                const encryptedBuffer = Buffer.concat([
-                    cipher.update(compressedData),
-                    cipher.final()
-                ]);
-
-                // 3) Generate HMAC
-                const hmac = crypto.createHmac('sha256', hmacKey);
-                hmac.update(ivBuffer);
-                hmac.update(encryptedBuffer);
-                const macBuffer = hmac.digest().slice(0, 16);
-
-                // 4) Concatenate IV + MAC + Encrypted Data
-                const binaryResponse = Buffer.concat([ivBuffer, macBuffer, encryptedBuffer]);
+                const binaryResponse = encryptBinary(compressedData);
 
                 // Set headers
                 res.set("Content-Type", "application/octet-stream");

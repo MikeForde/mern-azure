@@ -2,21 +2,17 @@ const crypto = require('crypto');
 
 const algorithm = 'aes-256-cbc';
 
-//const key = crypto.randomBytes(32);
-// Fixed key for testing (32 bytes)
+// Fixed key in clearfor testing (32 bytes) but should be stored securely in production
 const key = Buffer.from("YOUR_AES_256_KEY_123456789012345", 'utf8');
 
-const iv = crypto.randomBytes(16); // Replace with a fixed iv for testing
+// Random IV for each encryption (16 bytes) - this is not a secret and can be stored in plaintext
+// At the moment this will only change when the server restarts
+// But we could change it to be random for each encryption
+const iv = crypto.randomBytes(16);
 
-const hmacKey = crypto.randomBytes(32);
+// Fixed HMAC key in clear for testing (32 bytes) but should be stored securely in production
+const hmacKey = Buffer.from("01234567890123456789012345678901", 'utf8');
 
-
-/**
- * Encrypts data with AES-256-CBC.
- * @param {string | Buffer} data - The plaintext data to encrypt.
- * @param {boolean} useBase64 - If true, returns encrypted data and IV in Base64 format. Otherwise, returns in Hex.
- * @returns {Object} An object containing the encryptedData and iv.
- */
 function encrypt(data, useBase64 = false) {
     const cipher = crypto.createCipheriv(algorithm, key, iv);
     const encryptedBuffer = Buffer.concat([
@@ -38,13 +34,6 @@ function encrypt(data, useBase64 = false) {
     };
 }
 
-/**
- * Decrypts data encrypted with AES-256-CBC.
- * @param {string} encryptedData - The encrypted data in Hex or Base64 format.
- * @param {string} ivString - The IV in Hex or Base64 format.
- * @param {boolean} useBase64 - If true, expects Base64 input for encryptedData and iv. Otherwise, expects Hex.
- * @returns {Buffer} The decrypted data as a Buffer.
- */
 function decrypt(encryptedPayload, useBase64 = false) {
     if (!encryptedPayload.encryptedData || !encryptedPayload.iv || !encryptedPayload.mac) {
         throw new Error("Invalid encrypted payload format. Missing required fields.");
@@ -74,5 +63,55 @@ function decrypt(encryptedPayload, useBase64 = false) {
     return decryptedBuffer; // Return Buffer
 }
 
+function encryptBinary(compressedData) {
+    // 1) IV
+    const ivBuffer = crypto.randomBytes(16);
+  
+    // 2) Encrypt
+    const cipher = crypto.createCipheriv(algorithm, key, ivBuffer);
+    const encryptedBuffer = Buffer.concat([
+      cipher.update(compressedData),
+      cipher.final()
+    ]);
+  
+    // 3) Generate truncated 16-byte MAC
+    const hmac = crypto.createHmac('sha256', hmacKey);
+    hmac.update(ivBuffer);
+    hmac.update(encryptedBuffer);
+    const macBuffer = hmac.digest().slice(0, 16);
+  
+    // 4) Final binary payload
+    return Buffer.concat([ivBuffer, macBuffer, encryptedBuffer]);
+  }
 
-module.exports = { encrypt, decrypt };
+
+function decryptBinary(rawData) {
+
+    // Extract IV, MAC, and encrypted data
+    const ivBuffer = rawData.slice(0, 16);
+    const macBuffer = rawData.slice(16, 32);
+    const encryptedBuffer = rawData.slice(32);
+
+    // Verify HMAC
+    const hmac = crypto.createHmac('sha256', hmacKey);
+    hmac.update(ivBuffer);
+    hmac.update(encryptedBuffer);
+    // Using a truncated 16-byte MAC
+    const expectedMac = hmac.digest().slice(0, 16);
+
+    if (!crypto.timingSafeEqual(macBuffer, expectedMac)) {
+        throw new Error("HMAC verification failed! Data integrity compromised.");
+    }
+
+    // Decrypt using AES-256-CBC
+    const decipher = crypto.createDecipheriv(algorithm, key, ivBuffer);
+    let decryptedBuffer = Buffer.concat([
+        decipher.update(encryptedBuffer),
+        decipher.final()
+    ]);
+
+    return decryptedBuffer; // Return the final plaintext as a Buffer
+}
+
+
+module.exports = { encrypt, decrypt, encryptBinary, decryptBinary };
