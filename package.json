@@ -13,6 +13,9 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@grpc/grpc-js": "^1.13.0",
+        "@grpc/proto-loader": "^0.7.13",
+        "@xmpp/client": "0.13.4",
         "autoprefixer": "^10.4.20",
         "axios": "^0.24.0",
         "concurrently": "^6.5.1",
@@ -26,7 +29,6 @@
         "postcss": "^8.5.1",
         "raw-body": "^2.4.0",
         "uuid": "^8.3.2",
-        "xml-js": "1.6.11",
-        "@xmpp/client": "0.13.4"
+        "xml-js": "1.6.11"
     }
 }

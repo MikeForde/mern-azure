@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package example;
+
+// gRPC Service example - getting full IPS record
+service IPSService {
+  rpc GetIPSRecord (GetIPSRecordRequest) returns (GetIPSRecordResponse);
+
+  // update example - here changing the 'given' field
+  rpc UpdatePatientGivenName (UpdatePatientGivenNameRequest) returns (UpdatePatientGivenNameResponse);
+}
+
+// Request message
+message GetIPSRecordRequest {
+  string patient_uuid = 1; // The requested patient's UUID
+}
+
+// Response message
+message GetIPSRecordResponse {
+  string package_uuid = 1;
+  string time_stamp = 2;
+  Patient patient = 3;
+
+  repeated Medication medication = 4;
+  repeated Allergy allergies = 5;
+  repeated Condition conditions = 6;
+  repeated Observation observations = 7;
+  repeated Immunization immunizations = 8;
+}
+
+message Patient {
+  string name = 1;
+  string given = 2;
+  string dob = 3;
+  string gender = 4;
+  string nation = 5;
+  string practitioner = 6;
+  string organization = 7;
+}
+
+message Medication {
+  string name = 1;
+  string date = 2;
+  string dosage = 3;
+  string system = 4;
+  string code = 5;
+  string status = 6;
+}
+
+message Allergy {
+  string name = 1;
+  string criticality = 2;
+  string date = 3;
+  string system = 4;
+  string code = 5;
+}
+
+message Condition {
+  string name = 1;
+  string date = 2;
+  string system = 3;
+  string code = 4;
+}
+
+message Observation {
+  string name = 1;
+  string date = 2;
+  string system = 3;
+  string code = 4;
+  string value = 5;
+  string value_code = 6;
+  string body_site = 7;
+}
+
+message Immunization {
+  string name = 1;
+  string system = 2;
+  string code = 3;
+  string date = 4;
+  string status = 5;
+}
+
+// Update name request message
+message UpdatePatientGivenNameRequest {
+  string patient_uuid = 1;
+  string new_given_name = 2;
+}
+
+// Update name response message
+message UpdatePatientGivenNameResponse {
+  bool success = 1; 
+  string message = 2; 
+}

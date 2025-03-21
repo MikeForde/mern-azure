@@ -57,6 +57,8 @@ const { convertFhirXmlEndpoint } = require('./servercontrollers/convertFhirXmlEn
 const { initXMPP_WebSocket } = require("./xmpp/xmppConnection");
 const xmppRoutes = require("./xmpp/xmppRoutes");
 
+const { startGrpcServer } = require("./proto/grpcServer");
+
 const { DB_CONN } = process.env;
 
 const api = express();
@@ -198,3 +200,6 @@ const port = process.env.PORT || 5000;
 api.listen(port, () => {
     console.log(`Server is running on port: ${port}`);
 });
+
+// Finally, start the gRPC server
+startGrpcServer();
