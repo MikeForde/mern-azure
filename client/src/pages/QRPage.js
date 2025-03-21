@@ -13,6 +13,9 @@ function QRPage() {
   const [showNotification, setShowNotification] = useState(false);
   const [responseSize, setResponseSize] = useState(0);
   const { startLoading, stopLoading } = useLoading();
+  const [useCompressionAndEncryption, setUseCompressionAndEncryption] = useState(false);
+  const [useIncludeKey, setUseIncludeKey] = useState(false);
+
 
 
   const handleRecordChange = (recordId) => {
@@ -41,14 +44,23 @@ function QRPage() {
         setShowNotification(false);
         stopLoading();
       } else {
-        axios.get(endpoint)
+        const headers = {};
+        if (useCompressionAndEncryption) {
+          headers['Accept-Extra'] = useIncludeKey ? 'insomzip, base64, includeKey' : 'insomzip, base64';
+          headers['Accept-Encryption'] = 'aes256';
+        }
+
+        axios.get(endpoint, { headers })
           .then(response => {
             let responseData;
-            if (mode === 'ipsminimal' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim' || mode === 'ipshl72x') {
+            if (useCompressionAndEncryption) {
+              responseData = JSON.stringify(response.data);
+            } else if (mode === 'ipsminimal' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim' || mode === 'ipshl72x') {
               responseData = response.data;
             } else {
               responseData = JSON.stringify(response.data);
             }
+
 
             const responseSize = new TextEncoder().encode(responseData).length;
             setResponseSize(responseSize);
@@ -71,7 +83,7 @@ function QRPage() {
           });
       }
     }
-  }, [selectedPatient, mode, stopLoading]);
+  }, [selectedPatient, mode, useCompressionAndEncryption, useIncludeKey, stopLoading]);
 
   const handleDownloadQR = () => {
     const canvas = document.getElementById('qr-canvas');
@@ -123,6 +135,30 @@ function QRPage() {
               <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER with Delimiter (pipe |)</Dropdown.Item>
               <Dropdown.Item eventKey="ipshl72x">IPS HL7 v2.3</Dropdown.Item>
             </DropdownButton>
+          </div>
+          <div className="form-check">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id="compressionEncryption"
+              checked={useCompressionAndEncryption}
+              onChange={(e) => setUseCompressionAndEncryption(e.target.checked)}
+            />
+            <label className="form-check-label" htmlFor="compressionEncryption">
+              Compress (gzip) and Encrypt (aes256 base 64)
+            </label>
+          </div>
+          <div className="form-check">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id="includeKey"
+              checked={useIncludeKey}
+              onChange={(e) => setUseIncludeKey(e.target.checked)}
+            />
+            <label className="form-check-label" htmlFor="includeKey">
+              Include key in response
+            </label>
           </div>
         </>}
         {showNotification ? (

@@ -256,12 +256,14 @@ his API also supports sending and receiving raw binary data via application/octe
      - View available API endpoints.
      - Execute API calls and display the response.
      - Download the response data.
+     - Includes the ability to encrypt and compress the response - base64
 
 3. **QR Page**
    - **Purpose:** Generate and download QR codes for IPS records.
    - **Features:** 
      - Create QR codes in various formats including IPS JSON and BEER.
      - Download the generated QR codes.
+     - Includes the ability to encrypt and compress the response - base64
 
 4. **DMICP Page**
    - **Purpose:** Facilitates the bulk upload of IPS records in the SmartDoc format.
@@ -269,17 +271,12 @@ his API also supports sending and receiving raw binary data via application/octe
      - Upload multiple IPS records simultaneously.
      - Supports the SmartDoc format for bulk data entry.
 
-5. **Vitals API Pages**
-   - **Purpose:** Manage interactions with VitalsIQ IPS WebApp.
+5. **External API Pages**
+   - **Purpose:** Manage interactions with external IPS webApps/servers.
    - **Features:** 
-     - GET and POST IPS records between VitalsIQ and the IPS MERN WebApp.
+     - GET and POST IPS records between pre-defined endpoints (or manually entered) and the IPS MERN WebApp.
 
-6. **NLD API Pages**
-   - **Purpose:** Interface with the NLD IPS WebApp.
-   - **Features:** 
-     - POST data to the NLD WebApp.
-
-7. **About Pages**
+6. **About Pages**
    - **Purpose:** Provide detailed information about the IPS system and the WebApp.
    - **Features:** 
      - Overview of IPS.

@@ -521,6 +521,16 @@ function ChangeLogPage() {
                                 <li>Updated documentation to clarify how to use the binary format alongside existing JSON encryption methods.</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_56 - 21st March 2025</h5>
+                            <ul>
+                                <li><strong>Compression/Encryption QR Codes</strong></li>
+                                <li>New checkbox feature on QR Page allows users to toggle encryption and compression for QR Codes</li>
+                                <li>The version returned is the JSON base64 version: encryptedData + iv + mac (+/- key)</li>
+                                <li>The existing file size display can then be used for comparisons</li>
+                                <li>Likewise, the download QR feature can then be used for the compressed/encrypted versions</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>
