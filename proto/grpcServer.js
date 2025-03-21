@@ -137,7 +137,7 @@ function startGrpcServer() {
     UpdatePatientGivenName: updatePatientGivenName,
   });
 
-  const grpcPort = process.env.GRPC_PORT || "50051";
+  const grpcPort = process.env.HTTP20_ONLY_PORT || 8585;
   server.bindAsync(
     `0.0.0.0:${grpcPort}`,
     grpc.ServerCredentials.createInsecure(),
