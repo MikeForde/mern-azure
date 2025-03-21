@@ -187,13 +187,13 @@ api.get("/*", (req, res) => {
 });
 
 // Initialize XMPP once
-initXMPP_WebSocket()
-    .then(() => {
-        console.log("XMPP connection initialized.");
-    })
-    .catch((err) => {
-        console.error("Failed to init XMPP:", err);
-    });
+// initXMPP_WebSocket()
+//     .then(() => {
+//         console.log("XMPP connection initialized.");
+//     })
+//     .catch((err) => {
+//         console.error("Failed to init XMPP:", err);
+//     });
 
 // Start server
 const port = process.env.PORT || 5000;
