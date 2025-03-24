@@ -54,8 +54,8 @@ const { convertXmlEndpoint } = require('./servercontrollers/convertXmlEndpoint')
 const { convertFhirXmlEndpoint } = require('./servercontrollers/convertFhirXmlEndpoint');
 
 // ───── XMPP ─────
-const { initXMPP_WebSocket } = require("./xmpp/xmppConnection");
-const xmppRoutes = require("./xmpp/xmppRoutes");
+//const { initXMPP_WebSocket } = require("./xmpp/xmppConnection");
+//const xmppRoutes = require("./xmpp/xmppRoutes");
 
 const { startGrpcServer } = require("./proto/grpcServer");
 
@@ -170,7 +170,7 @@ api.get('/fetchipsora/:name/:givenName', getORABundleByName);
 api.get("/fetchips", getIPSBundleGeneric);
 
 // XMPP endpoints
-api.use("/xmpp", xmppRoutes);
+//api.use("/xmpp", xmppRoutes);
 
 // API PUT - CRUD Update
 api.put("/ips/:id", updateIPS);
