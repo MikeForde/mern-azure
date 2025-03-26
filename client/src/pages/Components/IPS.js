@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { Button, Modal, Form, OverlayTrigger, Tooltip, Row, Col } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { faFileMedical, faQrcode, faTrash, faBeer, faEdit, faFileExport, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { faFileMedical, faQrcode, faTrash, faBeer, faEdit, faFileExport, faUpload, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { PatientContext } from '../../PatientContext';
@@ -98,6 +98,23 @@ export function IPS({ ips, remove, update }) {
       {text}
     </Tooltip>
   );
+
+  // Inside your IPS component, add the new function:
+  const handleSendPMR = () => {
+    startLoading();
+    // Use the appropriate identifier. Here I'm using ips.packageUUID,
+    // but adjust if you need to use another field (e.g., ips._id).
+    axios.post(`/api/pmr/${ips.packageUUID}`)
+      .then(response => {
+        alert("PMR Response: " + JSON.stringify(response.data));
+      })
+      .catch(error => {
+        console.error("Error sending PMR:", error);
+        alert("Error sending PMR: " + error.message);
+      })
+      .finally(() => stopLoading());
+  };
+
 
   return (
     <div className="ips">
@@ -303,6 +320,12 @@ export function IPS({ ips, remove, update }) {
         <OverlayTrigger placement="top" overlay={renderTooltip('Generate PDF')}>
           <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleGeneratePDF}>
             <FontAwesomeIcon icon={faFileExport} />
+          </Button>
+        </OverlayTrigger>
+
+        <OverlayTrigger placement="top" overlay={renderTooltip('Send PMR to MMP')}>
+          <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSendPMR}>
+            <FontAwesomeIcon icon={faPaperPlane} />
           </Button>
         </OverlayTrigger>
 

@@ -59,6 +59,9 @@ const { convertFhirXmlEndpoint } = require('./servercontrollers/convertFhirXmlEn
 
 const { startGrpcServer } = require("./proto/grpcServer");
 
+// ----- MMP ------
+const pmrRoutes = require('./mmp/pmr');
+
 const { DB_CONN } = process.env;
 
 const api = express();
@@ -171,6 +174,9 @@ api.get("/fetchips", getIPSBundleGeneric);
 
 // XMPP endpoints
 //api.use("/xmpp", xmppRoutes);
+
+// MMP endpoints
+api.use('/api', pmrRoutes);
 
 // API PUT - CRUD Update
 api.put("/ips/:id", updateIPS);
