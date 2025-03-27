@@ -531,6 +531,15 @@ function ChangeLogPage() {
                                 <li>Likewise, the download QR feature can then be used for the compressed/encrypted versions</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_57 - 26th March 2025</h5>
+                            <ul>
+                                <li><strong>MMP PMR API Integration</strong></li>
+                                <li>New feature: IPS records can now be sent as PMR messages to the MMP server.</li>
+                                <li>The PMR message is generated in XML format, with dynamic values for patient ID and demographics.</li>
+                                <li>Note: The MMP server must be accessible to the IPS server. This is typically achieved when the IPS server is on the same intranet or connected via a VPN, as the MMP server is usually not available on the public internet.</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

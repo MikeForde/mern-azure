@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { Button, Modal, Form, OverlayTrigger, Tooltip, Row, Col } from "react-bootstrap";
+import { Button, Modal, Form, OverlayTrigger, Tooltip, Row, Col, Alert } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { faFileMedical, faQrcode, faTrash, faBeer, faEdit, faFileExport, faUpload, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -24,6 +24,10 @@ export function IPS({ ips, remove, update }) {
   const [editIPS, setEditIPS] = useState({ ...ips });
   const { setSelectedPatient } = useContext(PatientContext);
   const { startLoading, stopLoading } = useLoading();
+  const [pmrMessage, setPmrMessage] = useState('');
+  const [pmrAlertVariant, setPmrAlertVariant] = useState('success'); // "success" for success, "danger" for errors
+  const [showPmrAlert, setShowPmrAlert] = useState(false);
+
 
   const handleRemove = () => setShowConfirmModal(true);
 
@@ -102,15 +106,20 @@ export function IPS({ ips, remove, update }) {
   // Inside your IPS component, add the new function:
   const handleSendPMR = () => {
     startLoading();
-    // Use the appropriate identifier. Here I'm using ips.packageUUID,
-    // but adjust if you need to use another field (e.g., ips._id).
-    axios.post(`/api/pmr/${ips.packageUUID}`)
+    axios.post(`/api/pmr/${ips._id}`)
       .then(response => {
-        alert("PMR Response: " + JSON.stringify(response.data));
+        setPmrMessage("PMR Response: " + JSON.stringify(response.data, null, 2));
+        setPmrAlertVariant("success");
+        setShowPmrAlert(true);
       })
       .catch(error => {
-        console.error("Error sending PMR:", error);
-        alert("Error sending PMR: " + error.message);
+        const errorMsg = error.response && error.response.data 
+          ? error.response.data 
+          : error.message;
+        console.error("Error sending PMR:", errorMsg);
+        setPmrMessage(errorMsg);
+        setPmrAlertVariant("danger");
+        setShowPmrAlert(true);
       })
       .finally(() => stopLoading());
   };
@@ -356,6 +365,12 @@ export function IPS({ ips, remove, update }) {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {showPmrAlert && (
+        <Alert variant={pmrAlertVariant} onClose={() => setShowPmrAlert(false)} dismissible>
+          <pre>{pmrMessage}</pre>
+        </Alert>
+      )}
 
       <Modal show={showEditModal} onHide={() => setShowEditModal(false)} dialogClassName="edit-modal">
         <Modal.Header closeButton>

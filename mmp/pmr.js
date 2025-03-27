@@ -5,42 +5,48 @@ const { resolveId } = require('../utils/resolveId'); // your function to get the
 const router = express.Router();
 
 router.post('/pmr/:id', async (req, res) => {
-    const id = req.params.id;
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.toLocaleString('en-US', { month: 'short' }).toUpperCase();
-    const day = String(now.getDate()).padStart(2, '0');
-    const hour = String(now.getHours()).padStart(2, '0');
-    const minute = String(now.getMinutes()).padStart(2, '0');
-    // This creates an ID like: IPS-1UK-MER01-2023MAR10Z1015-01
-    const patientId = `IPS-1UK-MER01-${year}${month}${day}Z${hour}${minute}-01`;
-    try {
-        // 1. Retrieve the IPS record from MongoDB
-        const ipsRecord = await resolveId(id);
-        if (!ipsRecord) {
-            return res.status(404).send('IPS record not found');
-        }
+  const id = req.params.id;
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+  const day = String(now.getDate()).padStart(2, '0');
+  const hour = String(now.getHours()).padStart(2, '0');
+  const minute = String(now.getMinutes()).padStart(2, '0');
 
-        // 2. Get an access token from IdentityServer
-        const tokenResponse = await axios.post(
-            'https://track.medis.org.uk/identity/connect/token',
-            new URLSearchParams({
-                grant_type: 'client_credentials',
-                client_id: 'IPSMERN',
-                client_secret: 'e7d42f7c-d087-4789-9fc1-71e679bb8c8b',
-                scope: 'medmmapi'
-            }).toString(),
-            {
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-            }
-        );
-        const accessToken = tokenResponse.data.access_token;
+  try {
+    // 1. Retrieve the IPS record from MongoDB
+    const ipsRecord = await resolveId(id);
+    if (!ipsRecord) {
+      return res.status(404).send('IPS record not found');
+    }
 
-        //console.log("Access Token", accessToken);
+    // Extract the first three letters of the first name and surname, and convert them to uppercase.
+    const firstNameSub = (ipsRecord.patient.given || 'UNK').substring(0, 3).toUpperCase();
+    const surnameSub = (ipsRecord.patient.name || 'UNK').substring(0, 3).toUpperCase();
 
-        // 3. Build the PMR XML using data from the IPS record.
-        // Adjust the substitutions as needed.
-        const pmrXml = `
+    // Construct the patient ID in the format: IPS-[first 3 letters of first name]-[first 3 letters of surname]01-[year][month][day]Z[hour][minute]-01
+    const patientId = `IPS-${firstNameSub}-${surnameSub}01-${year}${month}${day}Z${hour}${minute}-01`;
+
+    // 2. Get an access token from IdentityServer
+    const tokenResponse = await axios.post(
+      'https://track.medis.org.uk/identity/connect/token',
+      new URLSearchParams({
+        grant_type: 'client_credentials',
+        client_id: 'IPSMERN',
+        client_secret: 'e7d42f7c-d087-4789-9fc1-71e679bb8c8b',
+        scope: 'medmmapi'
+      }).toString(),
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      }
+    );
+    const accessToken = tokenResponse.data.access_token;
+
+    //console.log("Access Token", accessToken);
+
+    // 3. Build the PMR XML using data from the IPS record.
+    // Adjust the substitutions as needed.
+    const pmrXml = `
 <urn:PatientMovementRequest mtfid="PMR" xmlns:urn="urn:nato:mtf:adatp-3:june%202021:pmr">
   <MessageIdentifier setid="MSGID" setSeq="3">
     <MessageTextFormatIdentifier ffSeq="1" ffirnFudn="FF1018-2">PMR</MessageTextFormatIdentifier>
@@ -71,7 +77,7 @@ router.post('/pmr/:id', async (req, res) => {
       <UnitName ffirnFudn="FF1022-48">FN1</UnitName>
     </Unit>
     <Nationality ffSeq="10">
-      <GeographicalEntity ffirnFudn="FF1265-1">${ipsRecord.patient.nation || 'UNK'}</GeographicalEntity>
+      <GeographicalEntity ffirnFudn="FF1265-1">${ipsRecord.patient.nation || 'GBR'}</GeographicalEntity>
     </Nationality>
     <PatientStatus ffSeq="11" ffirnFudn="FF1282-5">E</PatientStatus>
     <PatientType ffSeq="12" ffirnFudn="FF1282-4">E</PatientType>
@@ -147,31 +153,34 @@ router.post('/pmr/:id', async (req, res) => {
 </urn:PatientMovementRequest>
     `.trim();
 
-        // console.log("PMR XML",
-        //     pmrXml
-        //         .split('\n')
-        //         .map(l => l.trim())
-        //         .join('')
-        // );
+    // console.log("PMR XML",
+    //     pmrXml
+    //         .split('\n')
+    //         .map(l => l.trim())
+    //         .join('')
+    // );
 
-        // 4. Post the PMR XML to the API endpoint using the access token
-        const pmrResponse = await axios.post(
-            'https://track.medis.org.uk/api/api/pmrs/create-app11e',
-            pmrXml,
-            {
-                headers: {
-                    'Content-Type': 'application/xml',
-                    'Authorization': `Bearer ${accessToken}`
-                }
-            }
-        );
+    // 4. Post the PMR XML to the API endpoint using the access token
+    const pmrResponse = await axios.post(
+      'https://track.medis.org.uk/api/api/pmrs/create-app11e',
+      pmrXml,
+      {
+        headers: {
+          'Content-Type': 'application/xml',
+          'Authorization': `Bearer ${accessToken}`
+        }
+      }
+    );
 
-        // Return the PMR API response to the client
-        res.status(200).send(pmrResponse.data);
-    } catch (error) {
-        console.error('Error in PMR processing:', error.response ? error.response.data : error.message);
-        res.status(500).send('Error processing PMR');
-    }
+    // Return the PMR API response to the client
+    res.status(200).send(pmrResponse.data);
+  } catch (error) {
+    const errorMessage = error.response && error.response.data 
+      ? `Error processing PMR: ${JSON.stringify(error.response.data)}`
+      : `Error processing PMR: ${error.message}`;
+    console.error(errorMessage);
+    res.status(500).send(errorMessage);
+  }
 });
 
 module.exports = router;
