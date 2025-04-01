@@ -8,12 +8,20 @@ const clientKeyPath = path.join(__dirname, '..', 'certs', 'takserver-user-5-key.
 const clientCertPath = path.join(__dirname, '..', 'certs', 'takserver-user-5-cert.pem');
 const caCertPath = path.join(__dirname, '..', 'certs', 'truststore-intermediate.pem');
 
-// Load the certificate files.
-const clientKey = fs.readFileSync(clientKeyPath);
-const clientCert = fs.readFileSync(clientCertPath);
-const caCert = fs.readFileSync(caCertPath);
-
 function sendCotMessage(cotMessage, callback) {
+  let clientKey, clientCert, caCert;
+
+  // Attempt to read the certificate files.
+  try {
+    clientKey = fs.readFileSync(clientKeyPath);
+    clientCert = fs.readFileSync(clientCertPath);
+    caCert = fs.readFileSync(caCertPath);
+  } catch (err) {
+    const errMsg = 'Error reading certificate files: ' + err.message;
+    console.error(errMsg);
+    return callback(new Error(errMsg));
+  }
+
   const options = {
     host: 'medvc.medis.org.uk',
     port: 8089,

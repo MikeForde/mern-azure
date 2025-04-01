@@ -65,7 +65,7 @@ const { startGrpcServer } = require("./proto/grpcServer");
 const pmrRoutes = require('./mmp/pmr');
 
 // ──────── TAK ───────────────────────────
-//const takRoutes = require('./tak/takRoutes');
+const takRoutes = require('./tak/takRoutes');
 
 const { DB_CONN } = process.env;
 
@@ -184,7 +184,7 @@ api.get("/fetchips", getIPSBundleGeneric);
 api.use('/api', pmrRoutes);
 
 // Mount the TAK routes on the /tak path
-//api.use('/tak', takRoutes);
+api.use('/tak', takRoutes);
 
 // API PUT - CRUD Update
 api.put("/ips/:id", updateIPS);
