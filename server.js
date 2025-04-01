@@ -57,10 +57,15 @@ const { convertFhirXmlEndpoint } = require('./servercontrollers/convertFhirXmlEn
 //const { initXMPP_WebSocket } = require("./xmpp/xmppConnection");
 //const xmppRoutes = require("./xmpp/xmppRoutes");
 
+// ───── gRPC ─────
+
 const { startGrpcServer } = require("./proto/grpcServer");
 
 // ----- MMP ------
 const pmrRoutes = require('./mmp/pmr');
+
+// ──────── TAK ───────────────────────────
+const takRoutes = require('./tak/takRoutes');
 
 const { DB_CONN } = process.env;
 
@@ -177,6 +182,9 @@ api.get("/fetchips", getIPSBundleGeneric);
 
 // MMP endpoints
 api.use('/api', pmrRoutes);
+
+// Mount the TAK routes on the /tak path
+api.use('/tak', takRoutes);
 
 // API PUT - CRUD Update
 api.put("/ips/:id", updateIPS);

@@ -25,3 +25,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# TAK - ignore the following files
+/certs/*.pem
+/certs/*.p12
