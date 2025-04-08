@@ -4,9 +4,12 @@ const fs = require('fs');
 const path = require('path');
 
 // Adjust these paths as needed.
-const clientKeyPath = path.join(__dirname, '..', 'certs', 'takserver-user-5-key.pem');
-const clientCertPath = path.join(__dirname, '..', 'certs', 'takserver-user-5-cert.pem');
-const caCertPath = path.join(__dirname, '..', 'certs', 'truststore-intermediate.pem');
+// const clientKeyPath = path.join(__dirname, '..', 'certs', 'takserver-user-5-key.pem');
+// const clientCertPath = path.join(__dirname, '..', 'certs', 'takserver-user-5-cert.pem');
+// const caCertPath = path.join(__dirname, '..', 'certs', 'truststore-intermediate.pem');
+const clientKeyPath = path.join(__dirname, '..', 'certs', 'wintak01-key.pem');
+const clientCertPath = path.join(__dirname, '..', 'certs', 'wintak01-cert.pem');
+const caCertPath = path.join(__dirname, '..', 'certs', 'caCert.pem');
 
 function sendCotMessage(cotMessage, callback) {
   let clientKey, clientCert, caCert;
@@ -23,7 +26,8 @@ function sendCotMessage(cotMessage, callback) {
   }
 
   const options = {
-    host: 'medvc.medis.org.uk',
+    // host: 'medvc.medis.org.uk',
+    host: '192.168.68.102',
     port: 8089,
     key: clientKey,
     cert: clientCert,
