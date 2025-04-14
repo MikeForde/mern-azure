@@ -4,6 +4,16 @@ const { v4: uuidv4 } = require('uuid');
 // Helper function to check if a string contains a number
 const containsNumber = (str) => /\d/.test(str);
 
+function stripMilliseconds(dateString) {
+    if (!dateString) {
+        //console.log("stripMilliseconds: dateString is null or undefined");
+        return null;
+    }
+    const date = new Date(dateString);
+    return date.toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
+
 async function getIPSUnifiedBundle(req, res) {
     const id = req.params.id;
 
@@ -12,6 +22,8 @@ async function getIPSUnifiedBundle(req, res) {
     var condcount = 0;
     var obscount = 0;
 
+    console.log("getIPSUnifiedBundle called with ID:", id);
+
     try {
         const ips = await resolveId(id);
 
@@ -19,15 +31,11 @@ async function getIPSUnifiedBundle(req, res) {
             return res.status(404).json({ message: "IPS record not found" });
         }
 
-        // Generate the timestamp
-        const timestamp = new Date(ips.timeStamp);
-        const formattedTimestamp = timestamp.toISOString().replace(/(\.\d+)?Z$/, "Z");
-
         // Construct the JSON structure
         const bundle = {
             resourceType: "Bundle",
             id: ips.packageUUID, // First ID is the packageUUID
-            timestamp: formattedTimestamp,
+            timestamp: stripMilliseconds(ips.timeStamp),
             type: "collection",
             total: 2 + (ips.medication.length * 2) + ips.allergies.length + ips.conditions.length + ips.observations.length,
             entry: [
@@ -42,7 +50,7 @@ async function getIPSUnifiedBundle(req, res) {
                             },
                         ],
                         gender: ips.patient.gender,
-                        birthDate: ips.patient.dob,
+                        birthDate: stripMilliseconds(ips.patient.dob),
                         address: [
                             {
                                 country: ips.patient.nation,
@@ -68,7 +76,7 @@ async function getIPSUnifiedBundle(req, res) {
                                 reference: "med" + medcount,
                                 display: med.name,
                             },
-                            authoredOn: med.date,
+                            authoredOn: stripMilliseconds(med.date),
                             dosageInstruction: [
                                 {
                                     text: med.dosage,
@@ -108,7 +116,7 @@ async function getIPSUnifiedBundle(req, res) {
                                 },
                             ],
                         },
-                        onsetDateTime: allergy.date,
+                        onsetDateTime: stripMilliseconds(allergy.date),
                     },
                 })),
                 // Condition entries
@@ -125,7 +133,7 @@ async function getIPSUnifiedBundle(req, res) {
                                 },
                             ],
                         },
-                        onsetDateTime: condition.date,
+                        onsetDateTime: stripMilliseconds(condition.date),
                     },
                 })),
                 // Observation entries
@@ -144,7 +152,7 @@ async function getIPSUnifiedBundle(req, res) {
                                     },
                                 ],
                             },
-                            effectiveDateTime: observation.date,
+                            effectiveDateTime: stripMilliseconds(observation.date),
                         }
                     };
 
