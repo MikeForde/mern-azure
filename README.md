@@ -238,8 +238,7 @@ his API also supports sending and receiving raw binary data via application/octe
 | **API Page**         | View the various API GET endpoints, see their output, and download the output.                        |
 | **QR Page**          | Produce various forms of QR codes and download them. Formats include IPS JSON, BEER, and others.      |
 | **DMICP Page**       | Bulk upload IPS records produced in the SmartDoc format.                                              |
-| **Vitals API Pages** | GET and POST between the VitalsIQ IPS WebApp and the IPS MERN WebApp.                                 |
-| **NLD API Pages**    | POST to the NLD IPS WebApp.                                                                           |
+| **External API Pages** | GET and POST between the External IPS WebApps and the IPS MERN WebApp.                                 |                                                                      |
 | **About Pages**      | Information about IPS, the WebApp, the ChangeLog, and the API Documentation page.                     |
 
 ### Detailed Descriptions

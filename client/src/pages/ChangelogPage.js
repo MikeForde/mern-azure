@@ -540,6 +540,15 @@ function ChangeLogPage() {
                                 <li>Note: The MMP server must be accessible to the IPS server. This is typically achieved when the IPS server is on the same intranet or connected via a VPN, as the MMP server is usually not available on the public internet.</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_58 - 8th April 2025</h5>
+                            <ul>
+                                <li><strong>TAK Endpoint Experiments</strong></li>
+                                <li>POC: IPS records are transmitted using a new POST endpoint /tak/ips with the body containing a JSON with the id (record or packageUUID). IPS data is compressed (gzip) and encoded (Base64), then embedded in a custom XML element to avoid exposing sensitive information in standard displays.</li>
+                                <li>This feature require the presence of a TAK server and proper certificate configuration. The certs folder must contain the appropriate truststore and client PEM files (converted from the original p12 files) to establish secure connections.</li>
+                                <li>Note: The ability to view and process IPS data on ATAK or WinTAK depends on the installation of the corresponding IPS plugin on each platform.</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

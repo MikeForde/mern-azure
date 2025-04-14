@@ -68,6 +68,27 @@ function APIDocumentationPage() {
       request: 'JSON body: { "id": "<IPS record ID>", "from": "<occupant name or user>" }',
       response: 'JSON response confirming the record was retrieved and sent privately.'
     },
+    {
+      method: 'POST',
+      endpoint: '/tak/test',
+      description: 'Sends a test CoT message. A custom CoT message can be provided via the "cot" property in the JSON body.',
+      request: 'JSON: { "cot": "<CoT XML message>" }',
+      response: 'JSON: { "message": "<result>" }'
+    },
+    {
+      method: 'POST',
+      endpoint: '/tak/ips',
+      description: 'Resolves an IPS record by id (either packageUUID or ObjectId), compresses it into a gzipped, Base64-encoded payload, and embeds it in the custom <ipsData> element of a CoT message.',
+      request: 'JSON: { "id": "<IPS record ID or packageUUID>" }',
+      response: 'JSON: { "message": "<result>", "cot": "<Complete CoT message with <ipsData> element>" }'
+    },
+    {
+      method: 'GET',
+      endpoint: '/tak/browser/:id',
+      description: 'Returns an HTML page with nicely formatted IPS record details for display in a browser, using the IPS record identified by packageUUID.',
+      request: 'URL parameter: id (IPS record ID/packageUUID)',
+      response: 'HTML page with formatted IPS record details (patient info, medications, etc.)'
+    }
   ];
 
   // Additional instructions for encryption, compression, and raw binary usage
@@ -173,6 +194,12 @@ function APIDocumentationPage() {
           ))}
         </tbody>
       </Table>
+
+      <h3 className="mt-5">TAK Endpoints</h3>
+      <p>
+        The /tak/... endpoints are used for TAK integration. Note that these features will only work if a TAK server is available and the <code>certs</code> folder contains the appropriate truststore and client PEM files (converted from the original p12 files).
+        Additionally, the ability to view IPS data on ATAK or WinTAK platforms depends on having the respective IPS plugin installed on those platforms.
+      </p>
     </Container>
   );
 }

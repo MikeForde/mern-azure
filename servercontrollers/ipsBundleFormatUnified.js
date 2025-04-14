@@ -19,11 +19,15 @@ async function getIPSUnifiedBundle(req, res) {
             return res.status(404).json({ message: "IPS record not found" });
         }
 
+        // Generate the timestamp
+        const timestamp = new Date(ips.timeStamp);
+        const formattedTimestamp = timestamp.toISOString().replace(/(\.\d+)?Z$/, "Z");
+
         // Construct the JSON structure
         const bundle = {
             resourceType: "Bundle",
             id: ips.packageUUID, // First ID is the packageUUID
-            timestamp: ips.timeStamp, // Time stamp
+            timestamp: formattedTimestamp,
             type: "collection",
             total: 2 + (ips.medication.length * 2) + ips.allergies.length + ips.conditions.length + ips.observations.length,
             entry: [

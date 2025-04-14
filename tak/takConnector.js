@@ -26,8 +26,8 @@ function sendCotMessage(cotMessage, callback) {
   }
 
   const options = {
-    // host: 'medvc.medis.org.uk',
-    host: '192.168.68.116',
+    //host: 'medvc.medis.org.uk',
+    host: '192.168.68.119',
     port: 8089,
     key: clientKey,
     cert: clientCert,
