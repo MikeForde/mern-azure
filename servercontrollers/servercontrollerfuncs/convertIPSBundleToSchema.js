@@ -243,38 +243,58 @@ function convertIPSBundleToSchema(ipsBundle) {
         break;
 
       case "observation":
-        let obName = null;
-        let obCode = null;
-        let obSystem = null;
-        if (resource.code) {
-           if (resource.code.coding) {
-            obName = resource.code.coding[0].display ? resource.code.coding[0].display : null;
-            obCode = resource.code.coding[0].code ? resource.code.coding[0].code : null;
-            obSystem = resource.code.coding[0].system ? resource.code.coding[0].system : null;
-            if (obName === null) {
-              obName = resource.code.text ? resource.code.text : null;
-            }
+        case "observation":
+          let obName = null;
+          let obCode = null;
+          let obSystem = null;
+      
+          if (resource.code?.coding?.length > 0) {
+              const coding = resource.code.coding[0];
+              obName = coding.display || resource.code.text || null;
+              obCode = coding.code || null;
+              obSystem = coding.system || null;
           }
-        }
-        const observation = {
-          name: obName,
-          code: obCode,
-          system: obSystem
-        };
-        if (resource.effectiveDateTime) {
-          observation.date = new Date(resource.effectiveDateTime).toISOString();
-        } else if (resource.issued) {
-          observation.date = new Date(resource.issued).toISOString();
-        }
-        if (resource.valueQuantity) {
-          observation.value = `${resource.valueQuantity.value} ${resource.valueQuantity.unit}`;
-        } else if (resource.bodySite) {
-          observation.bodySite = resource.bodySite.coding[0].code;
-        } else if (resource.valueString) {
-          observation.value = resource.valueString;
-        }
-        observations.push(observation);
-        break;
+      
+          const observation = {
+              name: obName,
+              code: obCode,
+              system: obSystem
+          };
+      
+          // Use effectiveDateTime or issued for date
+          if (resource.effectiveDateTime) {
+              observation.date = new Date(resource.effectiveDateTime).toISOString();
+          } else if (resource.issued) {
+              observation.date = new Date(resource.issued).toISOString();
+          }
+      
+          // Prefer component-based BP-style values
+          if (resource.component?.length === 2) {
+              const [firstComp, secondComp] = resource.component;
+              const val1 = firstComp?.valueQuantity?.value;
+              const val2 = secondComp?.valueQuantity?.value;
+              const unit = firstComp?.valueQuantity?.unit || '';
+      
+              if (!isNaN(val1) && !isNaN(val2)) {
+                  observation.value = `${val1}-${val2} ${unit}`;
+              }
+          }
+          // Fallback to valueQuantity format
+          else if (resource.valueQuantity) {
+              const val = resource.valueQuantity.value;
+              const unit = resource.valueQuantity.unit || '';
+              observation.value = `${val} ${unit}`;
+          }
+          // Optional: capture bodySite or string values
+          else if (resource.bodySite?.coding?.length > 0) {
+              observation.bodySite = resource.bodySite.coding[0].code;
+          } else if (resource.valueString) {
+              observation.value = resource.valueString;
+          }
+      
+          observations.push(observation);
+          break;
+      
 
       case "immunization":
         // Extract the first code and occurrenceDateTime

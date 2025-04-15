@@ -141,20 +141,45 @@ async function getIPSLegacyBundle(req, res) {
 
                     if (observation.value) {
                         if (containsNumber(observation.value)) {
-                            const valueMatch = observation.value.match(/(\d+\.?\d*)(\D+)/);
-                            if (valueMatch) {
+                            // Check if the value is in the blood pressure format
+                            if (observation.value.includes('-') && (observation.value.endsWith('mmHg') || observation.value.endsWith('mm[Hg]'))) {
+                                const bpValues = observation.value.split('-');
                                 observationResource.resource.valueQuantity = {
-                                    value: parseFloat(valueMatch[1]),
-                                    unit: valueMatch[2].trim(),
+                                    value: bpValues[0] + '-' + parseFloat(bpValues[1]), // retain the full <number>-<number> part
+                                    unit: 'mmHg',
                                     system: "http://unitsofmeasure.org",
-                                    code: valueMatch[2].trim()
+                                    code: 'mmHg'
                                 };
+                            } else if (observation.value.includes('.')) {
+                                // Value contains a decimal point, assume it's a numerical value with units
+                                const valueMatch = observation.value.match(/(\d+\.\d+)(\D+)/);
+                                if (valueMatch) {
+                                    observationResource.resource.valueQuantity = {
+                                        value: parseFloat(valueMatch[1]),
+                                        unit: valueMatch[2].trim(),
+                                        system: "http://unitsofmeasure.org",
+                                        code: valueMatch[2].trim()
+                                    };
+                                }
+                            } else {
+                                // Value contains a number, assume it's numerical value with units
+                                const valueMatch = observation.value.match(/(\d+)(\D+)/);
+                                if (valueMatch) {
+                                    observationResource.resource.valueQuantity = {
+                                        value: parseFloat(valueMatch[1]),
+                                        unit: valueMatch[2].trim(),
+                                        system: "http://unitsofmeasure.org",
+                                        code: valueMatch[2].trim()
+                                    };
+                                }
                             }
-                        } else {
+                        }
+                         else {
+                            // Value is just text, assume it's body site related
                             observationResource.resource.bodySite = {
                                 coding: [
                                     {
-                                        display: observation.value
+                                        display: observation.bodySite,
                                     }
                                 ]
                             };

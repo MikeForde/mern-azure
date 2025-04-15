@@ -173,44 +173,66 @@ async function getIPSUnifiedBundle(req, res) {
                     if (observation.value) {
                         if (containsNumber(observation.value)) {
                             // Check if the value is in the blood pressure format
-                            if (observation.value.includes('-') && observation.value.endsWith('mmHg')) {
-                                const bpValues = observation.value.replace('mmHg', '').split('-').map(v => parseFloat(v.trim()));
-                                observationResource.resource.component = [
-                                    {
+                            if (observation.value.includes('-')) {
+                                if (observation.value.endsWith('mmHg') || observation.value.endsWith('mm[Hg]')) {
+                                    const bpValues = observation.value.replace('mmHg', '').split('-').map(v => parseFloat(v.trim()));
+                                    observationResource.resource.component = [
+                                        {
+                                            code: {
+                                                coding: [
+                                                    {
+                                                        system: "http://snomed.info/sct",
+                                                        code: "271649006",
+                                                        display: "Systolic blood pressure"
+                                                    }
+                                                ]
+                                            },
+                                            valueQuantity: {
+                                                value: bpValues[0],
+                                                unit: "mm[Hg]",
+                                                system: "http://unitsofmeasure.org",
+                                                code: "mm[Hg]"
+                                            }
+                                        },
+                                        {
+                                            code: {
+                                                coding: [
+                                                    {
+                                                        system: "http://snomed.info/sct",
+                                                        code: "271650006",
+                                                        display: "Diastolic blood pressure"
+                                                    }
+                                                ]
+                                            },
+                                            valueQuantity: {
+                                                value: bpValues[1],
+                                                unit: "mm[Hg]",
+                                                system: "http://unitsofmeasure.org",
+                                                code: "mm[Hg]"
+                                            }
+                                        }
+                                    ];
+                                } else {
+                                    // More genenic solution to hyphenated values that are not therefore BP values - we won't include the code element and we take the unit and code from the last part of the string for both elements
+                                    const otherValues = observation.value.split('-').map(v => parseFloat(v.trim()));
+                                    // the unit is the last part of the string after the last space
+                                    const unit = observation.value.substring(observation.value.lastIndexOf(' ') + 1).trim();
+                                    observationResource.resource.component = otherValues.map((value, index) => ({
                                         code: {
                                             coding: [
                                                 {
-                                                    system: "http://snomed.info/sct",
-                                                    code: "271649006",
-                                                    display: "Systolic blood pressure"
+                                                    display: `Component ${index + 1}`
                                                 }
                                             ]
                                         },
                                         valueQuantity: {
-                                            value: bpValues[0],
-                                            unit: "mm[Hg]",
+                                            value: value,
+                                            unit: unit,
                                             system: "http://unitsofmeasure.org",
-                                            code: "mm[Hg]"
+                                            code: unit
                                         }
-                                    },
-                                    {
-                                        code: {
-                                            coding: [
-                                                {
-                                                    system: "http://snomed.info/sct",
-                                                    code: "271650006",
-                                                    display: "Diastolic blood pressure"
-                                                }
-                                            ]
-                                        },
-                                        valueQuantity: {
-                                            value: bpValues[1],
-                                            unit: "mm[Hg]",
-                                            system: "http://unitsofmeasure.org",
-                                            code: "mm[Hg]"
-                                        }
-                                    }
-                                ];
+                                    }));
+                                }
                             } else if (observation.value.includes('.')) {
                                 // Value contains a decimal point, assume it's a numerical value with units
                                 const valueMatch = observation.value.match(/(\d+\.\d+)(\D+)/);
