@@ -50,7 +50,7 @@ async function getIPSUnifiedBundle(req, res) {
                                 given: [ips.patient.given],
                             },
                         ],
-                        gender: ips.patient.gender,
+                        gender: ips.patient.gender.toLowerCase(),
                         birthDate: stripTime(ips.patient.dob),
                         address: [
                             {
@@ -72,7 +72,7 @@ async function getIPSUnifiedBundle(req, res) {
                         resource: {
                             resourceType: "MedicationRequest",
                             id: "medreq" + ++medcount,
-                            status: med.status ? med.status : "active",
+                            status: med.status ? med.status.toLowerCase() : "active",
                             medicationReference: {
                                 reference: "med" + medcount,
                                 display: med.name,
@@ -110,7 +110,7 @@ async function getIPSUnifiedBundle(req, res) {
                         resourceType: "AllergyIntolerance",
                         id: "allergy" + ++algcount,
                         category: ["medication"],
-                        criticality: "high",
+                        criticality: allergy.criticality ? allergy.criticality.toLowerCase() : "high",
                         code: {
                             coding: [
                                 {
@@ -153,7 +153,7 @@ async function getIPSUnifiedBundle(req, res) {
                         resource: {
                             resourceType: "Observation",
                             id: observationUUID,
-                            status: "final",
+                            status: observation.status ? observation.status.toLowerCase() : "final",
                             code: {
                                 coding: [
                                     {
