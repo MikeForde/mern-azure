@@ -1,6 +1,6 @@
 // Description: Controller for converting BEER data to IPS JSON format.
 const { parseBEER } = require('./servercontrollerfuncs/convertIPSBEERToSchema');
-const { generateIPSBundle } = require('./servercontrollerfuncs/generateIPSBundle');
+const { pickIPSFormat } = require('../utils/ipsFormatPicker');
 
 
 function convertBEERToIPS(req, res) {
@@ -9,7 +9,8 @@ function convertBEERToIPS(req, res) {
     try {
       const delimiter = '\n'; // Assuming newline delimiter
       const mongoData = parseBEER(data, delimiter);
-      const ipsBundle = generateIPSBundle(mongoData);
+      const generateBundleFunction = pickIPSFormat(req.headers['x-ips-format']);
+      const ipsBundle = generateBundleFunction(mongoData);
       res.json(ipsBundle);
     } catch (error) {
       console.error('Error converting IPS BEER to IPS JSON format:', error);

@@ -1,6 +1,6 @@
 const { IPSModel } = require('../models/IPSModel');
 const { parseHL72_xToMongo } = require('./servercontrollerfuncs/convertHL72_xToSchema');
-const { generateIPSBundle } = require('./servercontrollerfuncs/generateIPSBundle');
+const { pickIPSFormat } = require('../utils/ipsFormatPicker');
 
 async function convertHL72_xToIPS(req, res) {
     try {
@@ -21,10 +21,9 @@ async function convertHL72_xToIPS(req, res) {
         // Convert HL7 2.8 data to MongoDB schema format
         const ipsRecord = parseHL72_xToMongo(hl7Message);
 
-
-
         // Generate IPS JSON bundle from MongoDB schema format
-        const ipsBundle = generateIPSBundle(ipsRecord);
+        const generateBundleFunction = pickIPSFormat(req.headers['x-ips-format']);
+        const ipsBundle = generateBundleFunction(ipsRecord);
 
         // Send the generated IPS JSON bundle as response
         res.json(ipsBundle);

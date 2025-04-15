@@ -1,5 +1,5 @@
 const { IPSModel } = require('../models/IPSModel');
-const { generateIPSBundle } = require('./servercontrollerfuncs/generateIPSBundle');
+const { pickIPSFormat } = require('../utils/ipsFormatPicker');
 
 function getIPSBundleByName(req, res) {
     const { name, given } = req.params;
@@ -15,8 +15,13 @@ function getIPSBundleByName(req, res) {
                 return res.status(404).json({ message: "IPS record not found" });
             }
 
-            // Constructing the JSON structure
-            const bundle = generateIPSBundle(ips);  
+        
+            const generateBundleFunction = pickIPSFormat(req.headers['x-ips-format']);
+            const bundle = generateBundleFunction(ips);
+            if (!bundle) {
+                return res.status(500).json({ message: "Error generating IPS bundle" });
+            }
+            // Send the generated bundle as a JSON response
 
             res.json(bundle);
         })

@@ -28,7 +28,7 @@ function parseHL72_xToMongo(hl7Message) {
                 data.patient.name = lastName;
                 data.patient.given = firstName;
                 data.patient.dob = moment(segments[7], 'YYYYMMDD').toDate();
-                data.patient.gender = segments[8] === 'M' ? 'Male' : (segments[8] === 'F' ? 'Female' : 'Other');
+                data.patient.gender = segments[8].toLowerCase() === 'm' ? 'male' : (segments[8].toLowerCase() === 'f' ? 'female' : 'other');
                 data.patient.nation = segments[11].split('^')[3];
                 data.patient.organization = segments[3].split('^')[3];
                 break;

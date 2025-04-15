@@ -27,7 +27,7 @@ function BEERGardenPage() {
 
   useEffect(() => {
     if (selectedPatient && !isConvertingRef.current) {
-      const endpoint = `/ips/${selectedPatient._id}`;
+      const endpoint = `/ipsunified/${selectedPatient._id}`;
 
       axios.get(endpoint)
         .then(response => {
