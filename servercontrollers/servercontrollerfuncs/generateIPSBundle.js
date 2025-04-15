@@ -1,4 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
+const { stripMilliseconds, stripTime} = require('../../utils/timeUtils');
 
 // Helper function to check if a string contains a number
 const containsNumber = (str) => /\d/.test(str);
@@ -146,13 +147,43 @@ function generateIPSBundle(ipsRecord) {
             if (containsNumber(observation.value)) {
                 // Check if the value is in the blood pressure format
                 if (observation.value.includes('-') && observation.value.endsWith('mmHg')) {
-                    const bpValues = observation.value.split('-');
-                    observationResource.resource.valueQuantity = {
-                        value: bpValues[0] + '-' + parseFloat(bpValues[1]), // retain the full <number>-<number> part
-                        unit: 'mmHg',
-                        system: "http://unitsofmeasure.org",
-                        code: 'mmHg'
-                    };
+                    const bpValues = observation.value.replace('mmHg', '').split('-').map(v => parseFloat(v.trim()));
+                    observationResource.resource.component = [
+                        {
+                            code: {
+                                coding: [
+                                    {
+                                        system: "http://snomed.info/sct",
+                                        code: "271649006",
+                                        display: "Systolic blood pressure"
+                                    }
+                                ]
+                            },
+                            valueQuantity: {
+                                value: bpValues[0],
+                                unit: "mm[Hg]",
+                                system: "http://unitsofmeasure.org",
+                                code: "mm[Hg]"
+                            }
+                        },
+                        {
+                            code: {
+                                coding: [
+                                    {
+                                        system: "http://snomed.info/sct",
+                                        code: "271650006",
+                                        display: "Diastolic blood pressure"
+                                    }
+                                ]
+                            },
+                            valueQuantity: {
+                                value: bpValues[1],
+                                unit: "mm[Hg]",
+                                system: "http://unitsofmeasure.org",
+                                code: "mm[Hg]"
+                            }
+                        }
+                    ];
                 } else if (observation.value.includes('.')) {
                     // Value contains a decimal point, assume it's a numerical value with units
                     const valueMatch = observation.value.match(/(\d+\.\d+)(\D+)/);
@@ -178,15 +209,18 @@ function generateIPSBundle(ipsRecord) {
                 }
             }
              else {
-                // Value is just text, assume it's body site related
-                observationResource.resource.bodySite = {
-                    coding: [
-                        {
-                            display: observation.value
-                        }
-                    ]
-                };
-            }
+                // Value is something else - for later
+             }
+        }
+
+        if (observation.bodySite) {
+            observationResource.resource.bodySite = {
+                "coding": [
+                    {
+                        "display": observation.bodySite
+                    }
+                ]
+            };
         }
 
         return observationResource;
@@ -349,7 +383,7 @@ function generateIPSBundle(ipsRecord) {
                         }
                     ],
                     "gender": ipsRecord.patient.gender,
-                    "birthDate": ipsRecord.patient.dob.toISOString().split('T')[0],
+                    "birthDate": stripTime(ipsRecord.patient.dob),
                     "address": [
                         {
                             "country": ipsRecord.patient.nation

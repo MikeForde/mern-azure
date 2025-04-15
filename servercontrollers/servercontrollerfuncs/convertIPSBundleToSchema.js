@@ -269,7 +269,7 @@ function convertIPSBundleToSchema(ipsBundle) {
         if (resource.valueQuantity) {
           observation.value = `${resource.valueQuantity.value} ${resource.valueQuantity.unit}`;
         } else if (resource.bodySite) {
-          observation.value = resource.bodySite.coding[0].display;
+          observation.bodySite = resource.bodySite.coding[0].code;
         } else if (resource.valueString) {
           observation.value = resource.valueString;
         }

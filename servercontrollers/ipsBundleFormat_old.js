@@ -1,5 +1,6 @@
 const { resolveId } = require('../utils/resolveId');
 const { v4: uuidv4 } = require('uuid');
+const { stripMilliseconds, stripTime} = require('../utils/timeUtils');
 
 // Helper function to check if a string contains a number
 const containsNumber = (str) => /\d/.test(str);
@@ -34,7 +35,7 @@ async function getIPSLegacyBundle(req, res) {
                             },
                         ],
                         gender: ips.patient.gender,
-                        birthDate: ips.patient.dob,
+                        birthDate: stripTime(ips.patient.dob),
                         address: [
                             {
                                 country: ips.patient.nation,

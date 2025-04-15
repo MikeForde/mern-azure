@@ -1,17 +1,10 @@
 const { resolveId } = require('../utils/resolveId');
 const { v4: uuidv4 } = require('uuid');
+const { stripMilliseconds, stripTime} = require('../utils/timeUtils');
+const { status } = require('@grpc/grpc-js');
 
 // Helper function to check if a string contains a number
 const containsNumber = (str) => /\d/.test(str);
-
-function stripMilliseconds(dateString) {
-    if (!dateString) {
-        //console.log("stripMilliseconds: dateString is null or undefined");
-        return null;
-    }
-    const date = new Date(dateString);
-    return date.toISOString().replace(/\.\d{3}Z$/, "Z");
-}
 
 
 async function getIPSUnifiedBundle(req, res) {
@@ -23,6 +16,8 @@ async function getIPSUnifiedBundle(req, res) {
     var obscount = 0;
 
     console.log("getIPSUnifiedBundle called with ID:", id);
+
+    const ptId = "pt1";
 
     try {
         const ips = await resolveId(id);
@@ -42,7 +37,13 @@ async function getIPSUnifiedBundle(req, res) {
                 {
                     resource: {
                         resourceType: "Patient",
-                        id: "pt1",
+                        id: ptId,
+                        identifier: [
+                            {
+                                system: "NATO_Id",
+                                value: ips.patient.identifier ? ips.patient.identifier : uuidv4().split("-")[0],
+                            },
+                        ],
                         name: [
                             {
                                 family: ips.patient.name,
@@ -50,7 +51,7 @@ async function getIPSUnifiedBundle(req, res) {
                             },
                         ],
                         gender: ips.patient.gender,
-                        birthDate: stripMilliseconds(ips.patient.dob),
+                        birthDate: stripTime(ips.patient.dob),
                         address: [
                             {
                                 country: ips.patient.nation,
@@ -71,10 +72,13 @@ async function getIPSUnifiedBundle(req, res) {
                         resource: {
                             resourceType: "MedicationRequest",
                             id: "medreq" + ++medcount,
-                            intent: "order",
+                            status: med.status ? med.status : "active",
                             medicationReference: {
                                 reference: "med" + medcount,
                                 display: med.name,
+                            },
+                            subject: {
+                                reference: "Medication/" + ptId,
                             },
                             authoredOn: stripMilliseconds(med.date),
                             dosageInstruction: [
@@ -116,6 +120,9 @@ async function getIPSUnifiedBundle(req, res) {
                                 },
                             ],
                         },
+                        patient: {
+                            reference: "Patient/" + ptId,
+                        },
                         onsetDateTime: stripMilliseconds(allergy.date),
                     },
                 })),
@@ -133,6 +140,9 @@ async function getIPSUnifiedBundle(req, res) {
                                 },
                             ],
                         },
+                        subject: {
+                            reference: "Patient/" + ptId,
+                        },
                         onsetDateTime: stripMilliseconds(condition.date),
                     },
                 })),
@@ -143,6 +153,7 @@ async function getIPSUnifiedBundle(req, res) {
                         resource: {
                             resourceType: "Observation",
                             id: observationUUID,
+                            status: "final",
                             code: {
                                 coding: [
                                     {
@@ -152,30 +163,91 @@ async function getIPSUnifiedBundle(req, res) {
                                     },
                                 ],
                             },
+                            subject: {
+                                reference: "Patient/" + ptId,
+                            },
                             effectiveDateTime: stripMilliseconds(observation.date),
                         }
                     };
 
                     if (observation.value) {
                         if (containsNumber(observation.value)) {
-                            const valueMatch = observation.value.match(/(\d+\.?\d*)(\D+)/);
-                            if (valueMatch) {
-                                observationResource.resource.valueQuantity = {
-                                    value: parseFloat(valueMatch[1]),
-                                    unit: valueMatch[2].trim(),
-                                    system: "http://unitsofmeasure.org",
-                                    code: valueMatch[2].trim()
-                                };
-                            }
-                        } else {
-                            observationResource.resource.bodySite = {
-                                coding: [
+                            // Check if the value is in the blood pressure format
+                            if (observation.value.includes('-') && observation.value.endsWith('mmHg')) {
+                                const bpValues = observation.value.replace('mmHg', '').split('-').map(v => parseFloat(v.trim()));
+                                observationResource.resource.component = [
                                     {
-                                        display: observation.value
+                                        code: {
+                                            coding: [
+                                                {
+                                                    system: "http://snomed.info/sct",
+                                                    code: "271649006",
+                                                    display: "Systolic blood pressure"
+                                                }
+                                            ]
+                                        },
+                                        valueQuantity: {
+                                            value: bpValues[0],
+                                            unit: "mm[Hg]",
+                                            system: "http://unitsofmeasure.org",
+                                            code: "mm[Hg]"
+                                        }
+                                    },
+                                    {
+                                        code: {
+                                            coding: [
+                                                {
+                                                    system: "http://snomed.info/sct",
+                                                    code: "271650006",
+                                                    display: "Diastolic blood pressure"
+                                                }
+                                            ]
+                                        },
+                                        valueQuantity: {
+                                            value: bpValues[1],
+                                            unit: "mm[Hg]",
+                                            system: "http://unitsofmeasure.org",
+                                            code: "mm[Hg]"
+                                        }
                                     }
-                                ]
-                            };
+                                ];
+                            } else if (observation.value.includes('.')) {
+                                // Value contains a decimal point, assume it's a numerical value with units
+                                const valueMatch = observation.value.match(/(\d+\.\d+)(\D+)/);
+                                if (valueMatch) {
+                                    observationResource.resource.valueQuantity = {
+                                        value: parseFloat(valueMatch[1]),
+                                        unit: valueMatch[2].trim(),
+                                        system: "http://unitsofmeasure.org",
+                                        code: valueMatch[2].trim()
+                                    };
+                                }
+                            } else {
+                                // Value contains a number, assume it's numerical value with units
+                                const valueMatch = observation.value.match(/(\d+)(\D+)/);
+                                if (valueMatch) {
+                                    observationResource.resource.valueQuantity = {
+                                        value: parseFloat(valueMatch[1]),
+                                        unit: valueMatch[2].trim(),
+                                        system: "http://unitsofmeasure.org",
+                                        code: valueMatch[2].trim()
+                                    };
+                                }
+                            }
                         }
+                         else {
+                            // Value is something else - for later
+                         }
+                    }
+            
+                    if (observation.bodySite) {
+                        observationResource.resource.bodySite = {
+                            "coding": [
+                                {
+                                    "display": observation.bodySite
+                                }
+                            ]
+                        };
                     }
 
                     return observationResource;

@@ -1,3 +1,4 @@
+const { status } = require('@grpc/grpc-js');
 const mongoose = require('mongoose');
 
 const IPSModel = mongoose.model(
@@ -40,6 +41,10 @@ const IPSModel = mongoose.model(
                 type: String,
                 required: false
             },
+            identifier: {
+                type: String,
+                required: false
+            }
         },
         medication: [
             {
@@ -77,6 +82,7 @@ const IPSModel = mongoose.model(
                 value: String,
                 valueCode: String,
                 bodySite: String,
+                status: String,
             }
         ],
         immunizations: [

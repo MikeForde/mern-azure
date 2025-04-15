@@ -425,10 +425,10 @@ export function IPS({ ips, remove, update }) {
                     onChange={handleEditChange}
                   >
                     <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                    <option value="Unknown">Unknown</option>
+                    <option value="male">male</option>
+                    <option value="female">female</option>
+                    <option value="other">other</option>
+                    <option value="unknown">unknown</option>
                   </Form.Control>
                 </Form.Group>
               </Col>
@@ -586,9 +586,9 @@ export function IPS({ ips, remove, update }) {
                         onChange={(e) => handleChangeItem("allergies", index, e)}
                       >
                         <option value="">Select Criticality</option>
-                        <option value="High">High</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Low">Low</option>
+                        <option value="high">high</option>
+                        <option value="medium">medium</option>
+                        <option value="low">low</option>
                       </Form.Control>
                     </td>
                     <td>

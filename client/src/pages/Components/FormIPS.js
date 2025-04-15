@@ -145,10 +145,10 @@ export function FormIPS({ add }) {
       return;
     }
 
-    if (!formData.patient.gender) { formData.patient.gender = "Unknown"; }
+    if (!formData.patient.gender) { formData.patient.gender = "unknown"; }
     if (!formData.patient.nation) { formData.patient.nation = "UK"; }
     if (!formData.patient.practitioner) { formData.patient.practitioner = "Dr No"; }
-    if (!formData.patient.organization) { formData.patient.organization = "UK DMS"; }
+    if (!formData.patient.organization) { formData.patient.organization = "GBR"; }
 
     // Proceed with the submission if all required fields are filled
     if (!formData.packageUUID) return;
@@ -249,10 +249,10 @@ export function FormIPS({ add }) {
                   value={formData.patient.gender}
                   onChange={handlePatientChange} >
                   <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                  <option value="Unknown">Unknown</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                  <option value="unknown">Unknown</option>
                 </Form.Control>
               </div>
             </Form.Group>
