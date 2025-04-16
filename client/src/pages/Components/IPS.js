@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { Button, Modal, Form, OverlayTrigger, Tooltip, Row, Col, Alert } from "react-bootstrap";
+import { Button, Modal, Form, OverlayTrigger, Tooltip, Row, Col } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { faFileMedical, faQrcode, faTrash, faBeer, faEdit, faFileExport, faUpload, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -8,6 +8,8 @@ import { PatientContext } from '../../PatientContext';
 import { useLoading } from '../../contexts/LoadingContext';
 import "./components.css";
 import { generatePDF } from './generatePDF';
+import { Toast, ToastContainer } from 'react-bootstrap';
+
 
 const formatDate = (dateString) => {
   if (!dateString) return "";
@@ -113,8 +115,8 @@ export function IPS({ ips, remove, update }) {
         setShowPmrAlert(true);
       })
       .catch(error => {
-        const errorMsg = error.response && error.response.data 
-          ? error.response.data 
+        const errorMsg = error.response && error.response.data
+          ? error.response.data
           : error.message;
         console.error("Error sending PMR:", errorMsg);
         setPmrMessage(errorMsg);
@@ -366,11 +368,25 @@ export function IPS({ ips, remove, update }) {
         </Modal.Footer>
       </Modal>
 
-      {showPmrAlert && (
-        <Alert variant={pmrAlertVariant} onClose={() => setShowPmrAlert(false)} dismissible>
-          <pre>{pmrMessage}</pre>
-        </Alert>
-      )}
+      <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999 }}>
+        <Toast
+          show={showPmrAlert}
+          onClose={() => setShowPmrAlert(false)}
+          bg={pmrAlertVariant}
+          delay={5000}
+          autohide
+        >
+          <Toast.Header>
+            <strong className="me-auto">PMR Response</strong>
+          </Toast.Header>
+          <Toast.Body>
+            <pre className="mb-0 text-white" style={{ whiteSpace: "pre-wrap", maxHeight: "200px", overflowY: "auto" }}>
+              {pmrMessage}
+            </pre>
+          </Toast.Body>
+        </Toast>
+      </ToastContainer>
+
 
       <Modal show={showEditModal} onHide={() => setShowEditModal(false)} dialogClassName="edit-modal">
         <Modal.Header closeButton>
