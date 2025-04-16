@@ -2,6 +2,7 @@ const { getAllIPS } = require('../servercontrollers/ipsDatabaseFormats');
 const { getIPSBundle } = require('../servercontrollers/ipsBundleFormat');
 const { getIPSBasic } = require('../servercontrollers/ipsBasicFormat');
 const { getIPSBEER } = require('../servercontrollers/ipsBEERFormat');
+const { getIPSBundleByName } = require('../servercontrollers/ipsBundleByName');
 
 
 const resolvers = {
@@ -71,6 +72,34 @@ const resolvers = {
         });
       
         return { id, content: rawText };
+      },
+      getIPSByName: async (_, { name, given, format }) => {
+        const mockReq = {
+          params: { name, given },
+          headers: {
+            'x-ips-format': format || 'unified',  // fallback to default
+          }
+        };
+      
+        let bundle = null;
+      
+        await new Promise((resolve, reject) => {
+          getIPSBundleByName(mockReq, {
+            json: (data) => {
+              bundle = data;
+              resolve();
+            },
+            status: () => ({
+              json: (err) => reject(new Error(err?.message || 'Error')),
+              send: (err) => reject(new Error(err?.message || 'Error')),
+            })
+          });
+        });
+      
+        return {
+          id: bundle.id || 'unknown',
+          content: JSON.stringify(bundle),
+        };
       }
     }
   };

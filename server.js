@@ -5,6 +5,8 @@ const ReadPreference = require("mongodb").ReadPreference;
 const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
+const swaggerUi = require('swagger-ui-express');
+const fs = require('fs');
 //const xmlparser = require("express-xml-bodyparser");
 //const getRawBody = require('raw-body');
 
@@ -78,6 +80,13 @@ const { DB_CONN } = process.env;
 
 const api = express();
 api.use(cors()); // enable CORS on all requests
+
+// Load the Swagger definition
+const apiDefinition = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'apidefinition.json'), 'utf-8')
+  );
+  
+api.use('/docs', swaggerUi.serve, swaggerUi.setup(apiDefinition));
 
 // ──────────────────────────────────────────────────────────
 //                  Logging Middleware
@@ -214,6 +223,7 @@ async function startApolloServer() {
 
 // Static front-end
 api.use(express.static(path.join(__dirname, "client", "build")));
+
 api.get("/*", (req, res) => {
     res.sendFile(path.join(__dirname, "client", "build", "index.html"));
 });

@@ -32,6 +32,21 @@ const typeDefs = gql`
       id: ID!
       delim: String
     ): IPSRecord
+
+    """
+  Fetch an IPS Bundle by patient's last and given name.
+
+  - Name and given are case-insensitive
+  - The optional format argument determines the IPS output format Available format values for x-ips-format:
+    - "unified" (default): Unified FHIR Bundle
+    - "inter": More expanded FHIR Bundle with - for example - Composition Resource
+    - "legacy": Deprecated legacy bundle format - just for backward compatibility and comparison
+  """
+  getIPSByName(
+    name: String!
+    given: String!
+    format: String
+  ): IPSRecord
   }
 `;
 
