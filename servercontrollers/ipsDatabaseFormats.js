@@ -27,16 +27,15 @@ async function getIPSRaw(req, res) {
 }
 
 // Fetch all IPS records
-function getAllIPS(req, res) {
-    IPSModel.find({})
-        .exec()
-        .then((ipss) => {
-            res.json(ipss);
-        })
-        .catch((error) => {
-            console.error("Error fetching all IPS records:", error);
-            res.status(400).send(error.message || "Invalid request");
-        });
-}
+async function getAllIPS(req, res) {
+    try {
+      const ipss = await IPSModel.find({}).exec();
+      res.json(ipss);
+    } catch (error) {
+      console.error("Error fetching all IPS records:", error);
+      res.status(400).send(error.message || "Invalid request");
+    }
+  }
+  
 
 module.exports = { getIPSRaw, getAllIPS };

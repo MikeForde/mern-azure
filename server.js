@@ -67,6 +67,13 @@ const pmrRoutes = require('./mmp/pmr');
 // ──────── TAK ───────────────────────────
 const takRoutes = require('./tak/takRoutes');
 
+// ───────────── GraphQL Apollo ─────────────────────────────
+const { ApolloServer } = require('@apollo/server');
+const { expressMiddleware } = require('@apollo/server/express4');
+const typeDefs = require('./graphql/schema');
+const resolvers = require('./graphql/resolvers');
+const playground = require('graphql-playground-middleware-express').default;
+
 const { DB_CONN } = process.env;
 
 const api = express();
@@ -194,6 +201,17 @@ api.put("/ipsuuid/:uuid", updateIPSByUUID);
 api.delete("/ips/:id", deleteIPS);
 api.delete("/ipsdeletebypractitioner/:practitioner", deleteIPSbyPractitioner);
 
+// GraphQL
+api.get('/playground', playground({ endpoint: '/graphql' }));
+async function startApolloServer() {
+    const apolloServer = new ApolloServer({ typeDefs, resolvers, introspection: true, playground : true });
+    await apolloServer.start();
+    api.use('/graphql', express.json(), expressMiddleware(apolloServer));
+  }
+  
+  startApolloServer();
+  
+
 // Static front-end
 api.use(express.static(path.join(__dirname, "client", "build")));
 api.get("/*", (req, res) => {
@@ -210,7 +228,7 @@ api.get("/*", (req, res) => {
 //     });
 
 // Start server
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5050;
 api.listen(port, '0.0.0.0', () => {
     console.log(`Server is running on port: ${port}`);
 });
