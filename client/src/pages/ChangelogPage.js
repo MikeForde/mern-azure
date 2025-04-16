@@ -559,6 +559,16 @@ function ChangeLogPage() {
                                 <li>For API calls, backwards compatibility is maintained by use of optional header x-ips-format, which can be set to "inter" or "legacy" for the composition-based or original format respectively. The latter retained more for comparison purposes.</li>
                             </ul>
                         </li>
+                        <li> 
+                            <h5>Version 0_60 - 16th April 2025</h5> 
+                            <ul> 
+                                <li><strong>New REST and GraphQL Documentation Endpoints</strong></li> 
+                                <li>Introduced a new <code>/docs</code> endpoint serving Swagger UI based on the updated OpenAPI 3.0 specification, enabling comprehensive exploration and interactive testing of all REST endpoints.</li> 
+                                <li>Started a new <code>/graphql</code> implementation allowing a limited number of GET-type queries to be done using GraphQL API.</li>
+                                <li>Includes a <code>/playground</code> endpoint for Apollo GraphQL Playground, which provides an interactive environment for testing GraphQL queries and mutations.</li>
+                                <li>Configuration settings can allow these endpoints to be enabled during development while restricting access in production environments for security.</li> 
+                            </ul> 
+                        </li>
                     </ul>
                 </Col>
             </Row>

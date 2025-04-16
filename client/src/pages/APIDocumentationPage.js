@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Container } from 'react-bootstrap';
+import { Table, Container, Alert } from 'react-bootstrap';
 
 function APIDocumentationPage() {
   // Define the API endpoints information
@@ -152,6 +152,23 @@ function APIDocumentationPage() {
   return (
     <Container className="mt-5">
       <h2>API Documentation</h2>
+      
+      {/* Added Explanation of Documentation Endpoints */}
+      <Alert variant="info">
+        <h4>Developer Documentation Endpoints</h4>
+        <p>
+          For interactive REST API documentation and testing, please visit our Swagger UI at{' '}
+          <a href="/docs" target="_blank" rel="noopener noreferrer"><code>/docs</code></a>.
+        </p>
+        <p>
+          For interactive GraphQL API testing and introspection, please visit our Apollo GraphQL Playground at{' '}
+          <a href="/playground" target="_blank" rel="noopener noreferrer"><code>/playground</code></a>.
+        </p>
+        <p>
+          Note: These endpoints are enabled during development and may be restricted in production environments.
+        </p>
+      </Alert>
+      
       <Table striped bordered hover responsive>
         <thead>
           <tr>
@@ -197,13 +214,12 @@ function APIDocumentationPage() {
 
       <h3 className="mt-5">*IPS Unified Format</h3>
       <p>
-        The more expanded composition FHiR JSON format can be obtained instead for the marked API calls by using the optional header x-ips-format: inter. Likewise, the legacy format with x-ips-format: legacy.
+        The more expanded composition FHiR JSON format can be obtained instead for the marked API calls by using the optional header <code>x-ips-format: inter</code>. Likewise, the legacy format with <code>x-ips-format: legacy</code> is retained for comparison.
       </p>
 
       <h3 className="mt-5">TAK Endpoints</h3>
       <p>
-        The /tak/... endpoints are used for TAK integration. Note that these features will only work if a TAK server is available and the <code>certs</code> folder contains the appropriate truststore and client PEM files (converted from the original p12 files).
-        Additionally, the ability to view IPS data on ATAK or WinTAK platforms depends on having the respective IPS plugin installed on those platforms.
+        The <code>/tak/...</code> endpoints are used for TAK integration. Note that these features require a TAK server and that the <code>certs</code> folder contains the necessary truststore and client PEM files (converted from p12 files). The ability to view IPS data on ATAK or WinTAK platforms also depends on having the respective IPS plugin installed.
       </p>
     </Container>
   );
