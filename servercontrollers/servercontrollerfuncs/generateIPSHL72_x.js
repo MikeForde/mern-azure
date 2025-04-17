@@ -55,7 +55,9 @@ function generateIPSHL72_x(data) {
             let units = '';
 
             if (obs.value) {
-                const numericMatch = obs.value.match(/^(\d+\.?\d*)\s*(\w+)?$/);
+                const numericMatch = obs.value.match(
+                    /^(\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)?)\s*(\S+)?$/
+                  );
                 if (numericMatch) {
                     const [_, numericValue, unit] = numericMatch;
                     valueType = 'NM'; // Numeric
@@ -78,4 +80,3 @@ function generateIPSHL72_x(data) {
 }
 
 module.exports = { generateIPSHL72_x };
-

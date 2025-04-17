@@ -173,11 +173,22 @@ function generateIPSBundleLegacy(ips) {
                                 }
                             }
                              else {
-                                // Value is just text, assume it's body site related
+                                // Value is just text, for now assume it's body site related but we need to fix in future
                                 observationResource.resource.bodySite = {
                                     coding: [
                                         {
-                                            display: observation.bodySite,
+                                            display: observation.value,
+                                        }
+                                    ]
+                                };
+                            }
+
+                            // Eventually we will confine bodySite to just its field in the database but for now we'll cope with both options
+                            if (observation.bodySite) {
+                                observationResource.resource.bodySite = {
+                                    "coding": [
+                                        {
+                                            "display": observation.bodySite
                                         }
                                     ]
                                 };

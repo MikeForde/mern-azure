@@ -57,12 +57,12 @@ function convertCDAToSchema(cdaJSON) {
     // Helper function to map gender codes to readable format
     const mapGender = (code) => {
         const genderMap = {
-            'M': 'Male',
-            'F': 'Female',
-            'U': 'Unknown',
-            'O': 'Other'
+            'M': 'male',
+            'F': 'female',
+            'U': 'unknown',
+            'O': 'other'
         };
-        return genderMap[code] || 'Unknown';
+        return genderMap[code] || 'unknown';
     };
 
     const patient = {};
@@ -171,7 +171,7 @@ function convertCDAToSchema(cdaJSON) {
                         code: element.observation[0].code[0]?.$?.code || '',
                         system: element.observation[0].code[0]?.$?.codeSystemName || '',
                         date: parseTimestamp(element.observation[0].effectiveTime[0].$?.value),
-                        value: element.observation[0].value[0]?.$?.value + element.observation[0].value[0]?.$?.unit || ''
+                        value: element.observation[0].value[0]?.$?.value + ' ' + element.observation[0].value[0]?.$?.unit || ''
                     });
                 } else if (element.organizer) {
                     const diastolic = element.organizer[0].component[0].observation[0].value[0].$?.value;
@@ -182,7 +182,7 @@ function convertCDAToSchema(cdaJSON) {
                         code: '55284-4',
                         system: 'LOINC',
                         date: parseTimestamp(element.organizer[0].component[0].observation[0].effectiveTime[0].$?.value),
-                        value: `${systolic}-${diastolic}mmHg`
+                        value: `${systolic}-${diastolic} mmHg`
                     });
                 }
             });

@@ -244,10 +244,18 @@ function generateIPSBundleUnified(ips) {
                                 }
                             }
                              else {
-                                // Value is something else - for later
+                                // Value is just text, for now assume it's body site related but we need to fix in future
+                                observationResource.resource.bodySite = {
+                                    coding: [
+                                        {
+                                            display: observation.value,
+                                        }
+                                    ]
+                                };
                              }
                         }
-                
+                        
+                        // Eventually we will confine bodySite to just its field in the database but for now we'll cope with both options
                         if (observation.bodySite) {
                             observationResource.resource.bodySite = {
                                 "coding": [

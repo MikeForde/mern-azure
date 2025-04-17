@@ -58,6 +58,7 @@ const formatVitalSigns = (vitalSigns, earliestDate) => {
         if (obs.name === 'Blood Pressure') {
             const bpValues = obs.value.split('-');
             bpValues[1] = bpValues[1].replace('mmHg','');
+            bpValues[1] = bpValues[1].replace('mm[Hg]','');
             bpValues[1] = bpValues[1].trim();
             value = `${bpValues[0]}-${bpValues[1]}`;
         } else if (obs.name === 'AVPU') {
@@ -85,12 +86,12 @@ const formatVitalSigns = (vitalSigns, earliestDate) => {
 
     // Gender formatting
     const genderMap = {
-        'Male': 'm',
-        'Female': 'f',
-        'Other': 'o',
-        'Unknown': 'u'
+        'male': 'm',
+        'female': 'f',
+        'other': 'o',
+        'unknown': 'u'
     };
-    basicInfo += `${genderMap[ipsRecord.patient.gender] || 'u'}${delimiter}`;
+    basicInfo += `${genderMap[ipsRecord.patient.gender.toLowerCase()] || 'u'}${delimiter}`;
 
     basicInfo += `${ipsRecord.patient.practitioner}${delimiter}`;
     basicInfo += `${ipsRecord.patient.nation}${delimiter}`;
@@ -126,10 +127,10 @@ const formatVitalSigns = (vitalSigns, earliestDate) => {
 
     // Criticality formatting
     const criticalityMap = {
-        'High': 'h',
-        'Medium': 'm',
-        'Low': 'l',
-        'Moderate': 'm'
+        'high': 'h',
+        'medium': 'm',
+        'low': 'l',
+        'moderate': 'm'
     };
 
     // Allergy information
@@ -137,7 +138,7 @@ const formatVitalSigns = (vitalSigns, earliestDate) => {
         basicInfo += `A${3}-${ipsRecord.allergies.length}${delimiter}`;
         ipsRecord.allergies.forEach((allergy) => {
             basicInfo += `${allergy.name}${delimiter}`;
-            basicInfo += `${criticalityMap[allergy.criticality] || 'm'}${delimiter}`;
+            basicInfo += `${criticalityMap[allergy.criticality.toLowerCase()] || 'm'}${delimiter}`;
             basicInfo += `${formatDate(allergy.date)}${delimiter}`;
         });
     }

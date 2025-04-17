@@ -48,12 +48,12 @@ function parseBEER(dataPacket, delimiter) {
     // Helper function to map gender
     function mapGender(gender) {
         const genderMap = {
-            'm': 'Male',
-            'f': 'Female',
-            'u': 'Unknown',
-            'o': 'Other'
+            'm': 'male',
+            'f': 'female',
+            'u': 'unknown',
+            'o': 'other'
         };
-        return genderMap[gender] || 'Unknown';
+        return genderMap[gender] || 'unknown';
     }
 
     // Parsing basic info
@@ -118,11 +118,11 @@ function parseBEER(dataPacket, delimiter) {
     // Helper function to parse allergies criticality
     function mapCriticality(criticality) {
         const criticalityMap = {
-            'l': 'Low',
-            'm': 'Medium',
-            'h': 'High'
+            'l': 'low',
+            'm': 'medium',
+            'h': 'high'
         };
-        return criticalityMap[criticality] || 'Unknown';
+        return criticalityMap[criticality] || 'unknown';
     }
 
     const parseAllergies = (count) => {
@@ -204,7 +204,7 @@ function parseBEER(dataPacket, delimiter) {
             immunizations.push({ name, system, date });
         }
         return immunizations;
-    };
+    };   
 
     // Immunization entries
     if (lines[currentIndex].startsWith('I')) {
@@ -267,7 +267,7 @@ function parseBEER(dataPacket, delimiter) {
                     const date = new Date(earliestObservationTime.getTime() + minutes * 60000);
                     
                     // Need to add units to value
-                    vitalSigns.push({ name: obsName, date, value: `${value}${units}` });
+                    vitalSigns.push({ name: obsName, date, value: `${value} ${units}` });
                 });
             }
             
