@@ -216,7 +216,7 @@ function parseBEER(dataPacket, delimiter) {
     }
 
     // Medication entries on or after timeStamp
-    if (/^\d{12}$/.test(lines[currentIndex])) {
+    if (/^\d{12}$/.test(lines[currentIndex]) && lines[currentIndex+1] && lines[currentIndex+1].startsWith('m')) {
         let earliestMedTime = new Date(
             lines[currentIndex++].replace(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1-$2-$3T$4:$5:00.000Z')
         );
@@ -228,7 +228,7 @@ function parseBEER(dataPacket, delimiter) {
     }
 
     // Observation entries on or after timeStamp
-    if (/^\d{12}$/.test(lines[currentIndex])) {
+    if (/^\d{12}$/.test(lines[currentIndex]) && lines[currentIndex+1] && lines[currentIndex+1].startsWith('v')) {
         let earliestObservationTime = new Date(
             lines[currentIndex++].replace(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1-$2-$3T$4:$5:00.000Z')
         );

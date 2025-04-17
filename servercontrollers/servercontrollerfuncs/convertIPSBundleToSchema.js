@@ -287,7 +287,9 @@ function convertIPSBundleToSchema(ipsBundle) {
           }
           // Optional: capture bodySite or string values
           else if (resource.bodySite?.coding?.length > 0) {
-              observation.bodySite = resource.bodySite.coding[0].code;
+              observation.bodySite = resource.bodySite.coding[0].display;
+              // Fudge - but for now, we'll double-tap and use the bodySite as the value (unless it already contains a value)
+              observation.value = observation.value ? observation.value : observation.bodySite;
           } else if (resource.valueString) {
               observation.value = resource.valueString;
           }

@@ -83,7 +83,7 @@ function convertCDAToSchema(cdaJSON) {
     // Extract practitioner and organization details
     const participant = cdaObject.participant?.[0];
     patient.practitioner = `${getValue(participant?.associatedEntity?.[0]?.associatedPerson?.[0]?.name?.[0]?.given?.[0])} ${getValue(participant?.associatedEntity?.[0]?.associatedPerson?.[0]?.name?.[0]?.family?.[0])}`;
-    patient.organization = getValue(cdaObject.author?.[0]?.assignedAuthor?.[0]?.representedOrganization?.[0]?.name?.[0]) || 'NL MOD';
+    patient.organization = getValue(cdaObject.author?.[0]?.assignedAuthor?.[0]?.representedOrganization?.[0]?.name?.[0]) || 'NLD';
 
     const components = cdaObject.component?.[0]?.structuredBody?.[0]?.component;
     if (components) {
