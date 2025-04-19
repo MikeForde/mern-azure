@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
-import { Button, Alert, Form, DropdownButton, Dropdown } from 'react-bootstrap';
+import { Button, Alert, Form, DropdownButton, Dropdown, Toast, ToastContainer } from 'react-bootstrap';
 import './Page.css';
 import { PatientContext } from '../PatientContext';
 import { useLoading } from '../contexts/LoadingContext';
@@ -15,6 +15,11 @@ function APIGETPage() {
   const [responseSize, setResponseSize] = useState(0);
   const [useCompressionAndEncryption, setUseCompressionAndEncryption] = useState(false);
   const [useIncludeKey, setUseIncludeKey] = useState(false);
+  // Toast state
+  const [showToast, setShowToast] = useState(false);
+  const [toastMsg, setToastMsg]   = useState('');
+  const [toastVariant, setToastVariant] = useState('info');
+
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find((record) => record._id === recordId);
@@ -38,7 +43,7 @@ function APIGETPage() {
           if (useCompressionAndEncryption) {
             headers['Accept-Extra'] = 'insomzip, base64';
             headers['Accept-Encryption'] = 'aes256';
-            if(useIncludeKey) {
+            if (useIncludeKey) {
               headers['Accept-Extra'] = 'insomzip, base64, includeKey';
             }
           }
@@ -46,7 +51,7 @@ function APIGETPage() {
           const response = await axios.get(endpoint, { headers });
           let responseData;
 
-          if(useCompressionAndEncryption) {
+          if (useCompressionAndEncryption) {
             setResponseSize(JSON.stringify(response.data).length);
             responseData = JSON.stringify(response.data, null, 2);
           } else if (mode === 'ipsbasic' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim' || mode === 'ipshl72x') {
@@ -98,9 +103,9 @@ function APIGETPage() {
       case 'ipslegacy':
         setModeText('IPS Legacy JSON Bundle - /ipslegacy/:id');
         break;
-        case 'ipsunified':
-          setModeText('IPS Unified JSON Bundle - /ipsunified/:id');
-          break;
+      case 'ipsunified':
+        setModeText('IPS Unified JSON Bundle - /ipsunified/:id');
+        break;
       case 'ipsmongo':
         setModeText('IPS NoSQL - /ipsmongo/:id');
         break;
@@ -125,6 +130,30 @@ function APIGETPage() {
     const formatted = xml.replace(/></g, '>\n<');
     return formatted;
   };
+
+  const handleWriteToNfc = async () => {
+    if (!('NDEFReader' in window)) {
+      setToastMsg('Web NFC is not supported on this device/browser.');
+      setToastVariant('warning');
+      setShowToast(true);
+      return;
+    }
+    try {
+      const writer = new window.NDEFReader();
+      await writer.write(data);
+      console.log('Data written to NFC tag:', data);
+      setToastMsg('Data written to NFC tag!');
+      setToastVariant('success');
+    } catch (error) {
+      console.error('Error writing to NFC:', error);
+      setToastMsg(`Failed to write to NFC: ${error.message}`);
+      setToastVariant('danger');
+
+    } finally {
+      setShowToast(true);
+    }
+  };
+
 
   return (
     <div className="app">
@@ -208,20 +237,51 @@ function APIGETPage() {
         )}
         <br />
         <div className="button-container">
-          <Button className="mb-3" onClick={handleDownloadData}>
+          <Button className="mb-3" onClick={handleDownloadData}
+            disabled={!data}>
             Download Data
           </Button>
           {mode === 'ips' && (
             <Button
               variant="primary"
-              className="mb-3"
+              className="mb-3 ml-2"
               onClick={() => window.open('https://ipsviewer.com', '_blank')}
+              disabled={!data}
             >
               Open IPS Viewer
             </Button>
           )}
+          <Button
+            variant="primary"
+            className="mb-3 ml-2"
+            onClick={handleWriteToNfc}
+            disabled={!('NDEFReader' in window) || !data}
+          >
+            Write to NFC
+          </Button>
         </div>
       </div>
+      {/* Floating Toast, just like in IPS.js */}
+      <ToastContainer
+        position="bottom-end"
+        className="p-3"
+        style={{ zIndex: 9999 }}
+      >
+        <Toast
+          onClose={() => setShowToast(false)}
+          show={showToast}
+          bg={toastVariant}
+          delay={4000}
+          autohide
+        >
+          <Toast.Header>
+            <strong className="me-auto">IPS MERN says</strong>
+          </Toast.Header>
+          <Toast.Body className={toastVariant === 'light' ? '' : 'text-white'}>
+            {toastMsg}
+          </Toast.Body>
+        </Toast>
+      </ToastContainer>
     </div>
   );
 }
