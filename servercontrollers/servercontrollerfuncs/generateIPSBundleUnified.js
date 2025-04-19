@@ -64,7 +64,7 @@ function generateIPSBundleUnified(ips) {
                                     display: med.name,
                                 },
                                 subject: {
-                                    reference: "Medication/" + ptId,
+                                    reference: "Patient/" + ptId,
                                 },
                                 authoredOn: stripMilliseconds(med.date),
                                 dosageInstruction: [
