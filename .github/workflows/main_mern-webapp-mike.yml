@@ -9,6 +9,10 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: deploy-to-azure
+  cancel-in-progress: true
+
 env:
   AZURE_WEBAPP_NAME: mern-webapp-mike         # Your Azure Web App name
   AZURE_WEBAPP_PACKAGE_PATH: '.'              # Path to your project (here, the repository root)
