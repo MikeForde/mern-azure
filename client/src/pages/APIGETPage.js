@@ -17,8 +17,10 @@ function APIGETPage() {
   const [useIncludeKey, setUseIncludeKey] = useState(false);
   // Toast state
   const [showToast, setShowToast] = useState(false);
-  const [toastMsg, setToastMsg]   = useState('');
+  const [toastMsg, setToastMsg] = useState('');
   const [toastVariant, setToastVariant] = useState('info');
+  const [isWriting, setIsWriting] = useState(false);
+
 
 
   const handleRecordChange = (recordId) => {
@@ -138,6 +140,8 @@ function APIGETPage() {
       setShowToast(true);
       return;
     }
+
+    setIsWriting(true);
     try {
       const writer = new window.NDEFReader();
       await writer.write(data);
@@ -146,10 +150,11 @@ function APIGETPage() {
       setToastVariant('success');
     } catch (error) {
       console.error('Error writing to NFC:', error);
-      setToastMsg(`Failed to write to NFC: ${error.message}`);
+      setToastMsg(`Error - possible tag capacity: ${error.message}`);
       setToastVariant('danger');
 
     } finally {
+      setIsWriting(false);
       setShowToast(true);
     }
   };
@@ -161,7 +166,7 @@ function APIGETPage() {
         <h3>
           API GET - IPS Data: {responseSize}
           <div className="noteFont">
-            - /:id can be the IPS id (the main UUID) or the internal MongoDB _id
+            - /:id - packageUUID / internal MongoDB _id
           </div>
         </h3>
         {selectedPatients.length > 0 && selectedPatient && (
@@ -211,7 +216,7 @@ function APIGETPage() {
                 onChange={(e) => setUseCompressionAndEncryption(e.target.checked)}
               />
               <label className="form-check-label" htmlFor="compressionEncryption">
-                Compress (gzip) and Encrypt (aes256 base 64)
+                Gzip + Encrypt (aes256 base64)
               </label>
             </div>
             <div className="form-check">
@@ -252,12 +257,12 @@ function APIGETPage() {
             </Button>
           )}
           <Button
-            variant="primary"
+            variant={isWriting ? 'dark' : 'primary'}
             className="mb-3 ml-2"
             onClick={handleWriteToNfc}
-            disabled={!('NDEFReader' in window) || !data}
+            disabled={!data || isWriting}
           >
-            Write to NFC
+            {isWriting ? 'Waiting...' : 'Write to NFC'}
           </Button>
         </div>
       </div>
