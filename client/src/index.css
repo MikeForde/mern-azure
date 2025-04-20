@@ -11,3 +11,34 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* slightly smaller fonts/buttons on tablets and below */
+@media (max-width: 768px) {
+  html {
+    font-size: 90%;
+  }
+}
+
+/* even more compact on phones */
+@media (max-width: 576px) {
+  html {
+    font-size: 85%;
+  }
+}
+
+/* even more compact on phones */
+@media (max-width: 400px) {
+  html {
+    font-size: 85%;
+  }
+  .navbar-collapse {
+    width: 100% !important;
+  }
+  .navbar.fixed-top {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;      /* use the true viewport width */
+    max-width: 100vw !important;  /* prevent any accidental max‑width kicking in */
+  }
+}
+

@@ -69,9 +69,6 @@
 
 /* slightly smaller fonts/buttons on tablets and below */
 @media (max-width: 768px) {
-  html {
-    font-size: 90%;
-  }
   .dropdown-button {
     height: 28px;
   }
@@ -83,9 +80,6 @@
 
 /* even more compact on phones */
 @media (max-width: 576px) {
-  html {
-    font-size: 85%;
-  }
   .app {
     padding: 20px;
   }

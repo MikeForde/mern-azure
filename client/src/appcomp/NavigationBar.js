@@ -49,7 +49,7 @@ function NavigationBar() {
   const isHostedOnAzure = window.location.href.includes("azure");
 
   return (
-    <Navbar expanded={expanded} expand="lg" bg="dark" variant="dark" fixed="top">
+    <Navbar expanded={expanded} expand="md" bg="dark" variant="dark" fixed="top">
       <Container>
         <Navbar.Brand as={Link} to="/" onClick={() => handleNavItemSelect(false)}>
           <img
