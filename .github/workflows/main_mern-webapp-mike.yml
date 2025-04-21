@@ -9,53 +9,66 @@ on:
       - main
   workflow_dispatch:
 
-concurrency:
-  group: deploy-to-azure
-  cancel-in-progress: true
-
-env:
-  AZURE_WEBAPP_NAME: mern-webapp-mike         # Your Azure Web App name
-  AZURE_WEBAPP_PACKAGE_PATH: '.'              # Path to your project (here, the repository root)
-  NODE_VERSION: '14.x'                        # Set your preferred Node.js version
-
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write      # Required for Azure login
-      contents: read       # Required for actions/checkout
+      contents: read #This is required for actions/checkout
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js version ${{ env.NODE_VERSION }}
+      - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '14.x'
 
       - name: npm install, build, and test
-        env:
-          CI: false
         run: |
           npm install
           npm run build --if-present
           npm run test --if-present
 
+      - name: Zip artifact for deployment
+        run: zip release.zip ./* -r
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-app
+          path: release.zip
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: node-app
+
+      - name: Unzip artifact for deployment
+        run: unzip release.zip
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_7CCC5B26B7E04A9EBAFB67397E750984 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_AA90401823C54F7594EE1EC4D926BCC2 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_474AE9D647544212BED7DBD188C1CD25 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_0DB7EB90F69C482D96C066B3B880998F }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_4612AB8673E44A528F5898A72B2B4566 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_BA14A337D6054876A62A448C891EB059 }}
 
-      - name: Deploy to Azure Web App
+      - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
+        uses: azure/webapps-deploy@v2
         with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          app-name: 'mern-webapp-mike'
           slot-name: 'Production'
-          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          package: .
+          
