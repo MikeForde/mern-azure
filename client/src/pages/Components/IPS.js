@@ -156,136 +156,146 @@ export function IPS({ ips, remove, update }) {
             {ips.medication && ips.medication.length > 0 && (
               <>
                 <h4>Medications:</h4>
-                <table className="table table-striped">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Code</th>
-                      <th>System</th>
-                      <th>Date</th>
-                      <th>Dosage</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ips.medication.map((med, index) => (
-                      <tr key={index}>
-                        <td>{med.name}</td>
-                        <td>{med.code}</td>
-                        <td>{med.system}</td>
-                        <td>{formatDate(med.date)}</td>
-                        <td>{med.dosage}</td>
+                <div className="table-responsive">
+                  <table className="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Code</th>
+                        <th>System</th>
+                        <th>Date</th>
+                        <th>Dosage</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {ips.medication.map((med, index) => (
+                        <tr key={index}>
+                          <td>{med.name}</td>
+                          <td>{med.code}</td>
+                          <td>{med.system}</td>
+                          <td>{formatDate(med.date)}</td>
+                          <td>{med.dosage}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </>
             )}
 
             {ips.allergies && ips.allergies.length > 0 && (
               <>
                 <h4>Allergies:</h4>
-                <table className="table table-striped">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Code</th>
-                      <th>System</th>
-                      <th>Criticality</th>
-                      <th>Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ips.allergies.map((allergy, index) => (
-                      <tr key={index}>
-                        <td>{allergy.name}</td>
-                        <td>{allergy.code}</td>
-                        <td>{allergy.system}</td>
-                        <td>{allergy.criticality}</td>
-                        <td>{formatDate(allergy.date)}</td>
+                <div className="table-responsive">
+                  <table className="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Code</th>
+                        <th>System</th>
+                        <th>Criticality</th>
+                        <th>Date</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {ips.allergies.map((allergy, index) => (
+                        <tr key={index}>
+                          <td>{allergy.name}</td>
+                          <td>{allergy.code}</td>
+                          <td>{allergy.system}</td>
+                          <td>{allergy.criticality}</td>
+                          <td>{formatDate(allergy.date)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </>
             )}
 
             {ips.conditions && ips.conditions.length > 0 && (
               <>
                 <h4>Conditions:</h4>
-                <table className="table table-striped">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Code</th>
-                      <th>System</th>
-                      <th>Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ips.conditions.map((condition, index) => (
-                      <tr key={index}>
-                        <td>{condition.name}</td>
-                        <td>{condition.code}</td>
-                        <td>{condition.system}</td>
-                        <td>{formatDate(condition.date)}</td>
+                <div className="table-responsive">
+                  <table className="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Code</th>
+                        <th>System</th>
+                        <th>Date</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {ips.conditions.map((condition, index) => (
+                        <tr key={index}>
+                          <td>{condition.name}</td>
+                          <td>{condition.code}</td>
+                          <td>{condition.system}</td>
+                          <td>{formatDate(condition.date)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </>
             )}
 
             {ips.observations && ips.observations.length > 0 && (
               <>
                 <h4>Observations:</h4>
-                <table className="table table-striped">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Code</th>
-                      <th>System</th>
-                      <th>Date</th>
-                      <th>Value</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ips.observations.map((observation, index) => (
-                      <tr key={index}>
-                        <td>{observation.name}</td>
-                        <td>{observation.code}</td>
-                        <td>{observation.system}</td>
-                        <td>{formatDate(observation.date)}</td>
-                        <td>{observation.value}</td>
+                <div className="table-responsive">
+                  <table className="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Code</th>
+                        <th>System</th>
+                        <th>Date</th>
+                        <th>Value</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {ips.observations.map((observation, index) => (
+                        <tr key={index}>
+                          <td>{observation.name}</td>
+                          <td>{observation.code}</td>
+                          <td>{observation.system}</td>
+                          <td>{formatDate(observation.date)}</td>
+                          <td>{observation.value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </>
             )}
 
             {ips.immunizations && ips.immunizations.length > 0 && (
               <>
                 <h4>Immunizations:</h4>
-                <table className="table table-striped">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Date</th>
-                      <th>System</th>
-                      <th>Code</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ips.immunizations.map((immunization, index) => (
-                      <tr key={index}>
-                        <td>{immunization.name}</td>
-                        <td>{formatDate(immunization.date)}</td>
-                        <td>{immunization.system}</td>
-                        <td>{immunization.code}</td>
+                <div className="table-responsive">
+                  <table className="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Date</th>
+                        <th>System</th>
+                        <th>Code</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {ips.immunizations.map((immunization, index) => (
+                        <tr key={index}>
+                          <td>{immunization.name}</td>
+                          <td>{formatDate(immunization.date)}</td>
+                          <td>{immunization.system}</td>
+                          <td>{immunization.code}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </>
             )}
 
@@ -390,7 +400,7 @@ export function IPS({ ips, remove, update }) {
 
       <Modal show={showEditModal} onHide={() => setShowEditModal(false)} dialogClassName="edit-modal">
         <Modal.Header closeButton>
-          <Modal.Title>Edit Patient</Modal.Title>
+          <Modal.Title className="ipsedit">Edit Patient</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
@@ -486,334 +496,375 @@ export function IPS({ ips, remove, update }) {
             </Row>
 
             {/* Medications Table */}
-            <h4>Medications:</h4>
-            <table className="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Code</th>
-                  <th>System</th>
-                  <th>Date</th>
-                  <th>Dosage</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {editIPS.medication.map((med, index) => (
-                  <tr key={index}>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="name"
-                        value={med.name}
-                        onChange={(e) => handleChangeItem("medication", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="code"
-                        value={med.code}
-                        onChange={(e) => handleChangeItem("medication", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="system"
-                        value={med.system}
-                        onChange={(e) => handleChangeItem("medication", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="datetime-local"
-                        name="date"
-                        value={formatDate(med.date)}
-                        onChange={(e) => handleChangeItem("medication", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="dosage"
-                        value={med.dosage}
-                        onChange={(e) => handleChangeItem("medication", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Button variant="outline-danger" onClick={() => handleRemoveItem("medication", index)}>
-                        <FontAwesomeIcon icon={faTrash} />
-                      </Button>
-                    </td>
+            <h4 className="ipsedit">Medications:</h4>
+            <div className="table-responsive">
+              <table className="table table-bordered table-sm">
+                <colgroup>
+                  <col style={{ width: '50%' }} />  {/* Name */}
+                  <col style={{ width: '7%' }} />  {/* Code */}
+                  <col style={{ width: '7%' }} />  {/* System */}
+                  <col style={{ width: '5%' }} />  {/* Date */}
+                  <col style={{ width: '26%' }} />  {/* Dosage */}
+                  <col style={{ width: '5%' }} />  {/* Actions */}
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>System</th>
+                    <th>Date</th>
+                    <th>Dosage</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <Button variant="primary" onClick={() => handleAddItem("medication")}>
+                </thead>
+                <tbody>
+                  {editIPS.medication.map((med, index) => (
+                    <tr key={index}>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="name"
+                          value={med.name}
+                          onChange={(e) => handleChangeItem("medication", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="code"
+                          value={med.code}
+                          onChange={(e) => handleChangeItem("medication", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="system"
+                          value={med.system}
+                          onChange={(e) => handleChangeItem("medication", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="datetime-local"
+                          name="date"
+                          value={formatDate(med.date)}
+                          onChange={(e) => handleChangeItem("medication", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="dosage"
+                          value={med.dosage}
+                          onChange={(e) => handleChangeItem("medication", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Button variant="outline-danger" className="resp-button" onClick={() => handleRemoveItem("medication", index)}>
+                          <FontAwesomeIcon icon={faTrash} />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Button variant="primary" className="resp-add-button" onClick={() => handleAddItem("medication")}>
               Add Medication
             </Button>
 
             {/* Allergies Table */}
-            <h4>Allergies:</h4>
-            <table className="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Code</th>
-                  <th>System</th>
-                  <th>Criticality</th>
-                  <th>Date</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {editIPS.allergies.map((allergy, index) => (
-                  <tr key={index}>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="name"
-                        value={allergy.name}
-                        onChange={(e) => handleChangeItem("allergies", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="code"
-                        value={allergy.code}
-                        onChange={(e) => handleChangeItem("allergies", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="system"
-                        value={allergy.system}
-                        onChange={(e) => handleChangeItem("allergies", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        as="select"
-                        name="criticality"
-                        value={allergy.criticality}
-                        onChange={(e) => handleChangeItem("allergies", index, e)}
-                      >
-                        <option value="">Select Criticality</option>
-                        <option value="high">high</option>
-                        <option value="medium">medium</option>
-                        <option value="low">low</option>
-                      </Form.Control>
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="date"
-                        name="date"
-                        value={allergy.date.split("T")[0]}
-                        onChange={(e) => handleChangeItem("allergies", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Button variant="outline-danger" onClick={() => handleRemoveItem("allergies", index)}>
-                        <FontAwesomeIcon icon={faTrash} />
-                      </Button>
-                    </td>
+            <h4 className="ipsedit">Allergies:</h4>
+            <div className="table-responsive">
+              <table className="table table-bordered table-sm">
+              <colgroup>
+                  <col style={{ width: '50%' }} />  {/* Name */}
+                  <col style={{ width: '7%' }} />  {/* Code */}
+                  <col style={{ width: '7%' }} />  {/* System */}
+                  <col style={{ width: '5%' }} />  {/* Date */}
+                  <col style={{ width: '26%' }} />  {/* Criticality */}
+                  <col style={{ width: '5%' }} />  {/* Actions */}
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>System</th>
+                    <th>Criticality</th>
+                    <th>Date</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <Button variant="primary" onClick={() => handleAddItem("allergies")}>
+                </thead>
+                <tbody>
+                  {editIPS.allergies.map((allergy, index) => (
+                    <tr key={index}>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="name"
+                          value={allergy.name}
+                          onChange={(e) => handleChangeItem("allergies", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="code"
+                          value={allergy.code}
+                          onChange={(e) => handleChangeItem("allergies", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="system"
+                          value={allergy.system}
+                          onChange={(e) => handleChangeItem("allergies", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          as="select"
+                          name="criticality"
+                          value={allergy.criticality}
+                          onChange={(e) => handleChangeItem("allergies", index, e)}
+                        >
+                          <option value="">Select Criticality</option>
+                          <option value="high">high</option>
+                          <option value="medium">medium</option>
+                          <option value="low">low</option>
+                        </Form.Control>
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="date"
+                          name="date"
+                          value={allergy.date.split("T")[0]}
+                          onChange={(e) => handleChangeItem("allergies", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Button variant="outline-danger" className="resp-button" onClick={() => handleRemoveItem("allergies", index)}>
+                          <FontAwesomeIcon icon={faTrash} />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Button variant="primary" className="resp-add-button" onClick={() => handleAddItem("allergies")}>
               Add Allergy
             </Button>
 
             {/* Conditions Table */}
-            <h4>Conditions:</h4>
-            <table className="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Code</th>
-                  <th>System</th>
-                  <th>Date</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {editIPS.conditions.map((condition, index) => (
-                  <tr key={index}>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="name"
-                        value={condition.name}
-                        onChange={(e) => handleChangeItem("conditions", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="code"
-                        value={condition.code}
-                        onChange={(e) => handleChangeItem("conditions", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="system"
-                        value={condition.system}
-                        onChange={(e) => handleChangeItem("conditions", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="date"
-                        name="date"
-                        value={condition.date.split("T")[0]}
-                        onChange={(e) => handleChangeItem("conditions", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Button variant="outline-danger" onClick={() => handleRemoveItem("conditions", index)}>
-                        <FontAwesomeIcon icon={faTrash} />
-                      </Button>
-                    </td>
+            <h4 className="ipsedit">Conditions:</h4>
+            <div className="table-responsive">
+              <table className="table table-bordered table-sm">
+              <colgroup>
+                  <col style={{ width: '40%' }} />  {/* Name */}
+                  <col style={{ width: '4%' }} />  {/* Code */}
+                  <col style={{ width: '4%' }} />  {/* System */}
+                  <col style={{ width: '5%' }} />  {/* Date */}
+                  <col style={{ width: '5%' }} />  {/* Actions */}
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>System</th>
+                    <th>Date</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <Button variant="primary" onClick={() => handleAddItem("conditions")}>
+                </thead>
+                <tbody>
+                  {editIPS.conditions.map((condition, index) => (
+                    <tr key={index}>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="name"
+                          value={condition.name}
+                          onChange={(e) => handleChangeItem("conditions", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="code"
+                          value={condition.code}
+                          onChange={(e) => handleChangeItem("conditions", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="system"
+                          value={condition.system}
+                          onChange={(e) => handleChangeItem("conditions", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="date"
+                          name="date"
+                          value={condition.date.split("T")[0]}
+                          onChange={(e) => handleChangeItem("conditions", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Button variant="outline-danger" className="resp-button" onClick={() => handleRemoveItem("conditions", index)}>
+                          <FontAwesomeIcon icon={faTrash} />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Button variant="primary" className="resp-add-button" onClick={() => handleAddItem("conditions")}>
               Add Condition
             </Button>
 
             {/* Observations Table */}
-            <h4>Observations:</h4>
-            <table className="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Code</th>
-                  <th>System</th>
-                  <th>Date</th>
-                  <th>Value</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {editIPS.observations.map((observation, index) => (
-                  <tr key={index}>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="name"
-                        value={observation.name}
-                        onChange={(e) => handleChangeItem("observations", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="code"
-                        value={observation.code}
-                        onChange={(e) => handleChangeItem("observations", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="system"
-                        value={observation.system}
-                        onChange={(e) => handleChangeItem("observations", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="datetime-local"
-                        name="date"
-                        value={formatDate(observation.date)}
-                        onChange={(e) => handleChangeItem("observations", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="value"
-                        value={observation.value}
-                        onChange={(e) => handleChangeItem("observations", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Button variant="outline-danger" onClick={() => handleRemoveItem("observations", index)}>
-                        <FontAwesomeIcon icon={faTrash} />
-                      </Button>
-                    </td>
+            <h4 className="ipsedit">Observations:</h4>
+            <div className="table-responsive">
+              <table className="table table-bordered table-sm">
+              <colgroup>
+                  <col style={{ width: '50%' }} />  {/* Name */}
+                  <col style={{ width: '4%' }} />  {/* Code */}
+                  <col style={{ width: '4%' }} />  {/* System */}
+                  <col style={{ width: '5%' }} />  {/* Date */}
+                  <col style={{ width: '10%' }} />  {/* Value */}
+                  <col style={{ width: '5%' }} />  {/* Actions */}
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>System</th>
+                    <th>Date</th>
+                    <th>Value</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <Button variant="primary" onClick={() => handleAddItem("observations")}>
+                </thead>
+                <tbody>
+                  {editIPS.observations.map((observation, index) => (
+                    <tr key={index}>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="name"
+                          value={observation.name}
+                          onChange={(e) => handleChangeItem("observations", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="code"
+                          value={observation.code}
+                          onChange={(e) => handleChangeItem("observations", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="system"
+                          value={observation.system}
+                          onChange={(e) => handleChangeItem("observations", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="datetime-local"
+                          name="date"
+                          value={formatDate(observation.date)}
+                          onChange={(e) => handleChangeItem("observations", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="value"
+                          value={observation.value}
+                          onChange={(e) => handleChangeItem("observations", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Button variant="outline-danger" className="resp-button" onClick={() => handleRemoveItem("observations", index)}>
+                          <FontAwesomeIcon icon={faTrash} />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Button variant="primary" className="resp-add-button" onClick={() => handleAddItem("observations")}>
               Add Observation
             </Button>
 
             {/* Immunizations Table */}
-            <h4>Immunizations:</h4>
-            <table className="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>System</th>
-                  <th>Code</th>
-                  <th>Date</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {editIPS.immunizations.map((immunization, index) => (
-                  <tr key={index}>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="name"
-                        value={immunization.name}
-                        onChange={(e) => handleChangeItem("immunizations", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="system"
-                        value={immunization.system}
-                        onChange={(e) => handleChangeItem("immunizations", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        name="code"
-                        value={immunization.code}
-                        onChange={(e) => handleChangeItem("immunizations", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="datetime-local"
-                        name="date"
-                        value={formatDate(immunization.date)}
-                        onChange={(e) => handleChangeItem("immunizations", index, e)}
-                      />
-                    </td>
-                    <td>
-                      <Button variant="outline-danger" onClick={() => handleRemoveItem("immunizations", index)}>
-                        <FontAwesomeIcon icon={faTrash} />
-                      </Button>
-                    </td>
+            <h4 className="ipsedit">Immunizations:</h4>
+            <div className="table-responsive">
+              <table className="table table-bordered table-sm">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>System</th>
+                    <th>Code</th>
+                    <th>Date</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <Button variant="primary" onClick={() => handleAddItem("immunizations")}>
+                </thead>
+                <tbody>
+                  {editIPS.immunizations.map((immunization, index) => (
+                    <tr key={index}>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="name"
+                          value={immunization.name}
+                          onChange={(e) => handleChangeItem("immunizations", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="system"
+                          value={immunization.system}
+                          onChange={(e) => handleChangeItem("immunizations", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="code"
+                          value={immunization.code}
+                          onChange={(e) => handleChangeItem("immunizations", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="datetime-local"
+                          name="date"
+                          value={formatDate(immunization.date)}
+                          onChange={(e) => handleChangeItem("immunizations", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Button variant="outline-danger" className="resp-button" onClick={() => handleRemoveItem("immunizations", index)}>
+                          <FontAwesomeIcon icon={faTrash} />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Button variant="primary" className="resp-add-button" onClick={() => handleAddItem("immunizations")}>
               Add Immunization
             </Button>
           </Form>

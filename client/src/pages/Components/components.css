@@ -1,25 +1,29 @@
 .qr-button {
-    border: 1px solid #6c757d;
-    background-color: #f8f9fa; /* Light background color */
-    transition: background-color 0.3s ease;
-  }
-  
-  .qr-button:hover {
-    background-color: #343a40; /* Dark background color */
-  }
-  
-  .qr-button .svg-inline--fa {
-    color: #343a40; /* Dark icon color */
-  }
-  
-  .qr-button:hover .svg-inline--fa {
-    color: #ffffff; /* White icon color on hover */
-  }
+  border: 1px solid #6c757d;
+  background-color: #f8f9fa;
+  /* Light background color */
+  transition: background-color 0.3s ease;
+}
 
-  .custom-button {
-    width: 40px; 
-    height: 40px;
-    align-items: center;
+.qr-button:hover {
+  background-color: #343a40;
+  /* Dark background color */
+}
+
+.qr-button .svg-inline--fa {
+  color: #343a40;
+  /* Dark icon color */
+}
+
+.qr-button:hover .svg-inline--fa {
+  color: #ffffff;
+  /* White icon color on hover */
+}
+
+.custom-button {
+  width: 40px;
+  height: 40px;
+  align-items: center;
 }
 
 small {
@@ -32,13 +36,112 @@ ul {
 
 .minor-button {
   margin-top: 3px;
-  height: 34px; 
-  margin-bottom: 3px; 
+  height: 34px;
+  margin-bottom: 3px;
 }
 
 .edit-modal {
-  max-width: 1000px; /* Adjust the width as needed */
+  max-width: 1000px;
+  /* Adjust the width as needed */
 }
 
-  
-  
+/* Mobile responsive design */
+
+@media (max-width: 576px) {
+
+  /* Shrink everything in the IPS card */
+  .ips {
+    font-size: 0.80rem;
+    line-height: 1.0;
+  }
+
+  .ipsedit {
+    font-size: 1rem;
+    line-height: 1.0;
+    padding-top: 2rem;
+  }
+
+  .ips h4,
+  .ips h5 {
+    font-size: 0.8rem;
+  }
+
+
+  .ips p {
+    margin-bottom: 0.20rem;
+  }
+
+  .table-responsive {
+    margin-bottom: 0.70rem;
+  }
+
+  .table {
+    font-size: 0.7rem;
+  }
+
+  .edit-modal .modal-dialog {
+    margin: 0.5rem;
+    max-width: calc(100% - 1rem) !important;
+  }
+
+  .edit-modal .modal-content {
+    font-size: 0.7rem;
+  }
+
+  .edit-modal .modal-body {
+    padding: 0.70rem;
+  }
+
+  .edit-modal .table-responsive {
+    overflow-x: auto;
+  }
+
+  /* cap the date input so it can't stretch the column */
+  .edit-modal input[type="datetime-local"] {
+    max-width: 4rem;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.8rem;
+  }
+
+  .edit-modal input[type="date"] {
+    max-width: 4rem;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.8rem;
+  }
+
+  .edit-modal input[type="text"] {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.8rem;
+  }
+
+  .edit-modal input[name="code"] , input[name="system"] {
+    width: 1.5rem;
+  }
+
+  .edit-modal input[name="name"]{
+    width: 6.5rem;
+  }
+
+  .edit-modal input[name="value"] {
+    width: 4rem;
+  }
+
+  .custom-button {
+    width: 35px;
+    height: 35px;
+    align-items: center;
+  }
+
+  .resp-button {
+    width: 35px;
+    height: 30px;
+    align-items: center;
+    scale: 0.8;
+  }
+
+  .resp-add-button {
+    height: 30px;
+    scale: 0.9;
+  }
+
+}

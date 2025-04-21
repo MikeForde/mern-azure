@@ -31,6 +31,10 @@ code {
   html {
     font-size: 85%;
   }
+
+  html, body {
+    overflow-x: hidden;
+  }
   .navbar-collapse {
     width: 100% !important;
   }

@@ -86,6 +86,46 @@
   .noteFont {
     font-size: 12px;
   }
+  .dropdown-button {
+    height: 26px;
+  }
+  .button-container .btn {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+  }
+  .text-area {
+    height: calc(100vh - 300px); 
+  }
+  .text-area textarea {
+    height: 100%;
+  }
+  .text-area-container {
+    flex-direction: column;
+  }
+
+  .text-area {
+    margin: 0;
+    width: 100%;
+  }
+  .text-area h5 {
+    text-align: left;
+  }
+  .text-area textarea {
+    width: 100%;
+    height: calc(100vh - 300px); 
+  }
+  .message {
+    width: 100%;
+    height: 30px;
+    /* ensure in centre vertically of message */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .text-area-container {
+    flex-direction: column;
+  }
+
 }
 
 
