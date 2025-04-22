@@ -45,6 +45,24 @@ ul {
   /* Adjust the width as needed */
 }
 
+.ips {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;     /* keep buttons aligned at top */
+}
+
+.ips-details {
+  flex: 1 1 auto;              /* take up remaining space */
+}
+
+.ips-buttons {
+  order: 1;                    /* ensure buttons stay after details in source-order if needed */
+  margin-left: auto;           /* push buttons all the way right */
+  display: flex;
+  flex-wrap: wrap;             /* if there are many, they'll wrap neatly */
+  gap: 0.5rem;
+}
+
 /* Mobile responsive design */
 
 @media (max-width: 576px) {

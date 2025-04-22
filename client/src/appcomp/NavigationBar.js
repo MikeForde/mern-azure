@@ -81,8 +81,8 @@ function NavigationBar() {
             <Nav.Link as={Link} to="/qr" onClick={() => handleNavItemSelect(true)}>
               <FontAwesomeIcon icon={faQrcode} /> QR
             </Nav.Link>
-            <Nav.Link as={Link} to="/bulkupload" onClick={() => handleNavItemSelect(false)}>
-              <FontAwesomeIcon icon={faUpload} /> DMICP
+            <Nav.Link as={Link} to="/nfc-reader" onClick={() => handleNavItemSelect(false)}>
+              <FontAwesomeIcon icon={faTag} /> NFC
             </Nav.Link>
             <Nav.Link as={Link} to="/beergarden" onClick={() => handleNavItemSelect(true)}>
               <FontAwesomeIcon icon={faBeer} /> BEER
@@ -108,8 +108,8 @@ function NavigationBar() {
               <NavDropdown.Item as={Link} to="/puships" onClick={() => handleNavItemSelect(true)}>
                 <FontAwesomeIcon icon={faCloudUploadAlt} /> External POST
               </NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/nfc-reader" onClick={() => handleNavItemSelect(false)}>
-                <FontAwesomeIcon icon={faTag} /> NFC Reader
+              <NavDropdown.Item as={Link} to="/bulkupload" onClick={() => handleNavItemSelect(false)}>
+                <FontAwesomeIcon icon={faUpload} /> DMICP Bulk Upload
               </NavDropdown.Item>
             </NavDropdown>
             <NavDropdown title="Info" id="basic-nav-dropdown">
