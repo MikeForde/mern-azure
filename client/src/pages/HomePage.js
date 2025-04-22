@@ -104,6 +104,8 @@ function HomePage() {
   };
 
   const searchPatients = () => {
+    // Clear the current selected patient(s)
+    setSelectedPatients([]);
     startLoading();
     server
       .get(`/ips/search/${searchTerm}`)

@@ -129,7 +129,64 @@ export function IPS({ ips, remove, update }) {
 
   return (
     <div className="ips">
-      <div>
+      <div className="ips-buttons">
+      <OverlayTrigger placement="top" overlay={renderTooltip('View IPS API Page')}>
+          <Link to="/api">
+            <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
+              <FontAwesomeIcon icon={faFileMedical} />
+            </Button>
+          </Link>
+        </OverlayTrigger>
+
+        <OverlayTrigger placement="top" overlay={renderTooltip('View QR Code Page')}>
+          <Link to="/qr">
+            <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
+              <FontAwesomeIcon icon={faQrcode} />
+            </Button>
+          </Link>
+        </OverlayTrigger>
+
+        <OverlayTrigger placement="top" overlay={renderTooltip('View BEER Garden Page')}>
+          <Link to="/beergarden">
+            <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
+              <FontAwesomeIcon icon={faBeer} />
+            </Button>
+          </Link>
+        </OverlayTrigger>
+
+        <OverlayTrigger placement="top" overlay={renderTooltip('View External POST Page')}>
+          <Link to="/puships">
+            <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
+              <FontAwesomeIcon icon={faUpload} />
+            </Button>
+          </Link>
+        </OverlayTrigger>
+
+        <OverlayTrigger placement="top" overlay={renderTooltip('Generate PDF')}>
+          <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleGeneratePDF}>
+            <FontAwesomeIcon icon={faFileExport} />
+          </Button>
+        </OverlayTrigger>
+
+        <OverlayTrigger placement="top" overlay={renderTooltip('Send PMR to MMP')}>
+          <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSendPMR}>
+            <FontAwesomeIcon icon={faPaperPlane} />
+          </Button>
+        </OverlayTrigger>
+
+        <OverlayTrigger placement="top" overlay={renderTooltip('Edit IPS Record')}>
+          <Button variant="outline-secondary" className="custom-button" onClick={handleEdit}>
+            <FontAwesomeIcon icon={faEdit} />
+          </Button>
+        </OverlayTrigger>
+
+        <OverlayTrigger placement="top" overlay={renderTooltip('Delete IPS Record')}>
+          <Button variant="outline-danger" className="custom-button" onClick={handleRemove}>
+            <FontAwesomeIcon icon={faTrash} />
+          </Button>
+        </OverlayTrigger>
+      </div>
+      <div className="ips-details">
         <h5>IPS UUID: {ips.packageUUID}</h5>
         {!expanded && (
           <>
@@ -304,63 +361,6 @@ export function IPS({ ips, remove, update }) {
             </Button>
           </>
         )}
-      </div>
-      <div>
-        <OverlayTrigger placement="top" overlay={renderTooltip('View IPS API Page')}>
-          <Link to="/api">
-            <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
-              <FontAwesomeIcon icon={faFileMedical} />
-            </Button>
-          </Link>
-        </OverlayTrigger>
-
-        <OverlayTrigger placement="top" overlay={renderTooltip('View QR Code Page')}>
-          <Link to="/qr">
-            <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
-              <FontAwesomeIcon icon={faQrcode} />
-            </Button>
-          </Link>
-        </OverlayTrigger>
-
-        <OverlayTrigger placement="top" overlay={renderTooltip('View BEER Garden Page')}>
-          <Link to="/beergarden">
-            <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
-              <FontAwesomeIcon icon={faBeer} />
-            </Button>
-          </Link>
-        </OverlayTrigger>
-
-        <OverlayTrigger placement="top" overlay={renderTooltip('View External POST Page')}>
-          <Link to="/puships">
-            <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
-              <FontAwesomeIcon icon={faUpload} />
-            </Button>
-          </Link>
-        </OverlayTrigger>
-
-        <OverlayTrigger placement="top" overlay={renderTooltip('Generate PDF')}>
-          <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleGeneratePDF}>
-            <FontAwesomeIcon icon={faFileExport} />
-          </Button>
-        </OverlayTrigger>
-
-        <OverlayTrigger placement="top" overlay={renderTooltip('Send PMR to MMP')}>
-          <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSendPMR}>
-            <FontAwesomeIcon icon={faPaperPlane} />
-          </Button>
-        </OverlayTrigger>
-
-        <OverlayTrigger placement="top" overlay={renderTooltip('Edit IPS Record')}>
-          <Button variant="outline-secondary" className="custom-button" onClick={handleEdit}>
-            <FontAwesomeIcon icon={faEdit} />
-          </Button>
-        </OverlayTrigger>
-
-        <OverlayTrigger placement="top" overlay={renderTooltip('Delete IPS Record')}>
-          <Button variant="outline-danger" className="custom-button" onClick={handleRemove}>
-            <FontAwesomeIcon icon={faTrash} />
-          </Button>
-        </OverlayTrigger>
       </div>
 
       <Modal show={showConfirmModal} onHide={handleCancelDelete}>

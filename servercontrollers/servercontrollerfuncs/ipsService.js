@@ -6,17 +6,42 @@ const { ReadPreference } = require('mongodb');
  * Merge updateData into an existing IPS document in place.
  */
 function mergeIPS(ipsDoc, updateData) {
+  // 1) Merge patient sub‑object
   if (updateData.patient) {
     Object.assign(ipsDoc.patient, updateData.patient);
   }
 
-  // these fields all live at top‑level in your schema
-  ['medication', 'allergies', 'conditions', 'observations', 'immunizations']
-    .forEach(field => {
-      if (Array.isArray(updateData[field])) {
-        ipsDoc[field] = (ipsDoc[field] || []).concat(updateData[field]);
+  // 2) Define which fields to dedupe on [name, date]
+  const arrayFields = ['medication','allergies','conditions','observations','immunizations'];
+
+  arrayFields.forEach(field => {
+    const incoming = updateData[field];
+    if (!Array.isArray(incoming)) return;
+
+    // ensure the target array exists
+    ipsDoc[field] = ipsDoc[field] || [];
+
+    incoming.forEach(newItem => {
+      // parse dates to milliseconds for reliable comparison
+      const newTime = new Date(newItem.date).getTime();
+
+      // look for an existing item with same name+date
+      const existing = ipsDoc[field].find(oldItem => {
+        return (
+          oldItem.name === newItem.name &&
+          new Date(oldItem.date).getTime() === newTime
+        );
+      });
+
+      if (existing) {
+        // update only the changed bits
+        Object.assign(existing, newItem);
+      } else {
+        // totally new entry
+        ipsDoc[field].push(newItem);
       }
     });
+  });
 }
 
 /**

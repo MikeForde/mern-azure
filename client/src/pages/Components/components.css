@@ -48,13 +48,36 @@ ul {
 /* Mobile responsive design */
 
 @media (max-width: 576px) {
-
-  /* Shrink everything in the IPS card */
+  /* Base tweaks for IPS cards */
   .ips {
     font-size: 0.80rem;
     line-height: 1.0;
+    overflow-x: auto;      /* allow horizontal scroll if needed */
+    padding-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
   }
 
+  .ips-details {
+    width: 100% !important;
+    box-sizing: border-box;    /* include any padding in that 100% */
+  }
+
+  /* Buttons move to top in mobile */
+  .ips-buttons {
+    order: -1;
+    display: flex;
+    flex-wrap: wrap;      /* push buttons onto new lines */
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Detail section after buttons */
+  .ips-details {
+    order: 0;
+  }
+
+  /* Heading and text tweaks */
   .ipsedit {
     font-size: 1rem;
     line-height: 1.0;
@@ -66,13 +89,14 @@ ul {
     font-size: 0.8rem;
   }
 
-
   .ips p {
     margin-bottom: 0.20rem;
   }
 
+  /* Table and form responsive scales */
   .table-responsive {
     margin-bottom: 0.70rem;
+    overflow-x: auto;
   }
 
   .table {
@@ -92,33 +116,21 @@ ul {
     padding: 0.70rem;
   }
 
-  .edit-modal .table-responsive {
-    overflow-x: auto;
-  }
-
-  /* cap the date input so it can't stretch the column */
-  .edit-modal input[type="datetime-local"] {
-    max-width: 4rem;
-    padding: 0.2rem 0.4rem;
-    font-size: 0.8rem;
-  }
-
-  .edit-modal input[type="date"] {
-    max-width: 4rem;
-    padding: 0.2rem 0.4rem;
-    font-size: 0.8rem;
-  }
-
+  /* Inputs sizing */
+  .edit-modal input[type="datetime-local"],
+  .edit-modal input[type="date"],
   .edit-modal input[type="text"] {
+    max-width: 4rem;
     padding: 0.2rem 0.4rem;
     font-size: 0.8rem;
   }
 
-  .edit-modal input[name="code"] , input[name="system"] {
+  .edit-modal input[name="code"],
+  .edit-modal input[name="system"] {
     width: 1.5rem;
   }
 
-  .edit-modal input[name="name"]{
+  .edit-modal input[name="name"] {
     width: 6.5rem;
   }
 
@@ -126,6 +138,7 @@ ul {
     width: 4rem;
   }
 
+  /* Button sizing tweaks */
   .custom-button {
     width: 35px;
     height: 35px;
@@ -136,12 +149,11 @@ ul {
     width: 35px;
     height: 30px;
     align-items: center;
-    scale: 0.8;
+    transform: scale(0.8);
   }
 
   .resp-add-button {
     height: 30px;
-    scale: 0.9;
+    transform: scale(0.9);
   }
-
 }
