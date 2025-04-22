@@ -5,15 +5,18 @@ import './Page.css';
 
 export default function NFCReaderPage() {
   const [readData, setReadData] = useState('');
+  const [rawPayload, setRawPayload] = useState('');
   const [cardInfo, setCardInfo] = useState('');
   const [isReading, setIsReading] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [isConverting, setIsConverting] = useState(false);
 
   // Toast state
-  const [showToast, setShowToast] = useState(false);
-  const [toastMsg, setToastMsg] = useState('');
+  const [showToast, setShowToast]   = useState(false);
+  const [toastMsg, setToastMsg]     = useState('');
   const [toastVariant, setToastVariant] = useState('info');
 
-  // Custom MIME type - we may add others in later versions
+  // Custom MIME type
   const BINARY_MIME = 'application/x.ips.gzip.aes256.v1-0';
 
   const handleReadFromNfc = async () => {
@@ -26,6 +29,7 @@ export default function NFCReaderPage() {
 
     setIsReading(true);
     setReadData('');
+    setRawPayload('');
     setCardInfo('');
     try {
       const reader = new window.NDEFReader();
@@ -36,27 +40,20 @@ export default function NFCReaderPage() {
       };
 
       reader.onreading = async ({ serialNumber, message }) => {
-        // Show UID and record count +/- mime-type if present
-        setCardInfo(`UID: ${serialNumber}\nRecords: ${message.records.length}`);
-        // Show MIME type if present
+        setCardInfo(
+          `UID: ${serialNumber}\nRecords: ${message.records.length}` +
+          (message.records[0]?.mediaType ? `\nMIME: ${message.records[0].mediaType}` : '')
+        );
+
+        let extracted = '';
+
         if (message.records.length > 0) {
-          const mimeTypes = message.records.map(r => r.mediaType);
-          setCardInfo(prev => `${prev}\nMIME: ${mimeTypes.join(', ')}`);
-        }
-        // Show payload
+          const record = message.records[0];
 
-        let payloadTxt = '';
-
-        for (let i = 0; i < message.records.length; i++) {
-          const record = message.records[i];
-
-          // 1) Binary path: send to server for decrypt+gunzip
           if (record.recordType === 'mime' && record.mediaType === BINARY_MIME) {
-            // Extract raw bytes
             const buffer = record.data instanceof ArrayBuffer
               ? record.data
               : record.data.buffer;
-
             try {
               const resp = await axios.post(
                 '/test',
@@ -66,45 +63,33 @@ export default function NFCReaderPage() {
                   responseType: 'text'
                 }
               );
-              // Try to parse JSON, otherwise show raw text
-              let bodyStr;
-              if (typeof resp.data === 'object') {
-                // Axios parsed it as JSON for us
-                bodyStr = JSON.stringify(resp.data, null, 2);
-              } else {
-                // It's a string—try to JSON.parse, else leave as‑is
-                try {
-                  const parsed = JSON.parse(resp.data);
-                  bodyStr = JSON.stringify(parsed, null, 2);
-                } catch {
-                  bodyStr = resp.data;
-                }
-              }
-              payloadTxt += `Record ${i} (binary decoded):\n${bodyStr}\n\n`;
+              let bodyStr = typeof resp.data === 'object'
+                ? JSON.stringify(resp.data, null, 2)
+                : (() => {
+                    try { return JSON.stringify(JSON.parse(resp.data), null, 2); }
+                    catch { return resp.data; }
+                  })();
+              extracted = bodyStr;
             } catch (err) {
-              payloadTxt += `Record ${i}: Error decoding binary: ${err.message}\n\n`;
+              extracted = `Error decoding binary: ${err.message}`;
             }
           }
-          // 2) Text record
           else if (record.recordType === 'text') {
             const decoder = new TextDecoder(record.encoding || 'utf-8');
-            payloadTxt += `Record ${i} (text): ${decoder.decode(record.data)}\n\n`;
+            extracted = decoder.decode(record.data);
           }
-          // 3) URL record
           else if (record.recordType === 'url') {
             const decoder = new TextDecoder();
-            payloadTxt += `Record ${i} (URL): ${decoder.decode(record.data)}\n\n`;
+            extracted = `URL: ${decoder.decode(record.data)}`;
           }
-          // 4) Fallback hex dump
           else {
-            const hex = Array.from(new Uint8Array(record.data))
-              .map(b => b.toString(16).padStart(2, '0'))
-              .join(' ');
-            payloadTxt += `Record ${i} (${record.recordType}): ${hex}\n\n`;
+            extracted = Array.from(new Uint8Array(record.data))
+              .map(b => b.toString(16).padStart(2, '0')).join(' ');
           }
         }
 
-        setReadData(payloadTxt.trim());
+        setRawPayload(extracted);
+        setReadData(extracted);
         setToastMsg('NFC tag read successfully!');
         setToastVariant('success');
         setShowToast(true);
@@ -119,6 +104,95 @@ export default function NFCReaderPage() {
     }
   };
 
+  const handleImport = async () => {
+    if (!rawPayload) return;
+    setIsImporting(true);
+    let endpoint;
+    let payloadToSend;
+
+    try {
+      if (rawPayload.trim().startsWith('{') && rawPayload.includes('"resourceType"') && rawPayload.includes('Bundle')) {
+        endpoint = '/ipsbundle';
+        payloadToSend = JSON.parse(rawPayload);
+      }
+      else if (rawPayload.startsWith('MSH')) {
+        endpoint = '/ipsfromhl72x';
+        payloadToSend = rawPayload;
+      }
+      else if (rawPayload.startsWith('H9')) {
+        endpoint = '/ipsfrombeer';
+        payloadToSend = rawPayload;
+      } else {
+        throw new Error('Unrecognized IPS format');
+      }
+
+      const isJson = endpoint === '/ipsbundle';
+      const contentType = isJson ? 'application/json' : 'text/plain';
+
+      const resp = await axios.post(
+        endpoint,
+        payloadToSend,
+        { headers: { 'Content-Type': contentType } }
+      );
+      setToastMsg(`Import success: ${resp.status} ${resp.statusText}`);
+      setToastVariant('success');
+    } catch (err) {
+      setToastMsg(`Import failed: ${err.message}`);
+      setToastVariant('danger');
+    } finally {
+      setShowToast(true);
+      setIsImporting(false);
+    }
+  };
+
+  const handleConvertOnly = async () => {
+    if (!rawPayload) return;
+    setIsConverting(true);
+    let endpoint;
+    let payloadToSend;
+
+    try {
+      if (rawPayload.trim().startsWith('{') && rawPayload.includes('"resourceType"') && rawPayload.includes('Bundle')) {
+        endpoint = '/convertips2mongo';
+        payloadToSend = JSON.parse(rawPayload);
+      }
+      else if (rawPayload.startsWith('MSH')) {
+        endpoint = '/converthl72xtomongo';
+        payloadToSend = rawPayload;
+      }
+      else if (rawPayload.startsWith('H9')) {
+        endpoint = '/convertbeer2mongo';
+        payloadToSend = rawPayload;
+      } else {
+        throw new Error('Unrecognized IPS format');
+      }
+
+      const isJson = endpoint === '/convertips2mongo';
+      const contentType = isJson ? 'application/json' : 'text/plain';
+
+      const resp = await axios.post(
+        endpoint,
+        payloadToSend,
+        {
+          headers: { 'Content-Type': contentType },
+          responseType: 'json'
+        }
+      );
+      const converted = typeof resp.data === 'object'
+        ? JSON.stringify(resp.data, null, 2)
+        : resp.data;
+      setReadData(converted);
+      setToastMsg('Conversion successful');
+      setToastVariant('success');
+    } catch (err) {
+      setToastMsg(`Conversion failed: ${err.message}`);
+      setToastVariant('danger');
+    } finally {
+      setShowToast(true);
+      setIsConverting(false);
+    }
+  };
+
   return (
     <div className="app">
       <div className="container">
@@ -130,7 +204,23 @@ export default function NFCReaderPage() {
             onClick={handleReadFromNfc}
             disabled={isReading}
           >
-            {isReading ? 'Waiting…' : 'Read from NFC'}
+            {isReading ? 'Waiting...' : 'Read from NFC'}
+          </Button>
+          <Button
+            variant="success"
+            className="ml-2"
+            onClick={handleImport}
+            disabled={!rawPayload || isImporting}
+          >
+            {isImporting ? 'Importing...' : 'Import'}
+          </Button>
+          <Button
+            variant="secondary"
+            className="ml-2"
+            onClick={handleConvertOnly}
+            disabled={!rawPayload || isConverting}
+          >
+            {isConverting ? 'Converting...' : 'Convert to NoSQL Only'}
           </Button>
         </div>
 
@@ -146,7 +236,7 @@ export default function NFCReaderPage() {
         <h5>Payload</h5>
         <Form.Control
           as="textarea"
-          rows={18}
+          rows={15}
           value={readData}
           readOnly
         />
@@ -165,9 +255,9 @@ export default function NFCReaderPage() {
           autohide
         >
           <Toast.Header>
-            <strong className="me-auto">IPS MERN NFC</strong>
+            <strong className="me-auto">IPS MERN NFC</strong>
           </Toast.Header>
-          <Toast.Body className={toastVariant === 'light' ? '' : 'text-white'}>
+          <Toast.Body className={toastVariant !== 'light' ? 'text-white' : ''}>
             {toastMsg}
           </Toast.Body>
         </Toast>
