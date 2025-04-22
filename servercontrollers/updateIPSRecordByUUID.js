@@ -1,54 +1,30 @@
+// server/controllers/updateIPSRecordByUUID.js
 const { IPSModel } = require('../models/IPSModel');
 const { ReadPreference } = require('mongodb');
+const { mergeIPS } = require('./servercontrollerfuncs/ipsService');
 
-function updateIPSByUUID(req, res) {
-    const { uuid } = req.params;
-    const updatedData = req.body;
+async function updateIPSByUUID(req, res) {
+  const { uuid } = req.params;
+  if (!uuid) return res.status(404).send("IPS not found.");
 
-
-    if (uuid) {
-        IPSModel.findOne({ packageUUID: uuid })
-            .read(ReadPreference.NEAREST)
-            .exec()
-            .then((ips) => {
-                if (!ips) {
-                    return res.status(404).send("IPS not found.");
-                }
-
-                // Update patient data
-                if (updatedData.patient) {
-                    Object.assign(ips.patient, updatedData.patient);
-                }
-
-                // Append new medication, allergies, conditions, and observations
-                if (updatedData.medication) {
-                    ips.medication = ips.medication.concat(updatedData.medication);
-                }
-                if (updatedData.allergies) {
-                    ips.allergies = ips.allergies.concat(updatedData.allergies);
-                }
-                if (updatedData.conditions) {
-                    ips.conditions = ips.conditions.concat(updatedData.conditions);
-                }
-                if (updatedData.observations) {
-                    ips.observations = ips.observations.concat(updatedData.observations);
-                }
-                if (updatedData.immunizations) {
-                    ips.dataValues.immunizations = ips.dataValues.immunizations.concat(updatedData.immunizations);
-                }
-
-                // Save the updated IPS
-                return ips.save();
-            })
-            .then((updatedIPS) => {
-                res.json(updatedIPS);
-            })
-            .catch((err) => {
-                res.status(400).send(err);
-            });
-    } else {
-        res.status(404).send("IPS not found.");
+  try {
+    const ips = await IPSModel.findOne({ packageUUID: uuid })
+                              .read(ReadPreference.NEAREST)
+                              .exec();
+    if (!ips) {
+      return res.status(404).send("IPS not found.");
     }
+
+    // merge in everything (including immunizations)
+    mergeIPS(ips, req.body);
+
+    const updated = await ips.save();
+    res.json(updated);
+
+  } catch (err) {
+    res.status(400).send(err);
+  }
 }
 
 module.exports = { updateIPSByUUID };
+

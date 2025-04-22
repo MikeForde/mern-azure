@@ -1,34 +1,25 @@
-// servercontrollers/ipsNewRecord.js
-const {IPSModel} = require('../models/IPSModel');
+// server/controllers/ipsNewRecord.js
+const { upsertIPS } = require('./servercontrollerfuncs/ipsService');
 
-function addIPS(req, res) {
+async function addIPS(req, res) {
+  try {
     console.log("req.body", req.body);
-
-    const newIPS = new IPSModel(req.body);
-
-    newIPS
-        .save()
-        .then((newIPS) => {
-            res.json(newIPS);
-        })
-        .catch((err) => {
-            res.status(400).send(err);
-        });
+    const result = await upsertIPS(req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
 }
 
-function addIPSMany(req, res) {
-    console.log("req.body", req.body);
-
-    const ipsRecords = req.body; // Array of IPS records
-
-    // Insert all IPS records into the database
-    IPSModel.insertMany(ipsRecords)
-        .then((newIPS) => {
-            res.json(newIPS);
-        })
-        .catch((err) => {
-            res.status(400).send(err);
-        });
+async function addIPSMany(req, res) {
+  try {
+    console.log("req.body (many)", req.body);
+    // run all in parallel; if you want bulkWrite for perf, you can swap in a bulk implementation here
+    const results = await Promise.all(req.body.map(ipsData => upsertIPS(ipsData)));
+    res.json(results);
+  } catch (err) {
+    res.status(400).send(err);
+  }
 }
 
 module.exports = { addIPS, addIPSMany };

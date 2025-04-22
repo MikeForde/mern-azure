@@ -1,12 +1,12 @@
 // servercontrollers/ipsNewRecord.js
-const { IPSModel } = require('../models/IPSModel');
 const { parseBEER } = require('./servercontrollerfuncs/convertIPSBEERToSchema');
+const { upsertIPS } = require('./servercontrollerfuncs/ipsService');
 
-function addIPSFromBEER(req, res) {
+async function addIPSFromBEER(req, res) {
     // Extract IPS Bundle from request body
     const ipsBEER = req.body;
 
-    console.log(req.body);
+    console.log(ipsBEER);
 
     const delimiter = req.query.delim || 'newline';
 
@@ -17,17 +17,8 @@ function addIPSFromBEER(req, res) {
         console.log(ipsRecord);
 
         // Create a new IPS record using the converted schema
-        const newIPS = new IPSModel(ipsRecord);
-
-        // Save the new IPS record to the database
-        newIPS
-            .save()
-            .then((newIPS) => {
-                res.json(newIPS);
-            })
-            .catch((err) => {
-                res.status(400).send(err);
-            });
+        const result = await upsertIPS(ipsRecord);
+        res.json(result);
     } catch (error) {
         res.status(400).send(error.message);
     }
