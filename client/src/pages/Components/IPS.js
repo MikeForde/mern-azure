@@ -128,7 +128,7 @@ export function IPS({ ips, remove, update }) {
 
 
   return (
-    <div className="ips">
+    <div className="ips" onDoubleClick={() => setExpanded(expanded ? false : true)}>
       <div className="ips-buttons">
       <OverlayTrigger placement="top" overlay={renderTooltip('View IPS API Page')}>
           <Link to="/api">
