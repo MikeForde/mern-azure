@@ -36,8 +36,14 @@ export default function NFCReaderPage() {
       };
 
       reader.onreading = async ({ serialNumber, message }) => {
-        // Show UID and record count
+        // Show UID and record count +/- mime-type if present
         setCardInfo(`UID: ${serialNumber}\nRecords: ${message.records.length}`);
+        // Show MIME type if present
+        if (message.records.length > 0) {
+          const mimeTypes = message.records.map(r => r.mediaType);
+          setCardInfo(prev => `${prev}\nMIME: ${mimeTypes.join(', ')}`);
+        }
+        // Show payload
 
         let payloadTxt = '';
 
@@ -159,7 +165,7 @@ export default function NFCReaderPage() {
           autohide
         >
           <Toast.Header>
-            <strong className="me-auto">IPS MERN says</strong>
+            <strong className="me-auto">IPS MERN NFC</strong>
           </Toast.Header>
           <Toast.Body className={toastVariant === 'light' ? '' : 'text-white'}>
             {toastMsg}

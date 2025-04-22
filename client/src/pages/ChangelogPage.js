@@ -562,11 +562,22 @@ function ChangeLogPage() {
                         <li>
                             <h5>Version 0_60 - 16th April 2025</h5>
                             <ul>
-                                <li><strong>New REST and GraphQL Documentation Endpoints</strong></li>
+                                <li><strong>New Swagger and GraphQL Documentation Endpoints</strong></li>
                                 <li>Introduced a new <code>/docs</code> endpoint serving Swagger UI based on the updated OpenAPI 3.0 specification, enabling comprehensive exploration and interactive testing of all REST endpoints.</li>
                                 <li>Started a new <code>/graphql</code> implementation allowing a limited number of GET-type queries to be done using GraphQL API.</li>
                                 <li>Includes a <code>/playground</code> endpoint for Apollo GraphQL Playground, which provides an interactive environment for testing GraphQL queries and mutations.</li>
                                 <li>Configuration settings can allow these endpoints to be enabled during development while restricting access in production environments for security.</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <h5>Version 0_61 - 22nd April 2025</h5>
+                            <ul>
+                                <li><strong>Added NFC Read and Write Capability</strong></li>
+                                <li>Requires Web App to be running on compatible device and browser e.g. Chrome on Android.</li>
+                                <li>Using the API Page, the currently displayed IPS data can be written to a NFC tag - including as binary custom MIME format.</li>
+                                <li>Added NFC Reader Page: featuring live card info (UID &amp; record count and mime-type if applicable) plus payload textarea</li>
+                                <li>Binary Format Support: supports custom MIME type <code>application/x.ips.gzip.aes256.v1-0</code>; raw bytes are POSTed to the <code>/test</code> endpoint for AES‑256 decryption and gzip decompression</li>
+    
                             </ul>
                         </li>
                     </ul>

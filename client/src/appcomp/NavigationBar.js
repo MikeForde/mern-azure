@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBeer, faCloud, faDownload, faFileMedical, faQrcode, faTag, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { faBeer, faCloudUploadAlt, faFileMedical, faQrcode, faTag, faUpload, faCloudDownloadAlt, faPeopleArrows } from '@fortawesome/free-solid-svg-icons';
 import { PatientContext } from '../PatientContext';
 import { useLoading } from '../contexts/LoadingContext';
 import PatientSearch from './PatientSearch'; // Import the new component
@@ -70,7 +70,7 @@ function NavigationBar() {
               {' '} Local {' '}
             </>
           )}
-          0_60
+          0_61
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">
@@ -99,14 +99,14 @@ function NavigationBar() {
               </NavDropdown.Item>
             </NavDropdown> */}
             <NavDropdown
-              title={<span><FontAwesomeIcon icon={faCloud} /> External API</span>}
+              title={<span><FontAwesomeIcon icon={faPeopleArrows} /> Xchange</span>}
               id="basic-nav-dropdown"
             >
               <NavDropdown.Item as={Link} to="/fetchips" onClick={() => handleNavItemSelect(false)}>
-                <FontAwesomeIcon icon={faUpload} /> External GET
+                <FontAwesomeIcon icon={faCloudDownloadAlt} /> External GET
               </NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/puships" onClick={() => handleNavItemSelect(true)}>
-                <FontAwesomeIcon icon={faDownload} /> External POST
+                <FontAwesomeIcon icon={faCloudUploadAlt} /> External POST
               </NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/nfc-reader" onClick={() => handleNavItemSelect(false)}>
                 <FontAwesomeIcon icon={faTag} /> NFC Reader
