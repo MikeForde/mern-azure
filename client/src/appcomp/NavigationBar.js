@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBeer, faCloud, faDownload, faFileMedical, faQrcode, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { faBeer, faCloud, faDownload, faFileMedical, faQrcode, faTag, faUpload } from '@fortawesome/free-solid-svg-icons';
 import { PatientContext } from '../PatientContext';
 import { useLoading } from '../contexts/LoadingContext';
 import PatientSearch from './PatientSearch'; // Import the new component
@@ -107,6 +107,9 @@ function NavigationBar() {
               </NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/puships" onClick={() => handleNavItemSelect(true)}>
                 <FontAwesomeIcon icon={faDownload} /> External POST
+              </NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/nfc-reader" onClick={() => handleNavItemSelect(false)}>
+                <FontAwesomeIcon icon={faTag} /> NFC Reader
               </NavDropdown.Item>
             </NavDropdown>
             <NavDropdown title="Info" id="basic-nav-dropdown">

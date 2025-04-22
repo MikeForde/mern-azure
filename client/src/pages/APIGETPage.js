@@ -20,6 +20,7 @@ function APIGETPage() {
   const [toastMsg, setToastMsg] = useState('');
   const [toastVariant, setToastVariant] = useState('info');
   const [isWriting, setIsWriting] = useState(false);
+  const [useBinary, setUseBinary] = useState(false);
 
 
 
@@ -133,31 +134,94 @@ function APIGETPage() {
     return formatted;
   };
 
+  // const handleWriteToNfc = async () => {
+  //   if (!('NDEFReader' in window)) {
+  //     setToastMsg('Web NFC is not supported on this device/browser.');
+  //     setToastVariant('warning');
+  //     setShowToast(true);
+  //     return;
+  //   }
+
+  //   setIsWriting(true);
+  //   try {
+  //     const writer = new window.NDEFReader();
+  //     await writer.write(data);
+  //     console.log('Data written to NFC tag:', data);
+  //     setToastMsg('Data written to NFC tag!');
+  //     setToastVariant('success');
+  //   } catch (error) {
+  //     console.error('Error writing to NFC:', error);
+  //     setToastMsg(`Error - possible tag capacity: ${error.message}`);
+  //     setToastVariant('danger');
+
+  //   } finally {
+  //     setIsWriting(false);
+  //     setShowToast(true);
+  //   }
+  // };
+
   const handleWriteToNfc = async () => {
     if (!('NDEFReader' in window)) {
-      setToastMsg('Web NFC is not supported on this device/browser.');
+      setToastMsg('Web NFC not supported on this device/browser.');
       setToastVariant('warning');
       setShowToast(true);
       return;
     }
-
+  
     setIsWriting(true);
     try {
+      let payload; 
+      //let byteLen;
+  
+      if (useBinary) {
+        // Fetch the raw encrypted+gzipped bytes from your API
+        const resp = await axios.get(
+          `/${mode}/${selectedPatient._id}`, {
+            headers: { Accept: 'application/octet-stream' },
+            responseType: 'arraybuffer'
+          }
+        );
+        payload = new Uint8Array(resp.data);
+        //byteLen = payload.byteLength;
+      } else {
+        // plain‐text path
+        payload = data;
+        //byteLen = new Blob([data]).size;
+      }
+  
+      // if (byteLen > MAX_TAG_BYTES) {
+      //   setToastMsg(`Payload is ${byteLen} bytes; tag max is ${MAX_TAG_BYTES}.`);
+      //   setToastVariant('danger');
+      //   setShowToast(true);
+      //   return;
+      // }
+  
       const writer = new window.NDEFReader();
-      await writer.write(data);
-      console.log('Data written to NFC tag:', data);
+      if (useBinary) {
+        await writer.write({
+          records: [{
+            recordType: 'mime',
+            mediaType: 'application/x.ips.gzip.aes256.v1-0',
+            data: payload
+          }]
+        });
+      } else {
+        await writer.write(data);
+      }
+  
       setToastMsg('Data written to NFC tag!');
       setToastVariant('success');
+  
     } catch (error) {
-      console.error('Error writing to NFC:', error);
-      setToastMsg(`Error - possible tag capacity: ${error.message}`);
+      setToastMsg(`Failed to write to NFC: ${error.message}`);
       setToastVariant('danger');
-
+  
     } finally {
       setIsWriting(false);
       setShowToast(true);
     }
   };
+  
 
 
   return (
@@ -264,6 +328,13 @@ function APIGETPage() {
           >
             {isWriting ? 'Waiting...' : 'Write to NFC'}
           </Button>
+          <Form.Check
+            type="switch"
+            id="binary-switch"
+            label=" Write to NFC using binary (AES256+gzip)"
+            checked={useBinary}
+            onChange={e => setUseBinary(e.target.checked)}
+          />
         </div>
       </div>
       {/* Floating Toast, just like in IPS.js */}

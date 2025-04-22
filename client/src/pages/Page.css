@@ -69,6 +69,11 @@
 
 /* slightly smaller fonts/buttons on tablets and below */
 @media (max-width: 768px) {
+
+  .app .container > h3 {
+    margin-top: -1.0rem !important;    /* shrink that top gap */
+  }
+
   .dropdown-button {
     height: 28px;
   }
@@ -86,8 +91,16 @@
   .noteFont {
     font-size: 12px;
   }
+
+  .dropdown-container {
+    scale: 0.8;
+    padding-bottom: 0px;
+  }
+
   .dropdown-button {
     height: 26px;
+    font-size: 0.8rem;
+    margin-bottom: 3px;
   }
   .button-container .btn {
     padding: 0.3rem 0.6rem;

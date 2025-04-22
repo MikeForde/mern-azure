@@ -14,6 +14,7 @@ import APIGETPage from './pages/APIGETPage';
 // import NLDPOSTPage from './pages/NLDPOSTPage';
 import UnifiedPostPage from './pages/UnifiedPostPage';
 import UnifiedIPSGetPage from './pages/UnifiedIPSGetPage';
+import NFCReaderPage from './pages/NFCReaderPage';
 import BEERGardenPage from './pages/BEERGardenPage';
 import APIDocumentationPage from './pages/APIDocumentationPage';
 import { PatientProvider } from './PatientContext';
@@ -36,6 +37,7 @@ function App() {
               <Route path="/changelog" element={<ChangeLogPage />} />
               <Route path="/aboutwebapp" element={<AboutWebAppPage />} />
               <Route path="/api/:id?" element={<APIGETPage />} />
+              <Route path="/nfc-reader" element={<NFCReaderPage />} />
               {/* <Route path="/ipsoffroad" element={<OffRoadPage />} />
               <Route path="/offroadpost/:id?" element={<OffRoadPOSTPage />} /> */}
               <Route path="/beergarden/:id?" element={<BEERGardenPage />} />

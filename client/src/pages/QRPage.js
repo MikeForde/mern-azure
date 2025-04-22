@@ -108,11 +108,11 @@ function QRPage() {
   return (
     <div className="app">
       <div className="container">
-        <div className="header-container">
+        {/* <div className="header-container"> */}
           <h3>Generate QR Code {mode !== 'ipsurl' && (
             <span className="response-size"> - {responseSize} bytes</span>
           )}</h3>
-        </div>
+        {/* </div> */}
         {selectedPatients.length > 0 && selectedPatient && <>
           <div className="dropdown-container">
             <DropdownButton id="dropdown-record" title={`Patient: ${selectedPatient.patient.given} ${selectedPatient.patient.name}`} onSelect={handleRecordChange} className="dropdown-button">
