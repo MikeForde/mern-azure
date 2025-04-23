@@ -18,6 +18,13 @@ async function addIPSFromBEER(req, res) {
 
         // Create a new IPS record using the converted schema
         const result = await upsertIPS(ipsRecord);
+
+        // emit the new/updated record
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('ipsUpdated', result);
+        }
+
         res.json(result);
     } catch (error) {
         res.status(400).send(error.message);

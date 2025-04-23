@@ -19,6 +19,13 @@ async function updateIPSByUUID(req, res) {
     mergeIPS(ips, req.body);
 
     const updated = await ips.save();
+
+    // ── EMIT VIA WEBSOCKETS ──────────────────────────
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('ipsUpdated', updated);
+    }
+    
     res.json(updated);
 
   } catch (err) {

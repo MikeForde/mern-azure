@@ -8,6 +8,13 @@ async function addIPSFromHL72x(req, res) {
     const ipsRecord = parseHL72_xToMongo(req.body);
     console.log("Converted record", ipsRecord);
     const result = await upsertIPS(ipsRecord);
+
+    // emit the new/updated record
+    const io = req.app.get('io');
+    if (io) {
+        io.emit('ipsUpdated', result);
+    }
+
     res.json(result);
   } catch (error) {
     res.status(400).send(error.message);

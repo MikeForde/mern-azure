@@ -7,6 +7,8 @@ const cors = require("cors");
 const path = require("path");
 const swaggerUi = require('swagger-ui-express');
 const fs = require('fs');
+const http = require('http');
+const { Server } = require('socket.io');
 //const xmlparser = require("express-xml-bodyparser");
 //const getRawBody = require('raw-body');
 
@@ -85,8 +87,8 @@ api.use(cors()); // enable CORS on all requests
 // Load the Swagger definition
 const apiDefinition = JSON.parse(
     fs.readFileSync(path.join(__dirname, 'apidefinition.json'), 'utf-8')
-  );
-  
+);
+
 api.use('/docs', swaggerUi.serve, swaggerUi.setup(apiDefinition));
 
 // ──────────────────────────────────────────────────────────
@@ -215,13 +217,13 @@ api.delete("/ipsdeletebypractitioner/:practitioner", deleteIPSbyPractitioner);
 // GraphQL
 api.get('/playground', playground({ endpoint: '/graphql' }));
 async function startApolloServer() {
-    const apolloServer = new ApolloServer({ typeDefs, resolvers, introspection: true, playground : true });
+    const apolloServer = new ApolloServer({ typeDefs, resolvers, introspection: true, playground: true });
     await apolloServer.start();
     api.use('/graphql', express.json(), expressMiddleware(apolloServer));
-  }
-  
-  startApolloServer();
-  
+}
+
+startApolloServer();
+
 
 // Static front-end
 api.use(express.static(path.join(__dirname, "client", "build")));
@@ -240,9 +242,33 @@ api.get("/*", (req, res) => {
 //     });
 
 // Start server
+// const port = process.env.PORT || 5050;
+// api.listen(port, '0.0.0.0', () => {
+//     console.log(`Server is running on port: ${port}`);
+// });
+
+// ─── Socket.IO ─────────────────────────────────────────────
+// wrap the express app in a raw HTTP server
 const port = process.env.PORT || 5050;
-api.listen(port, '0.0.0.0', () => {
-    console.log(`Server is running on port: ${port}`);
+const httpServer = http.createServer(api);
+
+// create the Socket.IO server and allow CORS from your front‑end origin
+const io = new Server(httpServer, {
+    cors: { origin: '*' }
+});
+
+// make the `io` instance available in your route handlers
+api.set('io', io);
+
+io.on('connection', (socket) => {
+    console.log('⚡️  New WS client connected', socket.id);
+    socket.on('disconnect', () => {
+        console.log('✌️  WS client disconnected', socket.id);
+    });
+});
+
+httpServer.listen(port, '0.0.0.0', () => {
+    console.log(`Server + WebSocket listening on port ${port}`);
 });
 
 // Finally, start the gRPC server

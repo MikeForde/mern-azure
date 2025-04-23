@@ -12,6 +12,13 @@ async function addIPSFromCDA(req, res) {
 
         // Create a new IPS record using the converted schema
         const result = await upsertIPS(ipsRecord);
+
+        // emit the new/updated record
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('ipsUpdated', result);
+        }
+
         res.json(result);
     } catch (err) {
         console.error('Error processing CDA:', err);

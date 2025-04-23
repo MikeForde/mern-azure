@@ -577,7 +577,18 @@ function ChangeLogPage() {
                                 <li>Using the API Page, the currently displayed IPS data can be written to a NFC tag - including as binary custom MIME format.</li>
                                 <li>Added NFC Reader Page: featuring live card info (UID &amp; record count and mime-type if applicable) plus payload textarea</li>
                                 <li>Binary Format Support: supports custom MIME type <code>application/x.ips.gzip.aes256.v1-0</code>; raw bytes are POSTed to the <code>/test</code> endpoint for AES‑256 decryption and gzip decompression</li>
-    
+                                <li>Data can imported or simply converted - as a demonstration - into NoSQL JSON (MongoDb)</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <h5>Version 0_62 - 23rd April 2025</h5>
+                            <ul>
+                                <li><strong>Automatic Record New Record/Update Capability</strong></li>
+                                <li>Introduced a <code>upsertIPS</code> service that detects an existing <code>packageUUID</code> and automatically updates instead of creating duplicates.</li>
+                                <li>All POST/PUT endpoints now delegate to this upsert logic, ensuring idempotent create-or-update behavior even when records are resubmitted.</li>
+                                <li><strong>Real-time Interface Refresh via WebSockets</strong></li>
+                                <li>Integrated Socket.IO in <code>server.js</code> to emit events whenever an IPS is created or updated (including via external API calls).</li>
+                                <li>Added a top-level <code>SocketListener</code> in React frontend that listens for events - instantly refreshing the displayed patient data.</li>
                             </ul>
                         </li>
                     </ul>

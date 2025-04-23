@@ -1,5 +1,5 @@
 // src/App.js
-import React from 'react';
+import React, { useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import QRPage from './pages/QRPage';
@@ -17,16 +17,43 @@ import UnifiedIPSGetPage from './pages/UnifiedIPSGetPage';
 import NFCReaderPage from './pages/NFCReaderPage';
 import BEERGardenPage from './pages/BEERGardenPage';
 import APIDocumentationPage from './pages/APIDocumentationPage';
+import { PatientContext } from './PatientContext';
 import { PatientProvider } from './PatientContext';
 import { LoadingProvider } from './contexts/LoadingContext';
 import LoadingSpinner from './components/LoadingSpinner';
+import io from 'socket.io-client';
+
+function SocketListener() {
+  const { setSelectedPatients, setSelectedPatient } = useContext(PatientContext);
+
+  useEffect(() => {
+    // connect to the same origin (or API_BASE_URL)
+    const socket = io(/* process.env.REACT_APP_API_BASE_URL || */);
+
+    socket.on('ipsUpdated', updated => {
+      setSelectedPatients(curr =>
+        curr.map(p => (p._id === updated._id ? updated : p))
+      );
+      setSelectedPatient(curr =>
+        curr && curr._id === updated._id ? updated : curr
+      );
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [setSelectedPatients, setSelectedPatient]);
+
+  return null; // as doesn't render anything
+}
 
 function App() {
   return (
     <PatientProvider>
+      <SocketListener />
       <LoadingProvider>
         <Router>
-          <div style={{ paddingTop: '56px' }}> {/* Adjust the padding-top value based on your Navbar height */}
+          <div style={{ paddingTop: '56px' }}> {/* Adjust the padding-top value based on Navbar height */}
             <NavigationBar />
             <LoadingSpinner />
             <Routes>

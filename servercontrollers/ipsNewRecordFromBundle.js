@@ -23,6 +23,13 @@ async function addIPSFromBundle(req, res) {
         console.log("Converted IPS record:", ipsRecord);
 
         const result = await upsertIPS(ipsRecord);
+
+        // emit the new/updated record
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('ipsUpdated', result);
+        }
+
         res.json(result);
     } catch (error) {
         console.error("Error in addIPSFromBundle:", error);
