@@ -63,8 +63,8 @@ router.post('/pmr/:id', async (req, res) => {
   <PatientDetails setid="PATDET" setSeq="6">
     <PatientId ffSeq="1" ffirnFudn="FF1012-230">${patientId}</PatientId>
     <PatientIdStatus ffSeq="2" ffirnFudn="FF1584-39">PERM</PatientIdStatus>
-    <PatientSecondName ffSeq="3" ffirnFudn="FF1022-26">${ipsRecord.patient.name || 'Unknown'}</PatientSecondName>
-    <PatientFirstNameS ffSeq="4" ffirnFudn="FF1022-3">${ipsRecord.patient.given || 'Unknown'}</PatientFirstNameS>
+    <PatientSecondName ffSeq="3" ffirnFudn="FF1022-26">${(ipsRecord.patient.name).toUpperCase() || 'UNKNOWN'}</PatientSecondName>
+    <PatientFirstNameS ffSeq="4" ffirnFudn="FF1022-3">${(ipsRecord.patient.given).toUpperCase() || 'UNKNOWN'}</PatientFirstNameS>
     <DateOfBirth ffSeq="5" ffirnFudn="FF2001-1">
       <Day>${ipsRecord.patient.dob ? new Date(ipsRecord.patient.dob).getDate() : ''}</Day>
       <MonthNameAbbreviated>${ipsRecord.patient.dob ? new Date(ipsRecord.patient.dob).toLocaleString('en-US', { month: 'short' }).toUpperCase() : ''}</MonthNameAbbreviated>
@@ -112,19 +112,23 @@ router.post('/pmr/:id', async (req, res) => {
   </ReasonForMovement>
   <Diagnosis setid="GENTEXT" setSeq="10">
     <TextIndicator ffSeq="1" ffirnFudn="FF1009-1">TI</TextIndicator>
-    <FreeText xml:space="preserve" ffSeq="2" ffirnFudn="FF1006-1">${ipsRecord.conditions.map(c => c.name).join(', ') || 'No conditions'}</FreeText>
+    <FreeText xml:space="preserve" ffSeq="2" ffirnFudn="FF1006-1">${ipsRecord.conditions.map(c => c.name).join(', ').toUpperCase() || 'NO CONDITIONS'}</FreeText>
   </Diagnosis>
+  <History setid="GENTEXT" setSeq="11">
+    <TextIndicator ffSeq="1" ffirnFudn="FF1009-1">TI</TextIndicator>
+    <FreeText xml:space="preserve" ffSeq="2" ffirnFudn="FF1006-1">${ipsRecord.allergies.map(a => a.name).join(', ').toUpperCase() || 'NO ALLERGIES'}</FreeText>
+  </History>
   <ClinicalHistory setid="GENTEXT" setSeq="12">
     <TextIndicator ffSeq="1" ffirnFudn="FF1009-1">TI</TextIndicator>
-    <FreeText xml:space="preserve" ffSeq="2" ffirnFudn="FF1006-1">${ipsRecord.allergies.map(a => a.name).join(', ') || 'No allergies'}</FreeText>
+    <FreeText xml:space="preserve" ffSeq="2" ffirnFudn="FF1006-1">CLINICAL HISTORY</FreeText>
   </ClinicalHistory>
   <Medications setid="GENTEXT" setSeq="13">
     <TextIndicator ffSeq="1" ffirnFudn="FF1009-1">TI</TextIndicator>
-    <FreeText xml:space="preserve" ffSeq="2" ffirnFudn="FF1006-1">${ipsRecord.medication.map(m => m.name).join(', ') || 'No medications'}</FreeText>
+    <FreeText xml:space="preserve" ffSeq="2" ffirnFudn="FF1006-1">${ipsRecord.medication.map(m => m.name).join(', ').toUpperCase() || 'NO MEDICATIONS'}</FreeText>
   </Medications>
   <Procedures setid="GENTEXT" setSeq="14">
     <TextIndicator ffSeq="1" ffirnFudn="FF1009-1">TI</TextIndicator>
-    <FreeText xml:space="preserve" ffSeq="2" ffirnFudn="FF1006-1">${ipsRecord.observations.map(o => o.name).join(', ') || 'No procedures'}</FreeText>
+    <FreeText xml:space="preserve" ffSeq="2" ffirnFudn="FF1006-1">${ipsRecord.observations.map(o => o.name).join(', ').toUpperCase() || 'NO OBSERVATIONS'}</FreeText>
   </Procedures>
   <Equipment setid="GENTEXT" setSeq="15">
     <TextIndicator ffSeq="1" ffirnFudn="FF1009-1">TI</TextIndicator>

@@ -1,5 +1,7 @@
 // xmppConnection.js
 const { client, xml } = require("@xmpp/client");
+const net = require( 'net');
+const { URL } = require ('url');
 
 // Import your ID resolver and IPS text formatter
 const { resolveId } = require("../utils/resolveId");
@@ -21,7 +23,7 @@ function safeEnv(varName, defaultValue) {
 }
 
 // Read environment variables - fallback defaults
-const XMPP_SERVICE  = safeEnv("XMPP_SERVICE",  "ws://192.168.68.112:7070/ws/");
+const XMPP_SERVICE  = safeEnv("XMPP_SERVICE",  "ws://192.168.68.115:7070/ws/");
 const XMPP_DOMAIN   = safeEnv("XMPP_DOMAIN",   "desktop-4tiift3");
 const XMPP_USERNAME = safeEnv("XMPP_USERNAME", "mikef");
 const XMPP_PASSWORD = safeEnv("XMPP_PASSWORD", "test");
@@ -31,6 +33,21 @@ const XMPP_ROOM     = safeEnv("XMPP_ROOM",     "testroom@conference.desktop-4tii
 // Default nickname to join room
 const DEFAULT_ROOM_NICK = "IPSMern";
 
+// Check if the XMPP service is reachable
+async function canReach(hostname, port, timeout = 2000) {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    socket.setTimeout(timeout);
+    socket
+      .once('connect',  () => { socket.destroy(); resolve(true) })
+      .once('timeout',  () => { socket.destroy(); resolve(false) })
+      .once('error',    () => { socket.destroy(); resolve(false) })
+      .connect(port, hostname);
+  });
+}
+
+
+
 /**
  * Initialize a WebSocket-based XMPP client and attach event handlers.
  */
@@ -39,6 +56,15 @@ async function initXMPP_WebSocket() {
     // Already initialized
     return xmpp;
   }
+
+    // parse out host/port from XMPP_SERVICE URL
+    const { hostname, port: portString } = new URL(XMPP_SERVICE);
+    const port = parseInt(portString || '5222', 10);
+  
+    if (!(await canReach(hostname, port))) {
+      console.log(`✖  XMPP server ${hostname}:${port} unreachable — skipping.`);
+      return null;
+    }
 
   xmpp = client({
     service:  XMPP_SERVICE,
