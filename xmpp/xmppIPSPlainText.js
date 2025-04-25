@@ -29,7 +29,7 @@ async function getIPSPlainText(id) {
     return null; // Not found
   }
 
-  console.log('IPS Record - getIPSPlainText:', ipsRecord);
+  //console.log('IPS Record - getIPSPlainText:', ipsRecord);
 
   // 2) Construct a plain text output
   let output = '';

@@ -22,6 +22,12 @@ function applyReconnect(entity) {
   reconnect({ entity });
 }
 
+// helper that waits for the next “online” event
+async function waitForOnline() {
+  if (isOnline) return;
+  await once(xmpp, "online");
+}
+
 // ➋ Monkey-patch Client._onData to ignore null chunks
 const originalOnData = Connection.prototype._onData;
 Connection.prototype._onData = function (chunk) {
@@ -218,8 +224,43 @@ function sendPrivateMessage(toJid, message) {
   ));
 }
 
+async function getRoomOccupants(roomJid) {
+  if (!xmpp) {
+    throw new Error("XMPP not initialized");
+  }
+
+  // If we’re offline, pause until reconnect
+  await waitForOnline();
+
+  // build & send the disco#items IQ
+  const disco = xml(
+    "iq",
+    { to: roomJid, type: "get", id: "occupants1" },
+    xml("query", { xmlns: "http://jabber.org/protocol/disco#items" })
+  );
+
+  let resp;
+  try {
+    resp = await xmpp.sendReceive(disco);
+  } catch (err) {
+    // optionally retry once after a short delay
+    console.warn("[XMPP] disco#items failed, retrying…", err);
+    await waitForOnline();
+    resp = await xmpp.sendReceive(disco);
+  }
+
+  // parse out the <item/> elements
+  const items = resp
+    .getChild("query", "http://jabber.org/protocol/disco#items")
+    .getChildren("item");
+
+  return items.map((item) => item.attrs.jid);
+}
+
+
 module.exports = {
   initXMPP_WebSocket,
   sendGroupMessage,
-  sendPrivateMessage
+  sendPrivateMessage,
+  getRoomOccupants, 
 };

@@ -1,7 +1,7 @@
-import React, { useContext, useState } from "react";
-import { Button, Modal, Form, OverlayTrigger, Tooltip, Row, Col } from "react-bootstrap";
+import React, { useContext, useState, useEffect } from "react";
+import { Button, Modal, Form, OverlayTrigger, Tooltip, Row, Col, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { faFileMedical, faQrcode, faTrash, faBeer, faEdit, faFileExport, faUpload, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
+import { faFileMedical, faQrcode, faTrash, faBeer, faEdit, faFileExport, faUpload, faPaperPlane, faCommentDots } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { PatientContext } from '../../PatientContext';
@@ -30,6 +30,14 @@ export function IPS({ ips, remove, update }) {
   const [pmrAlertVariant, setPmrAlertVariant] = useState('success'); // "success" for success, "danger" for errors
   const [showPmrAlert, setShowPmrAlert] = useState(false);
 
+  // XMPP send state
+  const [showXMPPModal, setShowXMPPModal] = useState(false);
+  const [occupants, setOccupants] = useState([]);
+  const [loadingOccupants, setLoadingOccupants] = useState(false);
+  const [selectedOccupant, setSelectedOccupant] = useState('');
+  const [sendMode, setSendMode] = useState('room'); // 'room' or 'private'
+  const [xmppMessageStatus, setXmppMessageStatus] = useState('');
+  const [xmppError, setXmppError] = useState('');
 
   const handleRemove = () => setShowConfirmModal(true);
 
@@ -126,11 +134,42 @@ export function IPS({ ips, remove, update }) {
       .finally(() => stopLoading());
   };
 
+  // XMPP logic: open modal & load occupants
+  const openXMPPModal = () => {
+    setShowXMPPModal(true);
+    setXmppMessageStatus('');
+    setXmppError('');
+    setLoadingOccupants(true);
+    axios.get('/xmpp/xmpp-occupants')
+      .then(res => setOccupants(res.data.occupants || []))
+      .catch(err => setXmppError('Failed to load occupants'))
+      .finally(() => setLoadingOccupants(false));
+  };
+  const closeXMPPModal = () => {
+    setShowXMPPModal(false);
+    setSelectedOccupant('');
+    setSendMode('room');
+  };
+  const handleSendXMPP = () => {
+    setXmppMessageStatus(''); setXmppError('');
+    const payload = { id: ips.packageUUID };
+    let url;
+    if (sendMode === 'private') {
+      payload.from = selectedOccupant;
+      url = '/xmpp/xmpp-ips-private';
+    } else {
+      url = '/xmpp/xmpp-ips';
+    }
+    axios.post(url, payload)
+      .then(() => setXmppMessageStatus('Message sent!'))
+      .catch(() => setXmppError('Failed to send message'));
+  };
+
 
   return (
     <div className="ips" onDoubleClick={() => setExpanded(expanded ? false : true)}>
       <div className="ips-buttons">
-      <OverlayTrigger placement="top" overlay={renderTooltip('View IPS API Page')}>
+        <OverlayTrigger placement="top" overlay={renderTooltip('View IPS API Page')}>
           <Link to="/api">
             <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
               <FontAwesomeIcon icon={faFileMedical} />
@@ -171,6 +210,12 @@ export function IPS({ ips, remove, update }) {
         <OverlayTrigger placement="top" overlay={renderTooltip('Send PMR to MMP')}>
           <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSendPMR}>
             <FontAwesomeIcon icon={faPaperPlane} />
+          </Button>
+        </OverlayTrigger>
+
+        <OverlayTrigger placement="top" overlay={renderTooltip('Send to XMPP')}>  
+          <Button variant="outline-secondary" className="qr-button custom-button" onClick={openXMPPModal}>
+            <FontAwesomeIcon icon={faCommentDots} />
           </Button>
         </OverlayTrigger>
 
@@ -578,7 +623,7 @@ export function IPS({ ips, remove, update }) {
             <h4 className="ipsedit">Allergies:</h4>
             <div className="table-responsive">
               <table className="table table-bordered table-sm">
-              <colgroup>
+                <colgroup>
                   <col style={{ width: '50%' }} />  {/* Name */}
                   <col style={{ width: '7%' }} />  {/* Code */}
                   <col style={{ width: '7%' }} />  {/* System */}
@@ -662,7 +707,7 @@ export function IPS({ ips, remove, update }) {
             <h4 className="ipsedit">Conditions:</h4>
             <div className="table-responsive">
               <table className="table table-bordered table-sm">
-              <colgroup>
+                <colgroup>
                   <col style={{ width: '40%' }} />  {/* Name */}
                   <col style={{ width: '4%' }} />  {/* Code */}
                   <col style={{ width: '4%' }} />  {/* System */}
@@ -731,7 +776,7 @@ export function IPS({ ips, remove, update }) {
             <h4 className="ipsedit">Observations:</h4>
             <div className="table-responsive">
               <table className="table table-bordered table-sm">
-              <colgroup>
+                <colgroup>
                   <col style={{ width: '50%' }} />  {/* Name */}
                   <col style={{ width: '4%' }} />  {/* Code */}
                   <col style={{ width: '4%' }} />  {/* System */}
@@ -877,6 +922,65 @@ export function IPS({ ips, remove, update }) {
           <Button variant="primary" onClick={handleSaveEdit}>
             Save Changes
           </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* XMPP Send Modal */}
+      <Modal show={showXMPPModal} onHide={closeXMPPModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Send IPS to XMPP</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {loadingOccupants && <Spinner animation="border" />}
+          {xmppError && <div className="text-danger">{xmppError}</div>}
+          {!loadingOccupants && !xmppError && (
+            <Form>
+              <Form.Group>
+                <Form.Check
+                  inline
+                  type="radio"
+                  label="Room"
+                  name="sendMode"
+                  id="mode-room"
+                  checked={sendMode === 'room'}
+                  onChange={() => setSendMode('room')}
+                />
+                <Form.Check
+                  inline
+                  type="radio"
+                  label="Private"
+                  name="sendMode"
+                  id="mode-private"
+                  checked={sendMode === 'private'}
+                  onChange={() => setSendMode('private')}
+                />
+              </Form.Group>
+              {sendMode === 'private' && (
+                <Form.Group controlId="selectOccupant">
+                  <Form.Label>Select User</Form.Label>
+                  <Form.Control
+                    as="select"
+                    value={selectedOccupant}
+                    onChange={e => setSelectedOccupant(e.target.value)}
+                  >
+                    <option value="">-- choose --</option>
+                    {occupants.map(name => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
+                  </Form.Control>
+                </Form.Group>
+              )}
+            </Form>
+          )}
+          {xmppMessageStatus && <div className="text-success mt-2">{xmppMessageStatus}</div>}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={closeXMPPModal}>Cancel</Button>
+          <Button
+            variant="primary"
+            disabled={sendMode==='private' && !selectedOccupant}
+            onClick={handleSendXMPP}
+          >Send</Button>
         </Modal.Footer>
       </Modal>
     </div>

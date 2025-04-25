@@ -9,7 +9,7 @@ const XMPP_DOMAIN = process.env.XMPP_DOMAIN || "desktop-4tiift3";
 
 // Import your helper functions
 const { getIPSPlainText } = require("./xmppIPSPlainText");
-const { sendGroupMessage, sendPrivateMessage } = require("./xmppConnection");
+const { sendGroupMessage, sendPrivateMessage, getRoomOccupants } = require("./xmppConnection");
 
 /**
  * GET /test-send-message
@@ -101,6 +101,18 @@ router.post("/xmpp-ips-private", async (req, res) => {
   } catch (error) {
     console.error("Error in /xmpp-ips-private route:", error);
     return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.get("/xmpp-occupants", async (req, res) => {
+  try {
+    const occupants = await getRoomOccupants(process.env.XMPP_ROOM);
+    // Optionally strip off the resource (nick) if you just want the localpart:
+    const names = occupants.map(jid => jid.split("/")[1]);
+    res.json({ occupants: names });
+  } catch (err) {
+    console.error("Failed to fetch occupants:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
