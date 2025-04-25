@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState } from "react";
 import { Button, Modal, Form, OverlayTrigger, Tooltip, Row, Col, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { faFileMedical, faQrcode, faTrash, faBeer, faEdit, faFileExport, faUpload, faPaperPlane, faCommentDots } from '@fortawesome/free-solid-svg-icons';
