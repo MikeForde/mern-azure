@@ -8,6 +8,10 @@ const { resolveId } = require('../utils/resolveId');
  */
 function formatTimestamp(dateObj) {
   // Convert to ISO string, then parse out date/time
+  // Return blank if dateObj is null, undefined or not a Date
+  if (!dateObj || !(dateObj instanceof Date)) {
+    return '';
+  }
   const iso = dateObj.toISOString();         // e.g. "2024-08-05T06:33:26.123Z"
   const datePart = iso.substring(0, 10);     // "2024-08-05"
   const timePart = iso.substring(11, 19);    // "06:33:26"
@@ -24,6 +28,8 @@ async function getIPSPlainText(id) {
   if (!ipsRecord) {
     return null; // Not found
   }
+
+  console.log('IPS Record - getIPSPlainText:', ipsRecord);
 
   // 2) Construct a plain text output
   let output = '';
