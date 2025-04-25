@@ -1,5 +1,7 @@
 // xmppConnection.js
 const { client, xml } = require("@xmpp/client");
+const reconnect = require("@xmpp/reconnect");
+const Connection = require("@xmpp/connection");
 const net = require( 'net');
 const { URL } = require ('url');
 
@@ -9,9 +11,26 @@ const { getIPSPlainText } = require("./xmppIPSPlainText");
 
 // We'll store the XMPP client instance in a variable so we can reuse it
 let xmpp = null;
+let isOnline = false;
+let sendQueue = [];
 
 // We'll store the JID we get from 'online'
 let myJid = null;
+
+//    this will automatically retry start() on disconnects.
+function applyReconnect(entity) {
+  reconnect({ entity });
+}
+
+// ➋ Monkey-patch Client._onData to ignore null chunks
+const originalOnData = Connection.prototype._onData;
+Connection.prototype._onData = function (chunk) {
+  if (chunk == null) {
+    console.warn("[XMPP] Ignoring null WebSocket frame");
+    return;
+  }
+  return originalOnData.call(this, chunk);
+};
 
 function safeEnv(varName, defaultValue) {
   const value = process.env[varName];
@@ -74,6 +93,8 @@ async function initXMPP_WebSocket() {
     transport: "websocket",
   });
 
+  applyReconnect(xmpp); 
+
   // Handle connection errors
   xmpp.on("error", (err) => {
     console.error("XMPP error:", err);
@@ -81,8 +102,10 @@ async function initXMPP_WebSocket() {
 
   // Called once the client is online (SASL auth + resource binding complete)
   xmpp.on("online", (address) => {
+    isOnline = true;
     myJid = address.toString();
     console.log("XMPP WebSocket is online as", myJid);
+    flushSendQueue();  
 
     // Example: join a room
     const roomJid = `${XMPP_ROOM}/${DEFAULT_ROOM_NICK}`;
@@ -155,30 +178,44 @@ async function initXMPP_WebSocket() {
   }
 }
 
+function queueSend(type, stanza) {
+  sendQueue.push({ type, stanza });
+}
+function flushSendQueue() {
+  while (sendQueue.length) {
+    const { type, stanza } = sendQueue.shift();
+    xmpp.send(stanza);
+  }
+}
+
 /**
  * Send a groupchat message to the specified MUC room.
  * Example usage: sendGroupMessage('testroom@conference.desktop-4tiift3', 'Hello from Node!');
  */
 function sendGroupMessage(roomJid, message) {
-  if (!xmpp) {
-    throw new Error("XMPP client not initialized or not online yet.");
-  }
-  xmpp.send(
-    xml("message", { type: "groupchat", to: roomJid },
+  if (!xmpp || !isOnline) {
+    console.log("[XMPP] offline – queuing group message");
+    const stanza = xml("message", { type: "groupchat", to: roomJid },
       xml("body", {}, message)
-    )
-  );
+    );
+    return queueSend("group", stanza);
+  }
+  xmpp.send(xml("message", { type: "groupchat", to: roomJid },
+    xml("body", {}, message)
+  ));
 }
 
 function sendPrivateMessage(toJid, message) {
-  if (!xmpp) {
-    throw new Error("XMPP client not initialized or offline.");
-  }
-  xmpp.send(
-    xml("message", { type: "chat", to: toJid },
+  if (!xmpp || !isOnline) {
+    console.log("[XMPP] offline – queuing private message");
+    const stanza = xml("message", { type: "chat", to: toJid },
       xml("body", {}, message)
-    )
-  );
+    );
+    return queueSend("private", stanza);
+  }
+  xmpp.send(xml("message", { type: "chat", to: toJid },
+    xml("body", {}, message)
+  ));
 }
 
 module.exports = {
