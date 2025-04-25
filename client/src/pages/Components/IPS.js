@@ -142,7 +142,7 @@ export function IPS({ ips, remove, update }) {
     setLoadingOccupants(true);
     axios.get('/xmpp/xmpp-occupants')
       .then(res => setOccupants(res.data.occupants || []))
-      .catch(err => setXmppError('Failed to load occupants'))
+      .catch(err => setXmppError('Failed to load occupants - is XMPP reachable?'))
       .finally(() => setLoadingOccupants(false));
   };
   const closeXMPPModal = () => {
