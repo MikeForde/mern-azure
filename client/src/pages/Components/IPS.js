@@ -280,6 +280,7 @@ export function IPS({ ips, remove, update }) {
             <p>Country: {ips.patient.nation}</p>
             <p>Practitioner: {ips.patient.practitioner}</p>
             <p>Organization: {ips.patient.organization}</p>
+            <p>Identifier: {ips.patient.identifier}</p>
 
             {ips.medication && ips.medication.length > 0 && (
               <>
@@ -542,7 +543,7 @@ export function IPS({ ips, remove, update }) {
               </Col>
             </Row>
             <Row>
-              <Col>
+              <Col xs={2}>
                 <Form.Group controlId="formPatientNation">
                   <Form.Label>Country</Form.Label>
                   <Form.Control
@@ -564,13 +565,24 @@ export function IPS({ ips, remove, update }) {
                   />
                 </Form.Group>
               </Col>
-              <Col>
+              <Col xs={2}>
                 <Form.Group controlId="formPatientOrganization">
                   <Form.Label>Organization</Form.Label>
                   <Form.Control
                     type="text"
                     name="organization"
                     value={editIPS.patient.organization}
+                    onChange={handleEditChange}
+                  />
+                </Form.Group>
+              </Col>
+              <Col>
+                <Form.Group controlId="formPatientIdentifier">
+                  <Form.Label>Identifier</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="identifier"
+                    value={editIPS.patient.identifier}
                     onChange={handleEditChange}
                   />
                 </Form.Group>

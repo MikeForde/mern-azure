@@ -23,6 +23,7 @@ export function FormIPS({ add }) {
       nationality: "",
       practitioner: "",
       organization: "",
+      identifier: "",
     },
     medication: [{ name: "", code: "", system: "", date: "", dosage: "" }],
     allergies: [{ name: "", code: "", system: "", criticality: "", date: "" }],
@@ -172,6 +173,7 @@ export function FormIPS({ add }) {
         nation: "",
         practitioner: "",
         organization: "",
+        identifier: "",
       },
       medication: [{ name: "", code: "", system: "", date: "", dosage: "" }],
       allergies: [{ name: "", code: "", system: "", criticality: "", date: "" }],
@@ -292,6 +294,15 @@ export function FormIPS({ add }) {
                   value={formData.patient.organization}
                   onChange={handlePatientChange}
                   placeholder="Organization - default UK DMS" />
+              </div>
+              <Form.Label className="col-sm-2">Identifier</Form.Label>
+              <div className="col-sm-4">
+                <Form.Control
+                  type="text"
+                  name="identifier"
+                  value={formData.patient.identifier}
+                  onChange={handlePatientChange}
+                  placeholder="Identifier" />
               </div>
             </Form.Group>
           </Form.Group>
