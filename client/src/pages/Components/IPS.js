@@ -25,7 +25,7 @@ const formatDate = (dateString) => {
 const formatDateNoTime = (dateString) => {
   console.log("formatDate", dateString);
   if (dateString === null || dateString === undefined) return "";
-  const [datePart, ] = dateString.split("T");
+  const [datePart,] = dateString.split("T");
   //return time === "00:00:00" ? datePart : `${datePart} ${time}`;
   return `${datePart}`;
 };
@@ -40,6 +40,8 @@ export function IPS({ ips, remove, update }) {
   const [pmrMessage, setPmrMessage] = useState('');
   const [pmrAlertVariant, setPmrAlertVariant] = useState('success'); // "success" for success, "danger" for errors
   const [showPmrAlert, setShowPmrAlert] = useState(false);
+  const [showEditAlert, setShowEditAlert] = useState(false);
+  const [editAlertMessage, setEditAlertMessage] = useState("");
 
   // XMPP send state
   const [showXMPPModal, setShowXMPPModal] = useState(false);
@@ -82,6 +84,19 @@ export function IPS({ ips, remove, update }) {
   };
 
   const handleSaveEdit = () => {
+    // Validate the form data before sending it to the server
+    // enforce “number + space + unit” for observations
+    const obsPattern = /^(?:\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)?)\s+[a-zA-Z%/]+$/;
+    for (let { value } of editIPS.observations) {
+      if (value && !obsPattern.test(value)) {
+        setEditAlertMessage(
+          'Observation must be num[-num] + space + units, e.g. "60 bpm or 120-80 mmHg or 37.5 C"'
+        );
+        setShowEditAlert(true);
+        return;
+      }
+    }
+
     startLoading();
     axios.put(`/ips/${ips._id}`, editIPS)
       .then(response => {
@@ -224,7 +239,7 @@ export function IPS({ ips, remove, update }) {
           </Button>
         </OverlayTrigger>
 
-        <OverlayTrigger placement="top" overlay={renderTooltip('Send to XMPP')}>  
+        <OverlayTrigger placement="top" overlay={renderTooltip('Send to XMPP')}>
           <Button variant="outline-secondary" className="qr-button custom-button" onClick={openXMPPModal}>
             <FontAwesomeIcon icon={faCommentDots} />
           </Button>
@@ -459,7 +474,18 @@ export function IPS({ ips, remove, update }) {
           <Modal.Title className="ipsedit">Edit Patient</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form>
+          {/* validation error */}
+          <ToastContainer className="fixed-bottom m-3">
+            <Toast
+              show={showEditAlert}
+              onClose={() => setShowEditAlert(false)}
+              bg="danger"
+              autohide
+              delay={5000}
+            >
+              <Toast.Body>{editAlertMessage}</Toast.Body>
+            </Toast>
+          </ToastContainer>          <Form>
             {/* Patient Details */}
             <Row>
               <Col>
@@ -784,7 +810,7 @@ export function IPS({ ips, remove, update }) {
             </Button>
 
             {/* Observations Table */}
-            <h4 className="ipsedit">Observations:</h4>
+            <h4 className="ipsedit">Observations: Enter Value as val-space-unit e.g. 60 bpm</h4>
             <div className="table-responsive">
               <table className="table table-bordered table-sm">
                 <colgroup>
@@ -844,6 +870,8 @@ export function IPS({ ips, remove, update }) {
                         <Form.Control
                           type="text"
                           name="value"
+                          // Add hover
+                          placeholder="Val Unit"
                           value={observation.value}
                           onChange={(e) => handleChangeItem("observations", index, e)}
                         />
@@ -989,7 +1017,7 @@ export function IPS({ ips, remove, update }) {
           <Button variant="secondary" onClick={closeXMPPModal}>Cancel</Button>
           <Button
             variant="primary"
-            disabled={sendMode==='private' && !selectedOccupant}
+            disabled={sendMode === 'private' && !selectedOccupant}
             onClick={handleSendXMPP}
           >Send</Button>
         </Modal.Footer>

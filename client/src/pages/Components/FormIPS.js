@@ -32,6 +32,7 @@ export function FormIPS({ add }) {
   });
 
   const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
 
   const handlePatientChange = (e) => {
     const { name, value } = e.target;
@@ -125,23 +126,30 @@ export function FormIPS({ add }) {
   const handleAddImmunization = () => {
     setFormData({
       ...formData,
-      immunizations: [...formData.immunizations, { name: "", code: "", system: "",  date: "" }],
+      immunizations: [...formData.immunizations, { name: "", code: "", system: "", date: "" }],
     });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // enforce “number + space + unit”
+    const obsPattern = /^(?:\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)?)\s+[a-zA-Z%/]+$/;
+    for (let { value } of formData.observations) {
+      if (value && !obsPattern.test(value)) {
+        setAlertMessage(
+          'Ob value be “val(-val) + space + units”, e.g. "60 bpm or 120-80 mmHg or 37.5 C"'
+        );
+        setShowAlert(true);
+        return;
+      }
+    }
+
     // Check if any of the required fields are missing
     if (!formData.patient.name || !formData.patient.given || !formData.patient.dob) {
       // If any required field is missing, show the alert
+      setAlertMessage("Please fill in Name, Given Name and Date of Birth.");
       setShowAlert(true);
-
-      // Hide the alert after 3 seconds
-      setTimeout(() => {
-        setShowAlert(false);
-      }, 3000);
-
       return;
     }
 
@@ -249,10 +257,10 @@ export function FormIPS({ add }) {
                   value={formData.patient.gender}
                   onChange={handlePatientChange} >
                   <option value="">Select Gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                  <option value="unknown">Unknown</option>
+                  <option value="male">male</option>
+                  <option value="female">female</option>
+                  <option value="other">other</option>
+                  <option value="unknown">unknown</option>
                 </Form.Control>
               </div>
             </Form.Group>
@@ -394,9 +402,9 @@ export function FormIPS({ add }) {
                     onChange={(e) => handleAllergyChange(index, e)}
                     placeholder="Criticality" >
                     <option value="">Select Criticality</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
+                    <option value="high">high</option>
+                    <option value="medium">medium</option>
+                    <option value="low">low</option>
                   </Form.Control>
                 </div>
               </Form.Group>
@@ -535,7 +543,11 @@ export function FormIPS({ add }) {
                     name="value"
                     value={observation.value}
                     onChange={(e) => handleObservationChange(index, e)}
-                    placeholder="Value" />
+                    placeholder="Val Unit"
+                  />
+                  <Form.Text className="text-muted">
+                    Enter a val[-val], a space, then units (e.g. <code>78 kg</code> or <code>120-80 mmHg</code>)
+                  </Form.Text>
                 </div>
               </Form.Group>
             </div>
@@ -580,8 +592,15 @@ export function FormIPS({ add }) {
           ))}
 
           <Button className="submit" variant="primary" type="submit">Submit IPS Data</Button>
-          <Toast show={showAlert} onClose={() => setShowAlert(false)} bg="danger" className="fixed-bottom m-3">
-            <Toast.Body>Please fill in all required fields.</Toast.Body>
+          <Toast
+            show={showAlert}
+            onClose={() => setShowAlert(false)}
+            bg="danger"
+            className="fixed-bottom m-3"
+            autohide
+            delay={5000}
+          >
+            <Toast.Body>{alertMessage}</Toast.Body>
           </Toast>
         </Form>
       )}
