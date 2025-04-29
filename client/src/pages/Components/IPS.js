@@ -22,6 +22,14 @@ const formatDate = (dateString) => {
   return `${datePart} ${time}`;
 };
 
+const formatDateNoTime = (dateString) => {
+  console.log("formatDate", dateString);
+  if (dateString === null || dateString === undefined) return "";
+  const [datePart, ] = dateString.split("T");
+  //return time === "00:00:00" ? datePart : `${datePart} ${time}`;
+  return `${datePart}`;
+};
+
 export function IPS({ ips, remove, update }) {
   const [expanded, setExpanded] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -252,7 +260,7 @@ export function IPS({ ips, remove, update }) {
             <h4>Patient Details:</h4>
             <p>Name: {ips.patient.name}</p>
             <p>Given Name: {ips.patient.given}</p>
-            <p>DOB: {ips.patient.dob.split("T")[0]}</p>
+            <p>DOB: {formatDateNoTime(ips.patient.dob)}</p>
             <p>Gender: {ips.patient.gender}</p>
             <p>Country: {ips.patient.nation}</p>
             <p>Practitioner: {ips.patient.practitioner}</p>
@@ -309,7 +317,7 @@ export function IPS({ ips, remove, update }) {
                           <td>{allergy.code}</td>
                           <td>{allergy.system}</td>
                           <td>{allergy.criticality}</td>
-                          <td>{formatDate(allergy.date)}</td>
+                          <td>{formatDateNoTime(allergy.date)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -337,7 +345,7 @@ export function IPS({ ips, remove, update }) {
                           <td>{condition.name}</td>
                           <td>{condition.code}</td>
                           <td>{condition.system}</td>
-                          <td>{formatDate(condition.date)}</td>
+                          <td>{formatDateNoTime(condition.date)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -688,7 +696,7 @@ export function IPS({ ips, remove, update }) {
                         <Form.Control
                           type="date"
                           name="date"
-                          value={formatDate(allergy.date)}
+                          value={formatDateNoTime(allergy.date)}
                           onChange={(e) => handleChangeItem("allergies", index, e)}
                         />
                       </td>
@@ -757,7 +765,7 @@ export function IPS({ ips, remove, update }) {
                         <Form.Control
                           type="date"
                           name="date"
-                          value={condition.date.split("T")[0]}
+                          value={formatDateNoTime(condition.date)}
                           onChange={(e) => handleChangeItem("conditions", index, e)}
                         />
                       </td>
