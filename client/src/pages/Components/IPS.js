@@ -88,9 +88,9 @@ export function IPS({ ips, remove, update }) {
     // enforce “number + space + unit” for observations
     const obsPattern = /^(?:\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)?)\s+[a-zA-Z%/]+$/;
     for (let { value } of editIPS.observations) {
-      if (value && !obsPattern.test(value)) {
+      if (value && /^\d/.test(value) && !obsPattern.test(value)) {
         setEditAlertMessage(
-          'Observation must be num[-num] + space + units, e.g. "60 bpm or 120-80 mmHg or 37.5 C"'
+          'If numerical, Observation value must be num[-num] + space + units, e.g. "60 bpm or 120-80 mmHg or 37.5 C"'
         );
         setShowEditAlert(true);
         return;
@@ -810,7 +810,9 @@ export function IPS({ ips, remove, update }) {
             </Button>
 
             {/* Observations Table */}
-            <h4 className="ipsedit">Observations: Enter Value as val-space-unit e.g. 60 bpm</h4>
+            <h4 className="ipsedit">Observations: <span style={{ fontSize: '0.7em', color: '#666' }}>
+              If numerical then val[-val] + space + unit (e.g. <code>60 bpm</code> or <code>120-80 mmHg</code>)
+            </span></h4>
             <div className="table-responsive">
               <table className="table table-bordered table-sm">
                 <colgroup>

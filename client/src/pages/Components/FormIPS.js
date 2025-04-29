@@ -136,9 +136,9 @@ export function FormIPS({ add }) {
     // enforce “number + space + unit”
     const obsPattern = /^(?:\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)?)\s+[a-zA-Z%/]+$/;
     for (let { value } of formData.observations) {
-      if (value && !obsPattern.test(value)) {
+      if (value && /^\d/.test(value) && !obsPattern.test(value)) {
         setAlertMessage(
-          'Ob value be “val(-val) + space + units”, e.g. "60 bpm or 120-80 mmHg or 37.5 C"'
+          'Numerical Ob value must be “val(-val) + space + units”, e.g. "60 bpm or 120-80 mmHg or 37.5 C"'
         );
         setShowAlert(true);
         return;
@@ -546,7 +546,7 @@ export function FormIPS({ add }) {
                     placeholder="Val Unit"
                   />
                   <Form.Text className="text-muted">
-                    Enter a val[-val], a space, then units (e.g. <code>78 kg</code> or <code>120-80 mmHg</code>)
+                    If numerical then must be val[-val], a space, then units (e.g. <code>78 kg</code> or <code>120-80 mmHg</code>)
                   </Form.Text>
                 </div>
               </Form.Group>
