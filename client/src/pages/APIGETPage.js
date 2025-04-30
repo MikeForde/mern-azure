@@ -82,17 +82,6 @@ function APIGETPage() {
     }
   }, [selectedPatient, mode, useCompressionAndEncryption, stopLoading, startLoading, useIncludeKey]);
 
-  // const handleDownloadData = () => {
-  //   const blob = new Blob([data], { type: 'text/plain' });
-  //   const url = window.URL.createObjectURL(blob);
-  //   const link = document.createElement('a');
-  //   link.href = url;
-  //   link.setAttribute('download', 'ips_data.txt');
-  //   document.body.appendChild(link);
-  //   link.click();
-  //   document.body.removeChild(link);
-  // };
-
   const handleDownloadData = () => {
     if (!selectedPatient) return;
   
@@ -102,7 +91,9 @@ function APIGETPage() {
     const yyyymmdd = `${today.getFullYear()}${pad(today.getMonth() + 1)}${pad(today.getDate())}`;
   
     // 2) Pull patient info
-    const { _id: packageUUID, patient: { name: familyName, given: givenName } } = selectedPatient;
+    const { packageUUID, patient: { name: familyName, given: givenName } } = selectedPatient;
+
+    console.log('Patient:', selectedPatient);
   
     // 3) Decide extension & MIME type
     let extension, mimeType;

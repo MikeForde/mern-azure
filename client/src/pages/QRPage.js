@@ -109,7 +109,7 @@ function QRPage() {
 
     // 2) patient pieces
     const {
-      _id: packageUUID,
+      packageUUID,
       patient: { name: familyName, given: givenName }
     } = selectedPatient;
     const fam = sanitize(familyName);
