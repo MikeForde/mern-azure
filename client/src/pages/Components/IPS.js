@@ -281,6 +281,7 @@ export function IPS({ ips, remove, update }) {
             <p>Practitioner: {ips.patient.practitioner}</p>
             <p>Organization: {ips.patient.organization}</p>
             <p>Identifier: {ips.patient.identifier}</p>
+            <p>Identifier2: {ips.patient.identifier2}</p>
 
             {ips.medication && ips.medication.length > 0 && (
               <>
@@ -583,6 +584,17 @@ export function IPS({ ips, remove, update }) {
                     type="text"
                     name="identifier"
                     value={editIPS.patient.identifier}
+                    onChange={handleEditChange}
+                  />
+                </Form.Group>
+              </Col>
+              <Col>
+                <Form.Group controlId="formPatientIdentifier2">
+                  <Form.Label>Identifier2</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="identifier2"
+                    value={editIPS.patient.identifier2}
                     onChange={handleEditChange}
                   />
                 </Form.Group>

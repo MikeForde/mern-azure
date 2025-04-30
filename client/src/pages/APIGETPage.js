@@ -82,16 +82,76 @@ function APIGETPage() {
     }
   }, [selectedPatient, mode, useCompressionAndEncryption, stopLoading, startLoading, useIncludeKey]);
 
+  // const handleDownloadData = () => {
+  //   const blob = new Blob([data], { type: 'text/plain' });
+  //   const url = window.URL.createObjectURL(blob);
+  //   const link = document.createElement('a');
+  //   link.href = url;
+  //   link.setAttribute('download', 'ips_data.txt');
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  // };
+
   const handleDownloadData = () => {
-    const blob = new Blob([data], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
+    if (!selectedPatient) return;
+  
+    // 1) Format today as YYYYMMDD
+    const today = new Date();
+    const pad  = (n) => n.toString().padStart(2, '0');
+    const yyyymmdd = `${today.getFullYear()}${pad(today.getMonth() + 1)}${pad(today.getDate())}`;
+  
+    // 2) Pull patient info
+    const { _id: packageUUID, patient: { name: familyName, given: givenName } } = selectedPatient;
+  
+    // 3) Decide extension & MIME type
+    let extension, mimeType;
+    if (useCompressionAndEncryption) {
+      extension = 'json';
+      mimeType  = 'application/json';
+    } else if (mode === 'ipsxml') {
+      extension = 'xml';
+      mimeType  = 'application/xml';
+    } else if (
+      ['ipsbasic','ipsbeer','ipsbeerwithdelim','ipshl72x'].includes(mode)
+    ) {
+      extension = 'txt';
+      mimeType  = 'text/plain';
+    } else {
+      extension = 'json';
+      mimeType  = 'application/json';
+    }
+  
+    // 4) Build filename: date-FAMILY_GIVEN_last6_apitype.ext
+    const sanitize = str => 
+      str
+        .normalize('NFKD')                   // strip accents
+        .replace(/[\u0300-\u036f]/g, '')     // remove remaining diacritics
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '_')          // only allow A–Z,0–9 → underscore
+        .replace(/_+/g, '_')                 // collapse repeats
+        .replace(/^_|_$/g, '');              // trim leading/trailing underscores
+  
+    const fam   = sanitize(familyName);
+    const giv   = sanitize(givenName);
+    const last6 = packageUUID.slice(-6);
+    // 4) Suffix for GE
+    const ikSuffix = useIncludeKey && useCompressionAndEncryption ? '_ik' : '';
+    const ceSuffix = useCompressionAndEncryption ? '_ce' : '';
+    const fileName = `${yyyymmdd}-${fam}_${giv}_${last6}_${mode}${ceSuffix}${ikSuffix}.${extension}`;
+    
+    // 5) Create & click the download link
+    const blob = new Blob([data], { type: mimeType });
+    const url  = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'ips_data.txt');
+    link.href     = url;
+    link.download = fileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   };
+  
 
   const handleModeChange = (selectedMode) => {
     startLoading();
@@ -133,32 +193,6 @@ function APIGETPage() {
     const formatted = xml.replace(/></g, '>\n<');
     return formatted;
   };
-
-  // const handleWriteToNfc = async () => {
-  //   if (!('NDEFReader' in window)) {
-  //     setToastMsg('Web NFC is not supported on this device/browser.');
-  //     setToastVariant('warning');
-  //     setShowToast(true);
-  //     return;
-  //   }
-
-  //   setIsWriting(true);
-  //   try {
-  //     const writer = new window.NDEFReader();
-  //     await writer.write(data);
-  //     console.log('Data written to NFC tag:', data);
-  //     setToastMsg('Data written to NFC tag!');
-  //     setToastVariant('success');
-  //   } catch (error) {
-  //     console.error('Error writing to NFC:', error);
-  //     setToastMsg(`Error - possible tag capacity: ${error.message}`);
-  //     setToastVariant('danger');
-
-  //   } finally {
-  //     setIsWriting(false);
-  //     setShowToast(true);
-  //   }
-  // };
 
   const handleWriteToNfc = async () => {
     if (!('NDEFReader' in window)) {

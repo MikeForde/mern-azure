@@ -44,6 +44,10 @@ const IPSModel = mongoose.model(
             identifier: {
                 type: String,
                 required: false
+            },
+            identifier2: {
+                type: String,
+                required: false
             }
         },
         medication: [

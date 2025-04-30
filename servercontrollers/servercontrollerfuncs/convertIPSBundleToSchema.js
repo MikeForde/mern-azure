@@ -52,6 +52,7 @@ function convertIPSBundleToSchema(ipsBundle) {
         // If no address is provided, set nation to Unknown
         patient.nation = resource.address !== undefined ? resource.address[0].country : "Unknown";
         patient.identifier = resource.identifier[0].value ? resource.identifier[0].value : "Unknown";
+        patient.identifier2 = resource.identifier[1].value ? resource.identifier[1].value : "Unknown";
         console.log("Patient = " + JSON.stringify(patient));
         break;
 

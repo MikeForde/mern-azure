@@ -29,6 +29,10 @@ function generateIPSBundleUnified(ips) {
                                     system: "NATO_Id",
                                     value: ips.patient.identifier ? ips.patient.identifier : uuidv4().split("-")[0],
                                 },
+                                {
+                                    system: "National_Id",
+                                    value: ips.patient.identifier2 ? ips.patient.identifier2 : uuidv4().split("-")[0],
+                                },
                             ],
                             name: [
                                 {

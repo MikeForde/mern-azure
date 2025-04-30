@@ -591,6 +591,24 @@ function ChangeLogPage() {
                                 <li>Added a top-level <code>SocketListener</code> in React frontend that listens for events - instantly refreshing the displayed patient data.</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_63 - 30th April 2025</h5>
+                            <ul>
+                                <li><strong>Enhanced Download Filenames, Observation UI Improvements and Second Id field </strong></li>
+                                <li>
+                                    Refactored file and QR downloads to generate filenames in the format 
+                                    <code> yyyymmdd-FAMILY_GIVEN_last6UUID_apitype[_ce][_ik].ext</code>.
+                                </li>
+                                <li>
+                                    Improved the UI for observation values to clarify format for numeric value inputs,
+                                    with front-end validation.
+                                </li>
+                                <li>
+                                    Added a second identifier field to the IPS model, UI forms, and incoming IPS parser;
+                                    appears as <code>National_id</code> in the Unified JSON output.
+                                </li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

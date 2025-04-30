@@ -24,6 +24,7 @@ export function FormIPS({ add }) {
       practitioner: "",
       organization: "",
       identifier: "",
+      identifier2: "",
     },
     medication: [{ name: "", code: "", system: "", date: "", dosage: "" }],
     allergies: [{ name: "", code: "", system: "", criticality: "", date: "" }],
@@ -174,6 +175,7 @@ export function FormIPS({ add }) {
         practitioner: "",
         organization: "",
         identifier: "",
+        identifier2: "",
       },
       medication: [{ name: "", code: "", system: "", date: "", dosage: "" }],
       allergies: [{ name: "", code: "", system: "", criticality: "", date: "" }],
@@ -302,7 +304,16 @@ export function FormIPS({ add }) {
                   name="identifier"
                   value={formData.patient.identifier}
                   onChange={handlePatientChange}
-                  placeholder="Identifier" />
+                  placeholder="Nato id" />
+              </div>
+              <Form.Label className="col-sm-2">Identifier2</Form.Label>
+              <div className="col-sm-4">
+                <Form.Control
+                  type="text"
+                  name="identifier2"
+                  value={formData.patient.identifier2}
+                  onChange={handlePatientChange}
+                  placeholder="National id" />
               </div>
             </Form.Group>
           </Form.Group>
