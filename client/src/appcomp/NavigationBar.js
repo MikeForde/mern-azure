@@ -109,7 +109,7 @@ function NavigationBar() {
                 <FontAwesomeIcon icon={faCloudUploadAlt} /> External POST
               </NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/bulkupload" onClick={() => handleNavItemSelect(false)}>
-                <FontAwesomeIcon icon={faUpload} /> DMICP Bulk Upload
+                <FontAwesomeIcon icon={faUpload} /> Bulk Upload
               </NavDropdown.Item>
             </NavDropdown>
             <NavDropdown title="Info" id="basic-nav-dropdown">
