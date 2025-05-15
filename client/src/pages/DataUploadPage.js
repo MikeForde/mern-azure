@@ -209,15 +209,15 @@ function DataUploadPage() {
             placeholder="Paste your data here... (CSV or TSV)" />
         </div>
         <br />
-        <Button className="me-2" onClick={handleUpload}>Convert Data (simple variant)</Button>
-        <Button className="me-2" onClick={handleUploadVariation}>Convert Data (expanded variant)</Button>
+        <Button className="mb-3" onClick={handleUpload}>Convert Data (simple variant)</Button>
+        <Button className="mb-3" onClick={handleUploadVariation}>Convert Data (expanded variant)</Button>
         <div className="download-section mt-4">
   <h5>Download Patient Generator Tools: <div className="noteFont">Easy to customise with some basic VBA knowledge</div></h5>
   <Button
     as="a"
     href="/IPS_Patient_Generator-IPS_MERN_Compatible_Windows.xlsm"
     download
-    className="me-2"
+    className="mb-3"
   >
     Windows Excel (.xlsm)
   </Button>
@@ -225,7 +225,7 @@ function DataUploadPage() {
     as="a"
     href="/IPS_Patient_Generator-IPS_MERN_Compatible_Mac.xlsm"
     download
-    className="me-2"
+    className="mb-3"
   >
     Mac Excel (.xlsm)
   </Button>
@@ -233,6 +233,7 @@ function DataUploadPage() {
     as="a"
     href="/IPS_Patient_Generator-IPS_MERN_Compatible.ods"
     download
+    className="mb-3"
   >
     LibreOffice Calc (.ods)
   </Button>
