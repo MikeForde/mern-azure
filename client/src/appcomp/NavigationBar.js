@@ -70,7 +70,7 @@ function NavigationBar() {
               {' '} Local {' '}
             </>
           )}
-          0_63
+          0_64
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">

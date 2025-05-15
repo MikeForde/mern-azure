@@ -596,7 +596,7 @@ function ChangeLogPage() {
                             <ul>
                                 <li><strong>Enhanced Download Filenames, Observation UI Improvements and Second Id field </strong></li>
                                 <li>
-                                    Refactored file and QR downloads to generate filenames in the format 
+                                    Refactored file and QR downloads to generate filenames in the format
                                     <code> yyyymmdd-FAMILY_GIVEN_last6UUID_apitype[_ce][_ik].ext</code>.
                                 </li>
                                 <li>
@@ -609,6 +609,17 @@ function ChangeLogPage() {
                                 </li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_64 - 15th May 2025</h5>
+                            <ul>
+                                <li><strong>Improvements to PatientGen and Bulk Upload</strong></li>
+                                <li>Acceptance of TSV in addition to CSV (as default format in copy&paste buffer if simply copy data manually)</li>
+                                <li>New Expanded variant with additional demographics (organization, identifiers), system &amp; code fields, and Observations</li>
+                                <li>Improved PatientGen tools (expanded pools, SNOMED‐CT integration)</li>
+                                <li>Download feature for Windows, Mac &amp; LibreOffice generator files</li>
+                            </ul>
+                        </li>
+
                     </ul>
                 </Col>
             </Row>

@@ -200,7 +200,7 @@ function DataUploadPage() {
   return (
     <div className="app">
       <div className="container">
-        <h3>Bulk Upload of Data for IPS <h5>(DMICP[SmartDoc] or PatientGen[Excel/OO Calc])</h5></h3>
+        <h3>Bulk Upload of Data for IPS <div className="noteFont">(DMICP[SmartDoc] or PatientGen[Excel/LO Calc])</div></h3>
         <div className="text-area">
           <Form.Control as="textarea"
             rows={10}
@@ -211,7 +211,35 @@ function DataUploadPage() {
         <br />
         <Button className="me-2" onClick={handleUpload}>Convert Data (simple variant)</Button>
         <Button className="me-2" onClick={handleUploadVariation}>Convert Data (expanded variant)</Button>
+        <div className="download-section mt-4">
+  <h5>Download Patient Generator Tools: <div className="noteFont">Easy to customise with some basic VBA knowledge</div></h5>
+  <Button
+    as="a"
+    href="/IPS_Patient_Generator-IPS_MERN_Compatible_Windows.xlsm"
+    download
+    className="me-2"
+  >
+    Windows Excel (.xlsm)
+  </Button>
+  <Button
+    as="a"
+    href="/IPS_Patient_Generator-IPS_MERN_Compatible_Mac.xlsm"
+    download
+    className="me-2"
+  >
+    Mac Excel (.xlsm)
+  </Button>
+  <Button
+    as="a"
+    href="/IPS_Patient_Generator-IPS_MERN_Compatible.ods"
+    download
+  >
+    LibreOffice Calc (.ods)
+  </Button>
+</div>
+
       </div>
+      
 
       {/* Standard Modals */}
       <Modal show={showNoRecordsPassed} onHide={() => setShowNoRecordsPassed(false)}>
