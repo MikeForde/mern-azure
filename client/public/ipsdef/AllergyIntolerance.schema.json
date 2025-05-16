@@ -1,0 +1,88 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "/ipsdef/AllergyIntolerance.schema.json",
+    "title": "IPS-Unified AllergyIntolerance",
+    "type": "object",
+    "required": [
+      "resourceType",
+      "id",
+      "category",
+      "criticality",
+      "code",
+      "patient",
+      "onsetDateTime"
+    ],
+    "properties": {
+      "resourceType": {
+        "const": "AllergyIntolerance"
+      },
+      "id": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$",
+        "description": "simple ids preferred",
+        "examples": ["allergy1, allergy2...allergyN"]
+      },
+      "category": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": ["medication"]
+        },
+        "minItems": 1,
+        "maxItems": 1
+      },
+      "criticality": {
+        "type": "string",
+        "enum": ["low", "high", "unable-to-assess"]
+      },
+      "code": {
+        "$ref": "#/definitions/CodeableConcept"
+      },
+      "patient": {
+        "type": "object",
+        "required": ["reference"],
+        "properties": {
+          "reference": {
+            "type": "string",
+            "pattern": "^Patient\\/[A-Za-z0-9\\-\\.]+$"
+          }
+        }
+      },
+      "onsetDateTime": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "definitions": {
+      "CodeableConcept": {
+        "type": "object",
+        "required": ["coding"],
+        "properties": {
+          "coding": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Coding"
+            },
+            "minItems": 1
+          }
+        }
+      },
+      "Coding": {
+        "type": "object",
+        "required": ["system", "code", "display"],
+        "properties": {
+          "system": {
+            "type": "string",
+            "format": "uri"
+          },
+          "code": {
+            "type": "string"
+          },
+          "display": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+  

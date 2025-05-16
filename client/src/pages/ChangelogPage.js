@@ -619,7 +619,17 @@ function ChangeLogPage() {
                                 <li>Download feature for Windows, Mac &amp; LibreOffice generator files</li>
                             </ul>
                         </li>
-
+                        <li>
+                            <h5>Version 0_65 - 16th May 2025</h5>
+                            <ul>
+                                <li><strong>New IPS Unified JSON Schemas page</strong>
+                                <li>Interactive schema viewer for all IPS‐unified resources (Bundle, Patient, Organization, MedicationRequest, Medication, AllergyIntolerance, Condition, Observation)</li>
+                                <li>Toggle “Expand All” / “Default View” collapse levels</li>
+                                <li>“View Raw JSON” button opens the plaintext schema in a new tab</li>
+                                <li>“Show Example” / “Hide Example” toggles illustrative JSON snippets, including a full Bundle example composed of resource instances</li>
+                                </li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

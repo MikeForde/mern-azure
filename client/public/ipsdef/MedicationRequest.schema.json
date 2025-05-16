@@ -1,0 +1,84 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "/ipsdef/MedicationRequest.schema.json",
+    "title": "IPS-Unified MedicationRequest",
+    "type": "object",
+    "required": [
+      "resourceType",
+      "id",
+      "status",
+      "medicationReference",
+      "subject",
+      "authoredOn",
+      "dosageInstruction"
+    ],
+    "properties": {
+      "resourceType": {
+        "const": "MedicationRequest"
+      },
+      "id": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$",
+        "description": "simple ids preferred",
+        "examples": ["medreq1, medreq2...medreqN"]
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "active",
+          "on-hold",
+          "ended",
+          "stopped",
+          "completed",
+          "cancelled",
+          "entered-in-error",
+          "draft",
+          "unknown"
+        ]
+      },
+      "medicationReference": {
+        "type": "object",
+        "required": ["reference", "display"],
+        "properties": {
+          "reference": {
+            "type": "string",
+            "description": "id of associated Medication resource",
+            "examples": ["med1, med2...medN"]
+          },
+          "display": {
+            "type": "string"
+          }
+        }
+      },
+      "subject": {
+        "type": "object",
+        "required": ["reference"],
+        "properties": {
+          "reference": {
+            "type": "string",
+            "pattern": "^Patient\\/[A-Za-z0-9\\-\\.]+$"
+          }
+        }
+      },
+      "authoredOn": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "dosageInstruction": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "required": ["text"],
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "overall instruction in original language",
+              "examples": ["1 tab every 6-8 hrs"]
+            }
+          }
+        }
+      }
+    }
+  }
+  

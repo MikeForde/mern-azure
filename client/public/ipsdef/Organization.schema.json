@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "/ipsdef/Organization.schema.json",
+    "title": "IPS-Unified Organization",
+    "type": "object",
+    "required": [
+      "resourceType",
+      "id",
+      "name"
+    ],
+    "properties": {
+      "resourceType": {
+        "const": "Organization"
+      },
+      "id": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$",
+        "description": "simple ids preferred",
+        "examples": ["org1"]
+      },
+      "name": {
+        "type": "string",
+        "description": "3 letter code preferred",
+        "examples": ["GBR"]
+      }
+    }
+  }
+  

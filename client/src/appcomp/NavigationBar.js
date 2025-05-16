@@ -70,7 +70,7 @@ function NavigationBar() {
               {' '} Local {' '}
             </>
           )}
-          0_64
+          0_65
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">
@@ -126,6 +126,10 @@ function NavigationBar() {
               <NavDropdown.Divider />
               <NavDropdown.Item as={Link} to="/apidocumentation" onClick={() => handleNavItemSelect(false)}>
                 API Documentation
+              </NavDropdown.Item>
+              <NavDropdown.Divider />
+              <NavDropdown.Item as={Link} to="/schemaviewer" onClick={() => handleNavItemSelect(false)}>
+                IPS Unified JSON Schemas
               </NavDropdown.Item>
             </NavDropdown>
           </Nav>

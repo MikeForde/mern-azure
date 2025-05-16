@@ -1,0 +1,129 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "/ipsdef/Observation.schema.json",
+    "title": "IPS-Unified Observation",
+    "type": "object",
+    "required": [
+      "resourceType",
+      "id",
+      "status",
+      "code",
+      "subject",
+      "effectiveDateTime"
+    ],
+    "properties": {
+      "resourceType": {
+        "const": "Observation"
+      },
+      "id": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$",
+        "description": "simple ids preferred",
+        "examples": ["ob1, ob2...obN"]
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "registered",
+          "preliminary",
+          "final",
+          "amended",
+          "corrected",
+          "cancelled",
+          "unknown"
+        ]
+      },
+      "code": {
+        "$ref": "#/definitions/CodeableConcept"
+      },
+      "subject": {
+        "type": "object",
+        "required": ["reference"],
+        "properties": {
+          "reference": {
+            "type": "string",
+            "pattern": "^Patient\\/[A-Za-z0-9\\-\\.]+$"
+          }
+        }
+      },
+      "effectiveDateTime": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "valueQuantity": {
+        "$ref": "#/definitions/Quantity"
+      },
+      "component": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/ObservationComponent"
+        }
+      },
+      "bodySite": {
+        "$ref": "#/definitions/CodeableConcept"
+      }
+    },
+    "definitions": {
+      "CodeableConcept": {
+        "type": "object",
+        "required": ["coding"],
+        "properties": {
+          "coding": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/definitions/Coding"
+            }
+          }
+        }
+      },
+      "Coding": {
+        "type": "object",
+        "required": ["system", "code", "display"],
+        "properties": {
+          "system": {
+            "type": "string",
+            "format": "uri"
+          },
+          "code": {
+            "type": "string"
+          },
+          "display": {
+            "type": "string"
+          }
+        }
+      },
+      "Quantity": {
+        "type": "object",
+        "required": ["value", "unit"],
+        "properties": {
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "system": {
+            "type": "string",
+            "format": "uri"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "ObservationComponent": {
+        "type": "object",
+        "required": ["code", "valueQuantity"],
+        "properties": {
+          "code": {
+            "$ref": "#/definitions/CodeableConcept"
+          },
+          "valueQuantity": {
+            "$ref": "#/definitions/Quantity"
+          }
+        }
+      }
+    }
+  }
+  

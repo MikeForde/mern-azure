@@ -17,6 +17,7 @@ import UnifiedIPSGetPage from './pages/UnifiedIPSGetPage';
 import NFCReaderPage from './pages/NFCReaderPage';
 import BEERGardenPage from './pages/BEERGardenPage';
 import APIDocumentationPage from './pages/APIDocumentationPage';
+import IPSchemaViewer from './pages/IPSSchemaViewerPage';
 import { PatientContext } from './PatientContext';
 import { PatientProvider } from './PatientContext';
 import { LoadingProvider } from './contexts/LoadingContext';
@@ -71,6 +72,7 @@ function App() {
               <Route path="/apidocumentation" element={<APIDocumentationPage />} />
               <Route path="/puships" element={<UnifiedPostPage />} />
               <Route path="/fetchips" element={<UnifiedIPSGetPage />} />
+              <Route path="/schemaviewer" element={<IPSchemaViewer />} />
             </Routes>
           </div>
         </Router>
