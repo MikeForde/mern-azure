@@ -9,6 +9,7 @@ export default function IPSchemaViewer() {
   const [activeKey, setActiveKey] = useState('Bundle');
   const [expandAll, setExpandAll] = useState({});
   const [showExample, setShowExample] = useState({});
+  const [showRawExample, setShowRawExample] = useState({});
 
   // Example data for each resource
   const exampleData = {
@@ -67,7 +68,11 @@ export default function IPSchemaViewer() {
       resourceType: 'Observation',
       id: 'ob1',
       status: 'final',
-      code: { coding: [ { system: 'http://loinc.org', code: '85354-9', display: 'Blood pressure' } ] },
+      code: {
+        coding: [
+          { system: 'http://loinc.org', code: '85354-9', display: 'Blood pressure' }
+        ]
+      },
       subject: { reference: 'Patient/pt1' },
       effectiveDateTime: '2025-05-16T09:00:00Z',
       component: [
@@ -77,7 +82,7 @@ export default function IPSchemaViewer() {
     }
   };
 
-  // Construct full Bundle example from above
+  // Construct full Bundle example
   exampleData.Bundle = {
     resourceType: 'Bundle',
     id: 'example-bundle',
@@ -85,8 +90,8 @@ export default function IPSchemaViewer() {
     type: 'collection',
     total: Object.keys(exampleData).length - 1,
     entry: Object.values(exampleData)
-      .filter((res) => res.resourceType !== 'Bundle')
-      .map((res) => ({ resource: res }))
+      .filter(res => res.resourceType !== 'Bundle')
+      .map(res => ({ resource: res }))
   };
 
   useEffect(() => {
@@ -104,15 +109,13 @@ export default function IPSchemaViewer() {
         ];
 
         const fetched = await Promise.all(
-          schemaFiles.map(async (file) => {
+          schemaFiles.map(async file => {
             const res = await fetch(`/ipsdef/${file}`);
             if (!res.ok) throw new Error(`Failed to load ${file}: ${res.statusText}`);
             const json = await res.json();
-            const id = file.replace('.schema.json', '');
-            return { id, schema: json };
+            return { id: file.replace('.schema.json', ''), schema: json };
           })
         );
-
         setSchemas(fetched);
         setActiveKey(fetched[0].id);
       } catch (err) {
@@ -122,21 +125,25 @@ export default function IPSchemaViewer() {
         setLoading(false);
       }
     }
-
     loadSchemas();
   }, []);
 
-  const toggleView = (id) => {
-    setExpandAll((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggleView = id => {
+    setExpandAll(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const openPlainText = (id) => {
-    const url = `${window.location.origin}/ipsdef/${id}.schema.json`;
-    window.open(url, '_blank');
+  const openPlainText = id => {
+    window.open(`${window.location.origin}/ipsdef/${id}.schema.json`, '_blank');
   };
 
-  const toggleExample = (id) => {
-    setShowExample((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggleExample = id => {
+    setShowExample(prev => ({ ...prev, [id]: !prev[id] }));
+    setShowRawExample(prev => ({ ...prev, [id]: false }));
+  };
+
+  const toggleRawExample = id => {
+    setShowRawExample(prev => ({ ...prev, [id]: !prev[id] }));
+    setShowExample(prev => ({ ...prev, [id]: false }));
   };
 
   if (loading) return (
@@ -154,7 +161,7 @@ export default function IPSchemaViewer() {
   return (
     <Container className="mt-5">
       <h3>IPS Unified JSON Schemas</h3>
-      <p>Toggle between default collapse depth, fully expanded view, raw JSON, or view an example.</p>
+      <p>Toggle between default view, expanded view, raw schema, or example formats.</p>
 
       <Tab.Container activeKey={activeKey} onSelect={setActiveKey}>
         <Nav variant="tabs">
@@ -169,10 +176,9 @@ export default function IPSchemaViewer() {
           {schemas.map(({ id, schema }) => {
             const isExpanded = expandAll[id] || false;
             const isExample = showExample[id] || false;
-            const dataToShow = isExample ? exampleData[id] : schema;
-
+            const isRaw = showRawExample[id] || false;
             return (
-              <Tab.Pane eventKey={id} key={id} style={{ overflow: 'auto' }}>
+              <Tab.Pane key={id} eventKey={id} style={{ overflow: 'auto' }}>
                 <ButtonGroup size="sm" className="mb-2">
                   <Button variant="outline-primary" onClick={() => toggleView(id)}>
                     {isExpanded ? 'Default View' : 'Expand All'}
@@ -183,19 +189,31 @@ export default function IPSchemaViewer() {
                   <Button variant="outline-info" onClick={() => toggleExample(id)}>
                     {isExample ? 'Hide Example' : 'Show Example'}
                   </Button>
+                  <Button variant="outline-warning" onClick={() => toggleRawExample(id)}>
+                    {isRaw ? 'Hide Raw Example' : 'View Raw Example'}
+                  </Button>
                 </ButtonGroup>
 
-                <ReactJson
-                  src={dataToShow}
-                  name={false}
-                  collapsed={isExpanded ? false : 2}
-                  enableClipboard={false}
-                  displayDataTypes={false}
-                  onAdd={false}
-                  onEdit={false}
-                  onDelete={false}
-                  style={{ fontSize: '0.85rem' }}
-                />
+                {isRaw ? (
+                  <pre style={{
+                    background: '#f8f9fa', padding: '1rem', borderRadius: '4px',
+                    maxHeight: '600px', overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word'
+                  }}>
+                    {JSON.stringify(exampleData[id], null, 2)}
+                  </pre>
+                ) : (
+                  <ReactJson
+                    src={isExample ? exampleData[id] : schema}
+                    name={false}
+                    collapsed={isExpanded ? false : 2}
+                    enableClipboard={false}
+                    displayDataTypes={false}
+                    onAdd={false}
+                    onEdit={false}
+                    onDelete={false}
+                    style={{ fontSize: '0.85rem' }}
+                  />
+                )}
               </Tab.Pane>
             );
           })}
