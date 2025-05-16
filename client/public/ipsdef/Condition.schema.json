@@ -57,11 +57,11 @@
         "required": ["system", "code", "display"],
         "properties": {
           "system": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uri"
           },
           "code": {
-            "type": "string"
+            "type": ["string", "null"]
           },
           "display": {
             "type": "string"

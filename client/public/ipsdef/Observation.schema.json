@@ -79,14 +79,14 @@
       },
       "Coding": {
         "type": "object",
-        "required": ["system", "code", "display"],
+        "required": ["display"],
         "properties": {
           "system": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uri"
           },
           "code": {
-            "type": "string"
+            "type": ["string", "null"]
           },
           "display": {
             "type": "string"

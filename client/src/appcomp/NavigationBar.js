@@ -129,7 +129,10 @@ function NavigationBar() {
               </NavDropdown.Item>
               <NavDropdown.Divider />
               <NavDropdown.Item as={Link} to="/schemaviewer" onClick={() => handleNavItemSelect(false)}>
-                IPS Unified JSON Schemas
+                IPS Unified Schemas
+              </NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/schemavalidator" onClick={() => handleNavItemSelect(false)}>
+                IPS Unified Schema Validator
               </NavDropdown.Item>
             </NavDropdown>
           </Nav>
