@@ -82,8 +82,7 @@
         "required": ["display"],
         "properties": {
           "system": {
-            "type": ["string", "null"],
-            "format": "uri"
+            "type": ["string", "null"]
           },
           "code": {
             "type": ["string", "null"]
@@ -104,8 +103,7 @@
             "type": "string"
           },
           "system": {
-            "type": "string",
-            "format": "uri"
+            "type": "string"
           },
           "code": {
             "type": "string"
