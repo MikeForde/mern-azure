@@ -1,0 +1,9 @@
+Output File                                            Name                          Type     FSH File      Lines
+StructureDefinition-IPSUnifiedAllergyIntolerance.json  IPSUnifiedAllergyIntolerance  Profile  profiles.fsh  89 - 102
+StructureDefinition-IPSUnifiedBundle.json              IPSUnifiedBundle              Profile  profiles.fsh  6 - 29
+StructureDefinition-IPSUnifiedCondition.json           IPSUnifiedCondition           Profile  profiles.fsh  107 - 118
+StructureDefinition-IPSUnifiedMedication.json          IPSUnifiedMedication          Profile  profiles.fsh  75 - 84
+StructureDefinition-IPSUnifiedMedicationRequest.json   IPSUnifiedMedicationRequest   Profile  profiles.fsh  61 - 70
+StructureDefinition-IPSUnifiedObservation.json         IPSUnifiedObservation         Profile  profiles.fsh  123 - 138
+StructureDefinition-IPSUnifiedOrganization.json        IPSUnifiedOrganization        Profile  profiles.fsh  51 - 56
+StructureDefinition-IPSUnifiedPatient.json             IPSUnifiedPatient             Profile  profiles.fsh  34 - 46

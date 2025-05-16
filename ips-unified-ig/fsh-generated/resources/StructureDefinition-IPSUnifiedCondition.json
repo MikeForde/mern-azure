@@ -1,0 +1,71 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "IPSUnifiedCondition",
+  "url": "http://example.org/fhir/IPSUnified/StructureDefinition/IPSUnifiedCondition",
+  "name": "IPSUnifiedCondition",
+  "title": "IPS Unified Condition",
+  "status": "draft",
+  "description": "Condition entries in the IPS Unified bundle.",
+  "fhirVersion": "4.0.1",
+  "kind": "resource",
+  "abstract": false,
+  "type": "Condition",
+  "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Condition",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "Condition.code",
+        "path": "Condition.code",
+        "min": 1
+      },
+      {
+        "id": "Condition.code.coding",
+        "path": "Condition.code.coding",
+        "min": 1
+      },
+      {
+        "id": "Condition.code.coding.system",
+        "path": "Condition.code.coding.system",
+        "min": 1
+      },
+      {
+        "id": "Condition.code.coding.code",
+        "path": "Condition.code.coding.code",
+        "min": 1
+      },
+      {
+        "id": "Condition.code.coding.display",
+        "path": "Condition.code.coding.display",
+        "min": 1
+      },
+      {
+        "id": "Condition.onset[x]",
+        "path": "Condition.onset[x]",
+        "slicing": {
+          "discriminator": [
+            {
+              "type": "type",
+              "path": "$this"
+            }
+          ],
+          "ordered": false,
+          "rules": "open"
+        },
+        "min": 1
+      },
+      {
+        "id": "Condition.onset[x]:onsetDateTime",
+        "path": "Condition.onset[x]",
+        "sliceName": "onsetDateTime",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "dateTime"
+          }
+        ]
+      }
+    ]
+  }
+}

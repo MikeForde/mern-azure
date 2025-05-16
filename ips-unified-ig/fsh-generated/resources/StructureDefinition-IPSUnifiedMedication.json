@@ -1,0 +1,44 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "IPSUnifiedMedication",
+  "url": "http://example.org/fhir/IPSUnified/StructureDefinition/IPSUnifiedMedication",
+  "name": "IPSUnifiedMedication",
+  "title": "IPS Unified Medication",
+  "status": "draft",
+  "description": "Medication entries in the IPS Unified bundle.",
+  "fhirVersion": "4.0.1",
+  "kind": "resource",
+  "abstract": false,
+  "type": "Medication",
+  "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Medication",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "Medication.code",
+        "path": "Medication.code",
+        "min": 1
+      },
+      {
+        "id": "Medication.code.coding",
+        "path": "Medication.code.coding",
+        "min": 1
+      },
+      {
+        "id": "Medication.code.coding.system",
+        "path": "Medication.code.coding.system",
+        "min": 1
+      },
+      {
+        "id": "Medication.code.coding.code",
+        "path": "Medication.code.coding.code",
+        "min": 1
+      },
+      {
+        "id": "Medication.code.coding.display",
+        "path": "Medication.code.coding.display",
+        "min": 1
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+[IPSUnifiedAllergyIntolerance]: StructureDefinition-IPSUnifiedAllergyIntolerance.html
+[IPSUnifiedBundle]: StructureDefinition-IPSUnifiedBundle.html
+[IPSUnifiedCondition]: StructureDefinition-IPSUnifiedCondition.html
+[IPSUnifiedMedication]: StructureDefinition-IPSUnifiedMedication.html
+[IPSUnifiedMedicationRequest]: StructureDefinition-IPSUnifiedMedicationRequest.html
+[IPSUnifiedObservation]: StructureDefinition-IPSUnifiedObservation.html
+[IPSUnifiedOrganization]: StructureDefinition-IPSUnifiedOrganization.html
+[IPSUnifiedPatient]: StructureDefinition-IPSUnifiedPatient.html

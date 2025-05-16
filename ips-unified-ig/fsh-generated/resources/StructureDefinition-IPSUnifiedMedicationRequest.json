@@ -1,0 +1,59 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "IPSUnifiedMedicationRequest",
+  "url": "http://example.org/fhir/IPSUnified/StructureDefinition/IPSUnifiedMedicationRequest",
+  "name": "IPSUnifiedMedicationRequest",
+  "title": "IPS Unified MedicationRequest",
+  "status": "draft",
+  "description": "MedicationRequest entries in the IPS Unified bundle.",
+  "fhirVersion": "4.0.1",
+  "kind": "resource",
+  "abstract": false,
+  "type": "MedicationRequest",
+  "baseDefinition": "http://hl7.org/fhir/StructureDefinition/MedicationRequest",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "MedicationRequest.medication[x]",
+        "path": "MedicationRequest.medication[x]",
+        "slicing": {
+          "discriminator": [
+            {
+              "type": "type",
+              "path": "$this"
+            }
+          ],
+          "ordered": false,
+          "rules": "open"
+        }
+      },
+      {
+        "id": "MedicationRequest.medication[x]:medicationReference",
+        "path": "MedicationRequest.medication[x]",
+        "sliceName": "medicationReference",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "Reference",
+            "targetProfile": [
+              "http://hl7.org/fhir/StructureDefinition/Medication"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "MedicationRequest.authoredOn",
+        "path": "MedicationRequest.authoredOn",
+        "min": 1
+      },
+      {
+        "id": "MedicationRequest.dosageInstruction",
+        "path": "MedicationRequest.dosageInstruction",
+        "min": 1,
+        "max": "1"
+      }
+    ]
+  }
+}
