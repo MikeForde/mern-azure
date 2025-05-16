@@ -172,7 +172,7 @@ export default function IPSchemaViewer() {
             const dataToShow = isExample ? exampleData[id] : schema;
 
             return (
-              <Tab.Pane eventKey={id} key={id} style={{ maxHeight: '600px', overflow: 'auto' }}>
+              <Tab.Pane eventKey={id} key={id} style={{ overflow: 'auto' }}>
                 <ButtonGroup size="sm" className="mb-2">
                   <Button variant="outline-primary" onClick={() => toggleView(id)}>
                     {isExpanded ? 'Default View' : 'Expand All'}
