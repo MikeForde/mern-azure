@@ -1453,10 +1453,11 @@
     "schemas": {
       "IPSRecord": {
         "type": "object",
+        "description" : "Describes the internal NoSQL schema only - not the IPS FHiR one",
         "properties": {
           "packageUUID": {
             "type": "string",
-            "description": "Unique identifier for the IPS package."
+            "description": "Unique identifier for the IPS package - UUID is preferred"
           },
           "timeStamp": {
             "type": "string",
@@ -1481,31 +1482,33 @@
               },
               "gender": {
                 "type": "string",
-                "description": "Patient's gender."
+                "description": "Patient's gender - male/female/other/unknown"
               },
               "nation": {
                 "type": "string",
-                "description": "Patient's nationality."
+                "description": "Patient's nationality - used as Patient-Address-Country in IPS FHiR"
               },
               "practitioner": {
                 "type": "string",
-                "description": "Name or identifier of the practitioner."
+                "description": "Name or identifier of the practitioner - not used in IPS Unified version"
               },
               "organization": {
                 "type": "string",
-                "description": "Organization associated with the patient."
+                "description": "Organization associated with the patient - 3 letter e.g. GBR"
               },
               "identifier": {
                 "type": "string",
-                "description": "An optional identifier for the patient."
+                "description": "An optional identifier for the patient - currently NATO_id for IPS Unified version"
+              },
+              "identifier2": {
+                "type": "string",
+                "description": "An optional identifier for the patient - currently National_id for IPS Unified version"
               }
             },
             "required": [
               "name",
               "given",
-              "dob",
-              "nation",
-              "practitioner"
+              "dob"
             ]
           },
           "medication": {
@@ -1599,7 +1602,8 @@
                   "type": "string"
                 },
                 "value": {
-                  "type": "string"
+                  "type": "string",
+                  "description" : "String - if numerical then contains value then space then units"
                 },
                 "valueCode": {
                   "type": "string"

@@ -31,11 +31,11 @@ const IPSModel = mongoose.model(
             },
             nation: {
                 type: String,
-                required: true
+                required: false
             },
             practitioner: {
                 type: String,
-                required: true
+                required: false
             },
             organization: {
                 type: String,
