@@ -631,6 +631,17 @@ function ChangeLogPage() {
                                 <li>Can validate whole bundle or individual resources</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_66 - 6th June 2025</h5>
+                            <ul>
+                                <li><strong>New NFC Gzipped URL Support</strong></li>
+                                <li>Write compressed IPS data directly to NFC tags as a Base64-encoded URL using the <code>/ciwx/payload</code> route</li>
+                                <li>Updated “Write to NFC” interface: dropdown with options for Plain Text, Binary (AES256 + gzip), and Gzipped URL</li>
+                                <li>PayloadPage added to decompress and display gzipped Base64 IPS data directly from the URL</li>
+                                <li>Import, Convert to NoSQL, and Human Readable buttons added to PayloadPage for one-click backend operations</li>
+                                <li>Compatible with 8k NFC tags and mobile browsers that support Web NFC and URL launches</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

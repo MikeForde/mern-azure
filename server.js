@@ -25,6 +25,7 @@ const { getMongoFormatted } = require('./servercontrollers/ipsMongoDisplayFormat
 const { getIPSBasic } = require("./servercontrollers/ipsBasicFormat");
 const { getIPSBEER } = require("./servercontrollers/ipsBEERFormat");
 const { getIPSHL72_x } = require("./servercontrollers/ipsHL72xFormat");
+const { getIPSPlainText } = require("./servercontrollers/ipsPlainTextFormat");
 const { addIPS, addIPSMany } = require('./servercontrollers/ipsNewRecord');
 const { addIPSFromBundle } = require("./servercontrollers/ipsNewRecordFromBundle");
 const { addIPSFromBEER } = require("./servercontrollers/ipsNewRecordFromBEER");
@@ -40,6 +41,7 @@ const { convertMongoToHL72_x } = require('./servercontrollers/convertMongoToHL72
 const { convertBEERToMongo } = require('./servercontrollers/convertBEERToMongo');
 const { convertBEERToIPS } = require('./servercontrollers/convertBEERToIPS');
 const { convertIPSToBEER } = require('./servercontrollers/convertIPSToBEER');
+const { convertIPSToPlainText } = require('./servercontrollers/convertIPSToPlainText');
 const { convertIPSToMongo } = require('./servercontrollers/convertIPSToMongo');
 const { updateIPSByUUID } = require('./servercontrollers/updateIPSRecordByUUID');
 const { convertCDAToIPS } = require('./servercontrollers/convertCDAToIPS');
@@ -166,6 +168,7 @@ api.post('/convertmongo2hl7', convertMongoToHL72_x);
 api.post('/convertbeer2mongo', convertBEERToMongo);
 api.post('/convertbeer2ips', convertBEERToIPS);
 api.post('/convertips2beer', convertIPSToBEER);
+api.post('/convertips2plaintext', convertIPSToPlainText)
 api.post('/convertips2mongo', convertIPSToMongo);
 api.post('/convertcdatoips', convertCDAToIPS);
 api.post('/convertcdatobeer', convertCDAToBEER);
@@ -196,6 +199,7 @@ api.get("/ipsbyname/:name/:given", getIPSBundleByName);
 api.get("/ips/search/:name", getIPSSearch);
 api.get('/fetchipsora/:name/:givenName', getORABundleByName);
 api.get("/fetchips", getIPSBundleGeneric);
+api.get("/ipsplaintext/:id", getIPSPlainText);
 
 // XMPP endpoints
 api.use("/xmpp", xmppRoutes);

@@ -373,6 +373,31 @@
         }
       }
     },
+    "/convertips2plaintext": {
+      "post": {
+        "tags": [
+          "IPS"
+        ],
+        "summary": "Convert IPS JSON format to Plain Text Readable format",
+        "description": "Convert IPS JSON format to Plain Text Readable format.",
+        "requestBody": {
+          "description": "IPS Bundle - JSON",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Human Readable - Plain Text"
+          }
+        }
+      }
+    },
     "/convertcdatoips": {
       "post": {
         "tags": [
@@ -796,6 +821,37 @@
         "responses": {
           "200": {
             "description": "Basic format - Plain Text",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ipsplaintext/{id}": {
+      "get": {
+        "tags": [
+          "IPS"
+        ],
+        "summary": "Retrieve IPS record in human readable format by ID",
+        "description": "Retrieve IPS record in human readable format by ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Human Readable format - Plain Text",
             "content": {
               "text/plain": {
                 "schema": {

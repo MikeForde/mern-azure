@@ -1,7 +1,7 @@
-const { generateIPSBasic } = require('./servercontrollerfuncs/generateIPSBasic');
+const { generateXMPPPlainText} = require('./servercontrollerfuncs/generateXMPPPlainText');
 const { resolveId } = require('../utils/resolveId');
 
-async function getIPSBasic(req, res) {
+async function getIPSPlainText(req, res) {
     const id = req.params.id;
 
     try {
@@ -11,7 +11,7 @@ async function getIPSBasic(req, res) {
             return res.status(404).send('IPS record not found');
         }
 
-        const basicText = generateIPSBasic(ips);
+        const basicText = generateXMPPPlainText(ips);
 
         res.set('Content-Type', 'text/plain');
         res.send(basicText);
@@ -21,4 +21,4 @@ async function getIPSBasic(req, res) {
     }
 }
 
-module.exports = { getIPSBasic };
+module.exports = { getIPSPlainText };

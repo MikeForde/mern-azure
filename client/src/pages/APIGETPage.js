@@ -58,7 +58,7 @@ function APIGETPage() {
           if (useCompressionAndEncryption) {
             setResponseSize(JSON.stringify(response.data).length);
             responseData = JSON.stringify(response.data, null, 2);
-          } else if (mode === 'ipsbasic' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim' || mode === 'ipshl72x') {
+          } else if (mode === 'ipsbasic' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim' || mode === 'ipshl72x' || mode === 'ipsplaintext') {
             responseData = response.data;
             setResponseSize(responseData.length);
           } else if (mode === 'ipsxml') {
@@ -105,7 +105,7 @@ function APIGETPage() {
       extension = 'xml';
       mimeType = 'application/xml';
     } else if (
-      ['ipsbasic', 'ipsbeer', 'ipsbeerwithdelim', 'ipshl72x'].includes(mode)
+      ['ipsbasic', 'ipsbeer', 'ipsbeerwithdelim', 'ipshl72x', 'ipsplaintext'].includes(mode)
     ) {
       extension = 'txt';
       mimeType = 'text/plain';
@@ -176,6 +176,9 @@ function APIGETPage() {
       case 'ipshl72x':
         setModeText('IPS HL7 2.x - /ipshl72x/:id');
         break;
+      case 'ipsplaintext':
+        setModeText('IPS Plain Text - /ipsplaintext/:id');
+        break;
       default:
         setModeText('IPS Unified JSON Bundle - /ipsunified/:id');
     }
@@ -185,100 +188,6 @@ function APIGETPage() {
     const formatted = xml.replace(/></g, '>\n<');
     return formatted;
   };
-
-  // const handleWriteUrlToNfc = async () => {
-  //   if (!('NDEFReader' in window)) {
-  //     setToastMsg('Web NFC not supported on this device/browser.');
-  //     setToastVariant('warning');
-  //     setShowToast(true);
-  //     return;
-  //   }
-
-  //   setIsWriting(true);
-  //   try {
-  //     // 1. GZIP the displayed data
-  //     const gzipped = pako.gzip(data);
-
-  //     // 2. Convert to base64 (URL-safe)
-  //     const base64 = btoa(String.fromCharCode(...gzipped))
-  //       .replace(/\+/g, '-')
-  //       .replace(/\//g, '_')
-  //       .replace(/=+$/, '');
-
-  //     // 3. Construct full URL
-  //     const url = `${window.location.origin}/ciwx/payload?d=${base64}`;
-
-  //     // 4. Write the URL to NFC tag
-  //     const writer = new window.NDEFReader();
-  //     await writer.write({ records: [{ recordType: 'url', data: url }] });
-
-  //     setToastMsg('URL written to NFC tag!');
-  //     setToastVariant('success');
-  //   } catch (err) {
-  //     console.error('Write failed:', err);
-  //     setToastMsg('Failed to write NFC URL: ' + err.message);
-  //     setToastVariant('danger');
-  //   } finally {
-  //     setIsWriting(false);
-  //     setShowToast(true);
-  //   }
-  // };
-
-
-  // const handleWriteToNfc = async () => {
-  //   if (!('NDEFReader' in window)) {
-  //     setToastMsg('Web NFC not supported on this device/browser.');
-  //     setToastVariant('warning');
-  //     setShowToast(true);
-  //     return;
-  //   }
-
-  //   setIsWriting(true);
-  //   try {
-  //     let payload;
-  //     //let byteLen;
-
-  //     if (useBinary) {
-  //       // Fetch the raw encrypted+gzipped bytes from your API
-  //       const resp = await axios.get(
-  //         `/${mode}/${selectedPatient._id}`, {
-  //         headers: { Accept: 'application/octet-stream' },
-  //         responseType: 'arraybuffer'
-  //       }
-  //       );
-  //       payload = new Uint8Array(resp.data);
-  //       //byteLen = payload.byteLength;
-  //     } else {
-  //       // plain‐text path
-  //       payload = data;
-  //       //byteLen = new Blob([data]).size;
-  //     }
-
-  //     const writer = new window.NDEFReader();
-  //     if (useBinary) {
-  //       await writer.write({
-  //         records: [{
-  //           recordType: 'mime',
-  //           mediaType: 'application/x.ips.gzip.aes256.v1-0',
-  //           data: payload
-  //         }]
-  //       });
-  //     } else {
-  //       await writer.write(data);
-  //     }
-
-  //     setToastMsg('Data written to NFC tag!');
-  //     setToastVariant('success');
-
-  //   } catch (error) {
-  //     setToastMsg(`Failed to write to NFC: ${error.message}`);
-  //     setToastVariant('danger');
-
-  //   } finally {
-  //     setIsWriting(false);
-  //     setShowToast(true);
-  //   }
-  // };
 
   const handleNfcWriteMode = async (nfctype) => {
     if (!('NDEFReader' in window)) {
@@ -378,6 +287,7 @@ function APIGETPage() {
                 <Dropdown.Item eventKey="ips">IPS Prev JSON Bundle - /ips/:id or /ipsbyname/:name/:given</Dropdown.Item>
                 <Dropdown.Item eventKey="ipsxml">IPS Prev XML Bundle - /ipsxml/:id</Dropdown.Item>
                 <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle - /ipslegacy/:id</Dropdown.Item>
+                <Dropdown.Item eventKey="ipsplaintext">IPS Plain Text - /ipsplaintext/:id</Dropdown.Item>
               </DropdownButton>
             </div>
             <div className="form-check">
