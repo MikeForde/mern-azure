@@ -21,7 +21,7 @@ function APIGETPage() {
   const [toastMsg, setToastMsg] = useState('');
   const [toastVariant, setToastVariant] = useState('info');
   const [isWriting, setIsWriting] = useState(false);
-  const [useBinary, setUseBinary] = useState(false);
+  // const [useBinary, setUseBinary] = useState(false);
 
 
 
@@ -186,46 +186,101 @@ function APIGETPage() {
     return formatted;
   };
 
-const handleWriteUrlToNfc = async () => {
-  if (!('NDEFReader' in window)) {
-    setToastMsg('Web NFC not supported on this device/browser.');
-    setToastVariant('warning');
-    setShowToast(true);
-    return;
-  }
+  // const handleWriteUrlToNfc = async () => {
+  //   if (!('NDEFReader' in window)) {
+  //     setToastMsg('Web NFC not supported on this device/browser.');
+  //     setToastVariant('warning');
+  //     setShowToast(true);
+  //     return;
+  //   }
 
-  setIsWriting(true);
-  try {
-    // 1. GZIP the displayed data
-    const gzipped = pako.gzip(data);
+  //   setIsWriting(true);
+  //   try {
+  //     // 1. GZIP the displayed data
+  //     const gzipped = pako.gzip(data);
 
-    // 2. Convert to base64 (URL-safe)
-    const base64 = btoa(String.fromCharCode(...gzipped))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
+  //     // 2. Convert to base64 (URL-safe)
+  //     const base64 = btoa(String.fromCharCode(...gzipped))
+  //       .replace(/\+/g, '-')
+  //       .replace(/\//g, '_')
+  //       .replace(/=+$/, '');
 
-    // 3. Construct full URL
-    const url = `${window.location.origin}/ciwx/payload?d=${base64}`;
+  //     // 3. Construct full URL
+  //     const url = `${window.location.origin}/ciwx/payload?d=${base64}`;
 
-    // 4. Write the URL to NFC tag
-    const writer = new window.NDEFReader();
-    await writer.write({ records: [{ recordType: 'url', data: url }] });
+  //     // 4. Write the URL to NFC tag
+  //     const writer = new window.NDEFReader();
+  //     await writer.write({ records: [{ recordType: 'url', data: url }] });
 
-    setToastMsg('URL written to NFC tag!');
-    setToastVariant('success');
-  } catch (err) {
-    console.error('Write failed:', err);
-    setToastMsg('Failed to write NFC URL: ' + err.message);
-    setToastVariant('danger');
-  } finally {
-    setIsWriting(false);
-    setShowToast(true);
-  }
-};
+  //     setToastMsg('URL written to NFC tag!');
+  //     setToastVariant('success');
+  //   } catch (err) {
+  //     console.error('Write failed:', err);
+  //     setToastMsg('Failed to write NFC URL: ' + err.message);
+  //     setToastVariant('danger');
+  //   } finally {
+  //     setIsWriting(false);
+  //     setShowToast(true);
+  //   }
+  // };
 
 
-  const handleWriteToNfc = async () => {
+  // const handleWriteToNfc = async () => {
+  //   if (!('NDEFReader' in window)) {
+  //     setToastMsg('Web NFC not supported on this device/browser.');
+  //     setToastVariant('warning');
+  //     setShowToast(true);
+  //     return;
+  //   }
+
+  //   setIsWriting(true);
+  //   try {
+  //     let payload;
+  //     //let byteLen;
+
+  //     if (useBinary) {
+  //       // Fetch the raw encrypted+gzipped bytes from your API
+  //       const resp = await axios.get(
+  //         `/${mode}/${selectedPatient._id}`, {
+  //         headers: { Accept: 'application/octet-stream' },
+  //         responseType: 'arraybuffer'
+  //       }
+  //       );
+  //       payload = new Uint8Array(resp.data);
+  //       //byteLen = payload.byteLength;
+  //     } else {
+  //       // plain‐text path
+  //       payload = data;
+  //       //byteLen = new Blob([data]).size;
+  //     }
+
+  //     const writer = new window.NDEFReader();
+  //     if (useBinary) {
+  //       await writer.write({
+  //         records: [{
+  //           recordType: 'mime',
+  //           mediaType: 'application/x.ips.gzip.aes256.v1-0',
+  //           data: payload
+  //         }]
+  //       });
+  //     } else {
+  //       await writer.write(data);
+  //     }
+
+  //     setToastMsg('Data written to NFC tag!');
+  //     setToastVariant('success');
+
+  //   } catch (error) {
+  //     setToastMsg(`Failed to write to NFC: ${error.message}`);
+  //     setToastVariant('danger');
+
+  //   } finally {
+  //     setIsWriting(false);
+  //     setShowToast(true);
+  //   }
+  // };
+
+  const handleNfcWriteMode = async (nfctype) => {
     if (!('NDEFReader' in window)) {
       setToastMsg('Web NFC not supported on this device/browser.');
       setToastVariant('warning');
@@ -235,57 +290,46 @@ const handleWriteUrlToNfc = async () => {
 
     setIsWriting(true);
     try {
-      let payload;
-      //let byteLen;
+      const writer = new window.NDEFReader();
 
-      if (useBinary) {
-        // Fetch the raw encrypted+gzipped bytes from your API
+      if (nfctype=== 'plain') {
+        await writer.write(data);
+      } else if (nfctype=== 'binary') {
         const resp = await axios.get(
           `/${mode}/${selectedPatient._id}`, {
           headers: { Accept: 'application/octet-stream' },
           responseType: 'arraybuffer'
         }
         );
-        payload = new Uint8Array(resp.data);
-        //byteLen = payload.byteLength;
-      } else {
-        // plain‐text path
-        payload = data;
-        //byteLen = new Blob([data]).size;
-      }
-
-      // if (byteLen > MAX_TAG_BYTES) {
-      //   setToastMsg(`Payload is ${byteLen} bytes; tag max is ${MAX_TAG_BYTES}.`);
-      //   setToastVariant('danger');
-      //   setShowToast(true);
-      //   return;
-      // }
-
-      const writer = new window.NDEFReader();
-      if (useBinary) {
         await writer.write({
           records: [{
             recordType: 'mime',
             mediaType: 'application/x.ips.gzip.aes256.v1-0',
-            data: payload
+            data: new Uint8Array(resp.data)
           }]
         });
-      } else {
-        await writer.write(data);
+      } else if (nfctype === 'url') {
+        const gzipped = pako.gzip(data);
+        const base64 = btoa(String.fromCharCode(...gzipped))
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=+$/, '');
+        const url = `${window.location.origin}/ciwx/payload?d=${base64}`;
+        await writer.write({ records: [{ recordType: 'url', data: url }] });
       }
 
-      setToastMsg('Data written to NFC tag!');
+      setToastMsg(`NFC write success (${nfctype})!`);
       setToastVariant('success');
-
-    } catch (error) {
-      setToastMsg(`Failed to write to NFC: ${error.message}`);
+    } catch (err) {
+      console.error(err);
+      setToastMsg(`NFC write failed: ${err.message}`);
       setToastVariant('danger');
-
     } finally {
       setIsWriting(false);
       setShowToast(true);
     }
   };
+
 
 
 
@@ -370,45 +414,41 @@ const handleWriteUrlToNfc = async () => {
           </div>
         )}
         <br />
-        <div className="button-container">
-          <Button className="mb-3" onClick={handleDownloadData}
-            disabled={!data}>
-            Download Data
-          </Button>
-          {mode === 'ips' && (
-            <Button
-              variant="primary"
-              className="mb-3 ml-2"
-              onClick={() => window.open('https://ipsviewer.com', '_blank')}
-              disabled={!data}
-            >
-              Open IPS Viewer
-            </Button>
-          )}
-          <Button
-            variant={isWriting ? 'dark' : 'primary'}
-            className="mb-3 ml-2"
-            onClick={handleWriteToNfc}
-            disabled={!data || isWriting}
-          >
-            {isWriting ? 'Waiting...' : 'Write to NFC'}
-          </Button>
-          <Form.Check
-            type="switch"
-            id="binary-switch"
-            label=" Write to NFC using binary (AES256+gzip)"
-            checked={useBinary}
-            onChange={e => setUseBinary(e.target.checked)}
-          />
-          <Button
-            variant="success"
-            className="mb-3 ml-2"
-            onClick={handleWriteUrlToNfc}
-            disabled={!data || isWriting}
-          >
-            Write NFC with Gzipped URL
-          </Button>
+        <div className="container">
+          <div className="row mb-3 align-items-start">
+            <div className="col-auto">
+              <Button onClick={handleDownloadData} disabled={!data}>
+                Download Data
+              </Button>
+            </div>
+
+            {mode === 'ips' && (
+              <div className="col-auto">
+                <Button
+                  variant="primary"
+                  onClick={() => window.open('https://ipsviewer.com', '_blank')}
+                  disabled={!data}
+                >
+                  Open IPS Viewer
+                </Button>
+              </div>
+            )}
+
+            <div className="col-auto">
+              <DropdownButton
+                variant={isWriting ? 'dark' : 'primary'}
+                title={isWriting ? 'Writing...' : 'Write to NFC'}
+                disabled={!data || isWriting}
+                onSelect={handleNfcWriteMode}
+              >
+                <Dropdown.Item eventKey="plain">Plain Text</Dropdown.Item>
+                <Dropdown.Item eventKey="binary">Binary (AES256 + gzip)</Dropdown.Item>
+                <Dropdown.Item eventKey="url">Gzipped Data URL</Dropdown.Item>
+              </DropdownButton>
+            </div>
+          </div>
         </div>
+
       </div>
       {/* Floating Toast, just like in IPS.js */}
       <ToastContainer
