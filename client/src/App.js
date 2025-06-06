@@ -19,6 +19,7 @@ import BEERGardenPage from './pages/BEERGardenPage';
 import APIDocumentationPage from './pages/APIDocumentationPage';
 import IPSchemaViewer from './pages/IPSSchemaViewerPage';
 import IPSchemaValidator from './pages/IPSSchemaValidatorPage';
+import PayloadPage from './pages/PayloadPage';  
 import { PatientContext } from './PatientContext';
 import { PatientProvider } from './PatientContext';
 import { LoadingProvider } from './contexts/LoadingContext';
@@ -75,6 +76,7 @@ function App() {
               <Route path="/fetchips" element={<UnifiedIPSGetPage />} />
               <Route path="/schemaviewer" element={<IPSchemaViewer />} />
               <Route path="/schemavalidator" element={<IPSchemaValidator />} />
+              <Route path="/ciwx/payload" element={<PayloadPage />} />
             </Routes>
           </div>
         </Router>
