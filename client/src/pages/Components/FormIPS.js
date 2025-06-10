@@ -530,7 +530,7 @@ export function FormIPS({ add }) {
                   <Form.Control
                     type="text"
                     name="code"
-                    value={formatDate(observation.code)}
+                    value={observation.code}
                     onChange={(e) => handleObservationChange(index, e)}
                     placeholder="Observation Code" />
                 </div>
@@ -541,7 +541,7 @@ export function FormIPS({ add }) {
                   <Form.Control
                     type="text"
                     name="system"
-                    value={formatDate(observation.system)}
+                    value={observation.system}
                     onChange={(e) => handleObservationChange(index, e)}
                     placeholder="Observation Code System" />
                 </div>
