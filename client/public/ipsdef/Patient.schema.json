@@ -8,7 +8,6 @@
       "id",
       "identifier",
       "name",
-      "gender",
       "birthDate",
       "address"
     ],
@@ -25,11 +24,18 @@
       "identifier": {
         "type": "array",
         "minItems": 0,
-        "maxItems": 2,
         "items": {
           "$ref": "#/definitions/Identifier"
         },
         "description": "For now suggest NATO_Id and National_Id but these are not official terms"
+      },
+      "extension": {
+        "type": "array",
+        "minItems": 0,
+        "items": {
+          "$ref": "#/definitions/Extension"
+        },
+        "description": "Primarily included for optional religion field, but can be used for other extensions as well"
       },
       "name": {
         "type": "array",
@@ -64,6 +70,27 @@
           },
           "value": {
             "type": "string"
+          }
+        }
+      },
+      "Extension": {
+        "type": "object",
+        "required": ["url", "valueCoding"],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL identifying the extension"
+          },
+          "valueCoding": {
+            "type": "object",
+            "required": ["display"],
+            "properties": {
+              "display": {
+                "type": "string",
+                "description": "Human-readable representation of the code"
+              }
+            }
           }
         }
       },

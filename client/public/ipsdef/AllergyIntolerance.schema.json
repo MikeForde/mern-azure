@@ -26,7 +26,7 @@
         "type": "array",
         "items": {
           "type": "string",
-          "enum": ["medication"]
+          "enum": ["food","medication","environment", "biologic"]
         },
         "minItems": 1,
         "maxItems": 1
@@ -50,7 +50,8 @@
       },
       "onsetDateTime": {
         "type": "string",
-        "format": "date-time"
+        "format": "date-time",
+        "description" : "The requirement for date-time, as opposed to just date has been validated on HL7 IPS Guide for this resource."
       }
     },
     "definitions": {
