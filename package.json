@@ -35,6 +35,8 @@
         "swagger-ui-express": "^5.0.1",
         "uuid": "^8.3.2",
         "xml-js": "1.6.11",
-        "socket.io": "^4.0.0"
+        "socket.io": "^4.0.0",
+        "ajv": "^8.17.1",
+        "ajv-formats": "^3.0.1"
     }
 }

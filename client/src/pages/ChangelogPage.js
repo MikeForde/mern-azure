@@ -642,6 +642,17 @@ function ChangeLogPage() {
                                 <li>Compatible with 8k NFC tags and mobile browsers that support Web NFC and URL launches</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_67 - 12th June 2025</h5>
+                            <ul>
+                                <li><strong>New IPS Unified JSON Schema Validation API</strong></li>
+                                <li>Added <code>/ipsUniVal</code> endpoint for server-side validation of IPS Unified Bundles and individual resources</li>
+                                <li>Leverages AJV with Draft-07 JSON Schemas to enforce structural and semantic conformance</li>
+                                <li>Bundle validation split into envelope check and per-entry resource schema enforcement</li>
+                                <li>Returns <code>valid</code> status and detailed <code>errors</code> array in JSON response</li>
+                                <li>Modularized implementation in <code>schema/ipsUniVal.js</code> for easy maintenance</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

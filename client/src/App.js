@@ -76,7 +76,7 @@ function App() {
               <Route path="/fetchips" element={<UnifiedIPSGetPage />} />
               <Route path="/schemaviewer" element={<IPSchemaViewer />} />
               <Route path="/schemavalidator" element={<IPSchemaValidator />} />
-              <Route path="/ciwx/payload" element={<PayloadPage />} />
+              <Route path="/cwix/payload" element={<PayloadPage />} />
             </Routes>
           </div>
         </Router>

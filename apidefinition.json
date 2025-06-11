@@ -608,6 +608,31 @@
         }
       }
     },
+    "/ipsUniVal": {
+      "post": {
+        "tags": [
+          "IPS"
+        ],
+        "summary": "Validates a IPS Unified format record.",
+        "description": "Validates a IPS Unified format record.",
+        "requestBody": {
+          "description": "MongoDb JSON object representing the IPS Unified format record.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "JSON object containing the validation report."
+          }
+        }
+      }
+    },
     "/ips/all": {
       "get": {
         "tags": [

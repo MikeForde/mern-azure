@@ -223,7 +223,7 @@ function APIGETPage() {
           .replace(/\+/g, '-')
           .replace(/\//g, '_')
           .replace(/=+$/, '');
-        const url = `${window.location.origin}/ciwx/payload?d=${base64}`;
+        const url = `${window.location.origin}/cwix/payload?d=${base64}`;
         await writer.write({ records: [{ recordType: 'url', data: url }] });
       }
 
