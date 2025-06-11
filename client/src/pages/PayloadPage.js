@@ -158,7 +158,7 @@ export default function PayloadPage() {
 
   return (
     <div className="container mt-4">
-      <h4>CIWX Payload Viewer</h4>
+      <h4>CWIX Payload Viewer</h4>
 
       <div className="mb-3">
         <Button

@@ -75,20 +75,36 @@
       },
       "Extension": {
         "type": "object",
-        "required": ["url", "valueCoding"],
+        "required": ["url", "valueCodeableConcept"],
         "properties": {
           "url": {
             "type": "string",
             "format": "uri",
             "description": "URL identifying the extension"
           },
-          "valueCoding": {
+          "valueCodeableConcept": {
             "type": "object",
-            "required": ["display"],
+            "required": ["coding"],
             "properties": {
-              "display": {
-                "type": "string",
-                "description": "Human-readable representation of the code"
+              "coding": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["display"],
+                  "properties": {
+                    "system": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "display": {
+                      "type": "string"
+                    }
+                  }
+                }
               }
             }
           }
