@@ -23,7 +23,7 @@
       },
       "identifier": {
         "type": "array",
-        "minItems": 0,
+        "minItems": 1,
         "items": {
           "$ref": "#/definitions/Identifier"
         },

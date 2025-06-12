@@ -29,6 +29,36 @@ schemaFiles.forEach(file => {
 // POST /ipsUniVal
 router.post('/', (req, res) => {
   const ajv = new Ajv({ allErrors: true, strict: false });
+  ajv.addKeyword({
+    keyword: 'medReqForEachMed',
+    type: 'array',
+    validate: function medReqForEachMed(schema, entries) {
+      // collect all medication IDs
+      const meds = entries
+        .filter(e => e.resource?.resourceType === 'Medication')
+        .map(e => e.resource.id);
+      // collect all request references
+      const reqRefs = entries
+        .filter(e => e.resource?.resourceType === 'MedicationRequest')
+        .map(e => {
+          const ref = e.resource.medicationReference?.reference || '';
+          return ref.split('/')[1];
+        });
+      // every med ID must appear in reqRefs
+      const missing = meds.filter(id => !reqRefs.includes(id));
+      if (missing.length) {
+        medReqForEachMed.errors = missing.map(id => ({
+          keyword: 'medReqForEachMed',
+          message: `No MedicationRequest for Medication/${id}`,
+          params: { missingMedication: id }
+        }));
+        return false;
+      }
+      return true;
+    },
+    errors: true
+  });
+  
   addFormats(ajv);
   // Register schemas under their resourceType name
   Object.entries(schemas).forEach(([name, schema]) => ajv.addSchema(schema, name));
