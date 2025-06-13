@@ -6,8 +6,8 @@ import './Page.css';
 export default function NFCReaderPage() {
   const [readData, setReadData] = useState('');
   const [originalData, setOriginalData] = useState('');
-  const [convertedData, setConvertedData] = useState('');
-  const [validationData, setValidationData] = useState('');
+  // const [convertedData, setConvertedData] = useState('');
+  // const [validationData, setValidationData] = useState('');
 
   const [rawPayload, setRawPayload] = useState('');
   const [cardInfo, setCardInfo] = useState('');
@@ -35,8 +35,8 @@ export default function NFCReaderPage() {
     setIsReading(true);
     setReadData('');
     setOriginalData('');
-    setConvertedData('');
-    setValidationData('');
+    // setConvertedData('');
+    // setValidationData('');
     setRawPayload('');
     setCardInfo('');
     try {
@@ -161,7 +161,7 @@ export default function NFCReaderPage() {
         { headers: { 'Content-Type': 'application/json' } }
       );
       const converted = JSON.stringify(resp.data, null, 2);
-      setConvertedData(converted);
+      // setConvertedData(converted);
       setReadData(converted);
       setToastMsg('Conversion successful');
       setToastVariant('success');
@@ -191,7 +191,7 @@ export default function NFCReaderPage() {
           .map(err => `${err.path || '/'}: ${err.message}`)
           .join('\n');
       }
-      setValidationData(formatted);
+      // setValidationData(formatted);
       setReadData(formatted);
       setToastMsg(resp.data.valid ? 'Validation passed' : 'Validation errors');
       setToastVariant(resp.data.valid ? 'success' : 'warning');

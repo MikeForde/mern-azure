@@ -7,7 +7,6 @@ import { DataSet } from 'vis-data';
 import { Timeline as VisTimeline } from 'vis-timeline/standalone';
 import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
 import { generatePDF } from './Components/generatePDF';
-import { Overlay, Popover } from 'react-bootstrap';
 
 // Define fixed lanes/categories
 const TIMELINE_GROUPS = [
