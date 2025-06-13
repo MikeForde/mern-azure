@@ -7,6 +7,7 @@ import { DataSet } from 'vis-data';
 import { Timeline as VisTimeline } from 'vis-timeline/standalone';
 import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
 import { generatePDF } from './Components/generatePDF';
+import { Overlay, Popover } from 'react-bootstrap';
 
 // Define fixed lanes/categories
 const TIMELINE_GROUPS = [
@@ -22,11 +23,13 @@ export default function PayloadPage() {
   const [readableData, setReadableData] = useState('');
   const [nosqlData, setNosqlData] = useState(null);
   const [viewMode, setViewMode] = useState('readable'); // 'readable', 'nosql', 'timeline'
+  const [selectedItem, setSelectedItem] = useState(null);
   const [items, setItems] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [operation, setOperation] = useState(null);
   const [toast, setToast] = useState({ show: false, msg: '', variant: 'info' });
+  
 
   const timelineContainer = useRef(null);
 
@@ -139,6 +142,7 @@ export default function PayloadPage() {
         content,
         start,
         group: groupId,
+        data: res,
       };
     }).filter(item => item);
     setItems(mapped);
@@ -146,66 +150,73 @@ export default function PayloadPage() {
 
   // Initialize or update VisTimeline when switching to timeline
   useEffect(() => {
-  if (viewMode !== 'timeline' || !timelineContainer.current) return;
+    if (viewMode !== 'timeline' || !timelineContainer.current) return;
 
-  const dataItems  = new DataSet(items);
-  const dataGroups = new DataSet(TIMELINE_GROUPS);
+    const dataItems = new DataSet(items);
+    const dataGroups = new DataSet(TIMELINE_GROUPS);
 
-  let start, end;
+    let start, end;
 
-  if (items.length) {
-    // 1) find absolute min/max
-    const times = items.map(i => new Date(i.start).valueOf());
-    const minT  = Math.min(...times);
-    const maxT  = Math.max(...times);
-    const span  = maxT - minT;
+    if (items.length) {
+      // 1) find absolute min/max
+      const times = items.map(i => new Date(i.start).valueOf());
+      const minT = Math.min(...times);
+      const maxT = Math.max(...times);
+      const span = maxT - minT;
 
-    // 2) choose padding: 5% of span, but at least 5 minutes
-    const MIN_PAD = 1000 * 60 * 5;
-    const pad     = Math.max(span * 0.05, MIN_PAD);
+      // 2) choose padding: 5% of span, but at least 5 minutes
+      const MIN_PAD = 1000 * 60 * 5;
+      const pad = Math.max(span * 0.05, MIN_PAD);
 
-    // 3) build window corners
-    start = new Date(minT - pad);
-    end   = new Date(maxT + pad);
-  }
-
-  // 4) ensure zoomMax is ≥ your initial window span
-  const windowSpan = end.getTime() - start.getTime();
-  const dynamicZoomMax = Math.max(ZOOM_MAX, windowSpan);
-
-  const options = {
-    start,
-    end,
-    zoomMin: ZOOM_MIN,
-    zoomMax: dynamicZoomMax,
-    zoomKey: null,
-    horizontalScroll: true,
-    zoomable: true,
-    moveable: true,
-    stack: false,
-    tooltip: {
-      followMouse: true,
-      overflowMethod: 'cap'
+      // 3) build window corners
+      start = new Date(minT - pad);
+      end = new Date(maxT + pad);
     }
-  };
 
-  if (timelineInstance.current) {
-    timelineInstance.current.destroy();
-  }
-  timelineInstance.current = new VisTimeline(
-    timelineContainer.current,
-    dataItems,
-    dataGroups,
-    options
-  );
+    // 4) ensure zoomMax is ≥ your initial window span
+    const windowSpan = end.getTime() - start.getTime();
+    const dynamicZoomMax = Math.max(ZOOM_MAX, windowSpan);
 
-  timelineInstance.current.on('itemclick', ({ item }) => {
-    const itm = items.find(i => i.id === item);
-    if (itm) {
-      alert(`${itm.content}\n${new Date(itm.start).toLocaleString()}`);
+    const options = {
+      start,
+      end,
+      zoomMin: ZOOM_MIN,
+      zoomMax: dynamicZoomMax,
+      zoomKey: null,
+      horizontalScroll: true,
+      zoomable: true,
+      moveable: true,
+      stack: false,
+      tooltip: {
+        followMouse: true,
+        overflowMethod: 'cap'
+      }
+    };
+
+    if (timelineInstance.current) {
+      timelineInstance.current.destroy();
     }
-  });
-}, [viewMode, items, ZOOM_MIN, ZOOM_MAX]);
+    timelineInstance.current = new VisTimeline(
+      timelineContainer.current,
+      dataItems,
+      dataGroups,
+      options
+    );
+
+    // listen for select (works on touch & click)
+    timelineInstance.current.on('select', ({ items: selectedIds }) => {
+      if (selectedIds.length > 0) {
+        const id = selectedIds[0];
+        const itm = items.find(i => i.id === id);
+        setSelectedItem(itm?.data ?? null);
+      }
+    });
+
+    // clear when you click outside or deselect
+    timelineInstance.current.on('deselect', () => {
+      setSelectedItem(null);
+    });
+  }, [viewMode, items, ZOOM_MIN, ZOOM_MAX]);
 
 
   const showToast = (msg, variant = 'info') => setToast({ show: true, msg, variant });
@@ -310,18 +321,101 @@ export default function PayloadPage() {
         </Button>
       </div>
 
-      {loading ? (<div>Loading...</div>) : error ? (<Alert variant="danger">{error}</Alert>) : viewMode === 'timeline' ? (
+      {loading ? (
+        <div>Loading...</div>
+      ) : error ? (
+        <Alert variant="danger">{error}</Alert>
+      ) : viewMode === 'timeline' ? (
         <>
-          <div ref={timelineContainer} style={{ height: '35vh', border: '1px solid #ddd' }} />
+          <div
+            ref={timelineContainer}
+            style={{ height: '35vh', border: '1px solid #ddd' }}
+          />
+
           <div className="mt-2 mb-4 text-center">
-            <Button variant="outline-primary" onClick={handleZoomInTimeline} className="me-2">Zoom In</Button>
-            <Button variant="outline-primary" onClick={handleZoomOutTimeline}>Zoom Out</Button>
+            <Button
+              variant="outline-primary"
+              onClick={handleZoomInTimeline}
+              className="me-2"
+            >
+              Zoom In
+            </Button>
+            <Button
+              variant="outline-primary"
+              onClick={handleZoomOutTimeline}
+            >
+              Zoom Out
+            </Button>
           </div>
+
+          {/* ←←← INSERT YOUR DETAILS CARD HERE →→→ */}
+          {selectedItem && (
+            <Card className="mb-4">
+              <Card.Header>
+                Details — {selectedItem.resourceType}
+              </Card.Header>
+              <Card.Body>
+                <p>
+                  <strong>Date:</strong>{' '}
+                  {new Date(
+                    selectedItem.authoredOn ||
+                    selectedItem.onsetDateTime ||
+                    selectedItem.effectiveDateTime
+                  ).toLocaleString()}
+                </p>
+                <p>
+                  <strong>Name:</strong>{' '}
+                  {selectedItem.code?.coding?.[0]?.display ||
+                    selectedItem.medicationReference?.display}
+                </p>
+                <p>
+                  <strong>Coding:</strong>{' '}
+                  {selectedItem.code?.coding?.[0]?.code} (
+                  {selectedItem.code?.coding?.[0]?.system})
+                </p>
+
+                {selectedItem.resourceType === 'MedicationRequest' && (
+                  <p>
+                    <strong>Dosage:</strong>{' '}
+                    {selectedItem.dosageInstruction?.[0]?.text || '—'}
+                  </p>
+                )}
+                {selectedItem.resourceType === 'AllergyIntolerance' && (
+                  <p>
+                    <strong>Criticality:</strong>{' '}
+                    {selectedItem.criticality || '—'}
+                  </p>
+                )}
+                {selectedItem.resourceType === 'Observation' &&
+                  selectedItem.valueQuantity && (
+                    <p>
+                      <strong>Value:</strong>{' '}
+                      {selectedItem.valueQuantity.value}{' '}
+                      {selectedItem.valueQuantity.unit}
+                    </p>
+                  )}
+              </Card.Body>
+            </Card>
+          )}
+          {/* ←←← DETAILS CARD END →→→ */}
+
         </>
       ) : viewMode === 'nosql' ? (
-        <Card><Card.Body><pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{JSON.stringify(nosqlData, null, 2)}</pre></Card.Body></Card>
+        <Card>
+          <Card.Body>
+            <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              {JSON.stringify(nosqlData, null, 2)}
+            </pre>
+          </Card.Body>
+        </Card>
       ) : (
-        <Card><Card.Body><pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{readableData}</pre></Card.Body></Card>
+        <Card>
+          <Card.Body>
+            <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              {readableData}
+            </pre>
+          </Card.Body>
+        </Card>
       )}
 
       <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999 }}>
