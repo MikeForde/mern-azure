@@ -77,6 +77,7 @@ function App() {
               <Route path="/schemaviewer" element={<IPSchemaViewer />} />
               <Route path="/schemavalidator" element={<IPSchemaValidator />} />
               <Route path="/cwix/payload" element={<PayloadPage />} />
+              <Route path="/viewer" element={<PayloadPage />} />
             </Routes>
           </div>
         </Router>

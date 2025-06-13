@@ -78,7 +78,7 @@ function NavigationBar() {
             <Nav.Link as={Link} to="/api" onClick={() => handleNavItemSelect(true)}>
               <FontAwesomeIcon icon={faFileMedical} /> API
             </Nav.Link>
-            <Nav.Link as={Link} to="/cwix/payload" onClick={() => handleNavItemSelect(true)}>
+            <Nav.Link as={Link} to="/viewer" onClick={() => handleNavItemSelect(true)}>
               <FontAwesomeIcon icon={faEye} /> View
             </Nav.Link>
             <Nav.Link as={Link} to="/qr" onClick={() => handleNavItemSelect(true)}>

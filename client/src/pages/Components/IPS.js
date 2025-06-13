@@ -204,7 +204,7 @@ export function IPS({ ips, remove, update }) {
         </OverlayTrigger>
 
         <OverlayTrigger placement="top" overlay={renderTooltip('Visit Viewer Page')}>
-          <Link to="/cwix/payload">
+          <Link to="/viewer">
             <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
               <FontAwesomeIcon icon={faEye} />
             </Button>
