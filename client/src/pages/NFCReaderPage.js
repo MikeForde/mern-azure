@@ -5,15 +5,20 @@ import './Page.css';
 
 export default function NFCReaderPage() {
   const [readData, setReadData] = useState('');
+  const [originalData, setOriginalData] = useState('');
+  const [convertedData, setConvertedData] = useState('');
+  const [validationData, setValidationData] = useState('');
+
   const [rawPayload, setRawPayload] = useState('');
   const [cardInfo, setCardInfo] = useState('');
   const [isReading, setIsReading] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
 
   // Toast state
-  const [showToast, setShowToast]   = useState(false);
-  const [toastMsg, setToastMsg]     = useState('');
+  const [showToast, setShowToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
   const [toastVariant, setToastVariant] = useState('info');
 
   // Custom MIME type
@@ -29,6 +34,9 @@ export default function NFCReaderPage() {
 
     setIsReading(true);
     setReadData('');
+    setOriginalData('');
+    setConvertedData('');
+    setValidationData('');
     setRawPayload('');
     setCardInfo('');
     try {
@@ -49,7 +57,7 @@ export default function NFCReaderPage() {
 
         if (message.records.length > 0) {
           const record = message.records[0];
-
+          // ... existing decoding logic ...
           if (record.recordType === 'mime' && record.mediaType === BINARY_MIME) {
             const buffer = record.data instanceof ArrayBuffer
               ? record.data
@@ -66,29 +74,27 @@ export default function NFCReaderPage() {
               let bodyStr = typeof resp.data === 'object'
                 ? JSON.stringify(resp.data, null, 2)
                 : (() => {
-                    try { return JSON.stringify(JSON.parse(resp.data), null, 2); }
-                    catch { return resp.data; }
-                  })();
+                  try { return JSON.stringify(JSON.parse(resp.data), null, 2); }
+                  catch { return resp.data; }
+                })();
               extracted = bodyStr;
             } catch (err) {
               extracted = `Error decoding binary: ${err.message}`;
             }
-          }
-          else if (record.recordType === 'text') {
+          } else if (record.recordType === 'text') {
             const decoder = new TextDecoder(record.encoding || 'utf-8');
             extracted = decoder.decode(record.data);
-          }
-          else if (record.recordType === 'url') {
+          } else if (record.recordType === 'url') {
             const decoder = new TextDecoder();
             extracted = `URL: ${decoder.decode(record.data)}`;
-          }
-          else {
+          } else {
             extracted = Array.from(new Uint8Array(record.data))
               .map(b => b.toString(16).padStart(2, '0')).join(' ');
           }
         }
 
         setRawPayload(extracted);
+        setOriginalData(extracted);
         setReadData(extracted);
         setToastMsg('NFC tag read successfully!');
         setToastVariant('success');
@@ -148,39 +154,14 @@ export default function NFCReaderPage() {
   const handleConvertOnly = async () => {
     if (!rawPayload) return;
     setIsConverting(true);
-    let endpoint;
-    let payloadToSend;
-
     try {
-      if (rawPayload.trim().startsWith('{') && rawPayload.includes('"resourceType"') && rawPayload.includes('Bundle')) {
-        endpoint = '/convertips2mongo';
-        payloadToSend = JSON.parse(rawPayload);
-      }
-      else if (rawPayload.startsWith('MSH')) {
-        endpoint = '/converthl72xtomongo';
-        payloadToSend = rawPayload;
-      }
-      else if (rawPayload.startsWith('H9')) {
-        endpoint = '/convertbeer2mongo';
-        payloadToSend = rawPayload;
-      } else {
-        throw new Error('Unrecognized IPS format');
-      }
-
-      const isJson = endpoint === '/convertips2mongo';
-      const contentType = isJson ? 'application/json' : 'text/plain';
-
       const resp = await axios.post(
-        endpoint,
-        payloadToSend,
-        {
-          headers: { 'Content-Type': contentType },
-          responseType: 'json'
-        }
+        '/convertips2mongo',
+        JSON.parse(rawPayload),
+        { headers: { 'Content-Type': 'application/json' } }
       );
-      const converted = typeof resp.data === 'object'
-        ? JSON.stringify(resp.data, null, 2)
-        : resp.data;
+      const converted = JSON.stringify(resp.data, null, 2);
+      setConvertedData(converted);
       setReadData(converted);
       setToastMsg('Conversion successful');
       setToastVariant('success');
@@ -193,67 +174,69 @@ export default function NFCReaderPage() {
     }
   };
 
+  const handleValidate = async () => {
+    if (!rawPayload) return;
+    setIsValidating(true);
+    try {
+      const resp = await axios.post(
+        '/ipsUniVal',
+        JSON.parse(rawPayload),
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      let formatted;
+      if (resp.data.valid) {
+        formatted = '✅ Valid!';
+      } else {
+        formatted = resp.data.errors
+          .map(err => `${err.path || '/'}: ${err.message}`)
+          .join('\n');
+      }
+      setValidationData(formatted);
+      setReadData(formatted);
+      setToastMsg(resp.data.valid ? 'Validation passed' : 'Validation errors');
+      setToastVariant(resp.data.valid ? 'success' : 'warning');
+    } catch (err) {
+      setToastMsg(`Validation failed: ${err.message}`);
+      setToastVariant('danger');
+    } finally {
+      setShowToast(true);
+      setIsValidating(false);
+    }
+  };
+
+  const showOriginal = () => setReadData(originalData);
+
   return (
     <div className="app">
       <div className="container">
         <h3>NFC Reader</h3>
-
         <div className="button-container mb-3">
-          <Button
-            variant={isReading ? 'dark' : 'primary'}
-            onClick={handleReadFromNfc}
-            disabled={isReading}
-          >
-            {isReading ? 'Waiting...' : 'Read from NFC'}
+          <Button variant={isReading ? 'dark' : 'primary'} onClick={handleReadFromNfc} disabled={isReading}>
+            {isReading ? 'Waiting...' : 'Read card'}
           </Button>
-          <Button
-            variant="success"
-            className="ml-2"
-            onClick={handleImport}
-            disabled={!rawPayload || isImporting}
-          >
+          <Button variant="success" className="ml-2" onClick={handleImport} disabled={!rawPayload || isImporting}>
             {isImporting ? 'Importing...' : 'Import'}
           </Button>
-          <Button
-            variant="secondary"
-            className="ml-2"
-            onClick={handleConvertOnly}
-            disabled={!rawPayload || isConverting}
-          >
-            {isConverting ? 'Converting...' : 'Convert to NoSQL Only'}
+          <Button variant="secondary" className="ml-2" onClick={handleConvertOnly} disabled={!rawPayload || isConverting}>
+            {isConverting ? 'Converting...' : 'NoSQL'}
+          </Button>
+          <Button variant="info" className="ml-2" onClick={handleValidate} disabled={!rawPayload || isValidating}>
+            {isValidating ? 'Validating...' : 'Validate'}
+          </Button>
+          <Button variant="outline-secondary" className="ml-2" onClick={showOriginal} disabled={!originalData}>
+            Original
           </Button>
         </div>
 
         <h5>Card Info</h5>
-        <Form.Control
-          as="textarea"
-          rows={3}
-          value={cardInfo}
-          readOnly
-          className="mb-3"
-        />
+        <Form.Control as="textarea" rows={3} value={cardInfo} readOnly className="mb-3" />
 
         <h5>Payload</h5>
-        <Form.Control
-          as="textarea"
-          rows={15}
-          value={readData}
-          readOnly
-        />
+        <Form.Control as="textarea" rows={15} value={readData} readOnly />
       </div>
 
-      <ToastContainer
-        position="top-end"
-        className="p-3"
-        style={{ zIndex: 9999 }}
-      >
-        <Toast
-          onClose={() => setShowToast(false)}
-          show={showToast}
-          bg={toastVariant}
-          delay={4000}
-          autohide
-        >
+      <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999 }}>
+        <Toast onClose={() => setShowToast(false)} show={showToast} bg={toastVariant} delay={4000} autohide>
           <Toast.Header>
             <strong className="me-auto">IPS MERN NFC</strong>
           </Toast.Header>

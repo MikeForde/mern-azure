@@ -64,7 +64,7 @@ function generateIPSBundleUnified(ips) {
                                 id: "medreq" + ++medcount,
                                 status: med.status ? med.status.toLowerCase() : "active",
                                 medicationReference: {
-                                    reference: "med" + medcount,
+                                    reference: "Medication/med" + medcount,
                                     display: med.name,
                                 },
                                 subject: {
