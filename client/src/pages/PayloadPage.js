@@ -29,7 +29,7 @@ export default function PayloadPage() {
   const [loading, setLoading] = useState(true);
   const [operation, setOperation] = useState(null);
   const [toast, setToast] = useState({ show: false, msg: '', variant: 'info' });
-  
+
 
   const timelineContainer = useRef(null);
 
@@ -301,7 +301,7 @@ export default function PayloadPage() {
     <div className="container mt-4">
       <h4>CWIX Payload Viewer</h4>
       <Alert variant="info">
-        This site displays the data on the NFC card presented. It can be viewed as text or as a timeline. No data is held on this website.
+        NFC card can be viewed as text or as a timeline. No data is held on this website.
       </Alert>
       <div className="mb-3 d-flex flex-wrap align-items-center">
         <Button variant="secondary" onClick={handleViewTimeline} className="me-2 mb-2">
@@ -350,50 +350,55 @@ export default function PayloadPage() {
 
           {/* ←←← INSERT YOUR DETAILS CARD HERE →→→ */}
           {selectedItem && (
-            <Card className="mb-4">
-              <Card.Header>
-                Details — {selectedItem.resourceType}
-              </Card.Header>
-              <Card.Body>
-                <p>
-                  <strong>Date:</strong>{' '}
-                  {new Date(
-                    selectedItem.authoredOn ||
-                    selectedItem.onsetDateTime ||
-                    selectedItem.effectiveDateTime
-                  ).toLocaleString()}
-                </p>
-                <p>
-                  <strong>Name:</strong>{' '}
-                  {selectedItem.code?.coding?.[0]?.display ||
-                    selectedItem.medicationReference?.display}
-                </p>
-                <p>
-                  <strong>Coding:</strong>{' '}
-                  {selectedItem.code?.coding?.[0]?.code} (
-                  {selectedItem.code?.coding?.[0]?.system})
-                </p>
+            <Card className="mb-4" style={{ fontSize: '0.9rem' }}>
+              <Card.Header className="py-1">Details — {selectedItem.resourceType}</Card.Header>
+              <Card.Body className="py-2">
+                <dl className="row mb-0">
+                  <dt className="col-4">Date</dt>
+                  <dd className="col-8">
+                    {new Date(
+                      selectedItem.authoredOn ||
+                      selectedItem.onsetDateTime ||
+                      selectedItem.effectiveDateTime
+                    ).toLocaleString()}
+                  </dd>
 
-                {selectedItem.resourceType === 'MedicationRequest' && (
-                  <p>
-                    <strong>Dosage:</strong>{' '}
-                    {selectedItem.dosageInstruction?.[0]?.text || '—'}
-                  </p>
-                )}
-                {selectedItem.resourceType === 'AllergyIntolerance' && (
-                  <p>
-                    <strong>Criticality:</strong>{' '}
-                    {selectedItem.criticality || '—'}
-                  </p>
-                )}
-                {selectedItem.resourceType === 'Observation' &&
-                  selectedItem.valueQuantity && (
-                    <p>
-                      <strong>Value:</strong>{' '}
-                      {selectedItem.valueQuantity.value}{' '}
-                      {selectedItem.valueQuantity.unit}
-                    </p>
+                  <dt className="col-4">Name</dt>
+                  <dd className="col-8">
+                    {selectedItem.code?.coding?.[0]?.display ||
+                      selectedItem.medicationReference?.display}
+                  </dd>
+
+                  <dt className="col-4">Code</dt>
+                  <dd className="col-8">
+                    {selectedItem.code?.coding?.[0]?.code} (
+                    <small>{selectedItem.code?.coding?.[0]?.system}</small>)
+                  </dd>
+
+                  {selectedItem.resourceType === 'MedicationRequest' && (
+                    <>
+                      <dt className="col-4">Dosage</dt>
+                      <dd className="col-8">{selectedItem.dosageInstruction?.[0]?.text || '—'}</dd>
+                    </>
                   )}
+
+                  {selectedItem.resourceType === 'AllergyIntolerance' && (
+                    <>
+                      <dt className="col-4">Criticality</dt>
+                      <dd className="col-8">{selectedItem.criticality}</dd>
+                    </>
+                  )}
+
+                  {selectedItem.resourceType === 'Observation' && selectedItem.valueQuantity && (
+                    <>
+                      <dt className="col-4">Value</dt>
+                      <dd className="col-8">
+                        {selectedItem.valueQuantity.value}{' '}
+                        {selectedItem.valueQuantity.unit}
+                      </dd>
+                    </>
+                  )}
+                </dl>
               </Card.Body>
             </Card>
           )}
