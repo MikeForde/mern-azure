@@ -29,11 +29,12 @@ export default function PayloadPage() {
   const [toast, setToast] = useState({ show: false, msg: '', variant: 'info' });
 
   const timelineContainer = useRef(null);
+
   const timelineInstance = useRef(null);
 
   // Zoom bounds
   const ZOOM_MIN = 1000 * 60 * 60;              // 1 hour
-  const ZOOM_MAX = 1000 * 60 * 60 * 24 * 365;    // 1 year
+  const ZOOM_MAX = 1000 * 60 * 60 * 24 * 365 * 10;    // 1 year
 
   // Zoom helper functions
   const handleZoomInTimeline = () => {
@@ -137,7 +138,7 @@ export default function PayloadPage() {
         id: idx + 1,
         content,
         start,
-        group: groupId
+        group: groupId,
       };
     }).filter(item => item);
     setItems(mapped);
@@ -145,34 +146,67 @@ export default function PayloadPage() {
 
   // Initialize or update VisTimeline when switching to timeline
   useEffect(() => {
-    if (viewMode !== 'timeline' || !timelineContainer.current) return;
-    const dataItems = new DataSet(items);
-    const dataGroups = new DataSet(TIMELINE_GROUPS);
-    const options = {
-      zoomMin: ZOOM_MIN,
-      zoomMax: ZOOM_MAX,
-      zoomKey: null,
-      horizontalScroll: true,
-      zoomable: true,
-      moveable: true,
-      stack: false,
-      tooltip: {
-        followMouse: true,
-        overflowMethod: 'cap'
-      }
-    };
-    if (timelineInstance.current) timelineInstance.current.destroy();
-    timelineInstance.current = new VisTimeline(
-      timelineContainer.current,
-      dataItems,
-      dataGroups,
-      options
-    );
-    timelineInstance.current.on('itemclick', props => {
-      const itm = items.find(i => i.id === props.item);
-      if (itm) alert(`${itm.content}\n${new Date(itm.start).toLocaleString()}`);
-    });
-  }, [viewMode, items]);
+  if (viewMode !== 'timeline' || !timelineContainer.current) return;
+
+  const dataItems  = new DataSet(items);
+  const dataGroups = new DataSet(TIMELINE_GROUPS);
+
+  let start, end;
+
+  if (items.length) {
+    // 1) find absolute min/max
+    const times = items.map(i => new Date(i.start).valueOf());
+    const minT  = Math.min(...times);
+    const maxT  = Math.max(...times);
+    const span  = maxT - minT;
+
+    // 2) choose padding: 5% of span, but at least 5 minutes
+    const MIN_PAD = 1000 * 60 * 5;
+    const pad     = Math.max(span * 0.05, MIN_PAD);
+
+    // 3) build window corners
+    start = new Date(minT - pad);
+    end   = new Date(maxT + pad);
+  }
+
+  // 4) ensure zoomMax is ≥ your initial window span
+  const windowSpan = end.getTime() - start.getTime();
+  const dynamicZoomMax = Math.max(ZOOM_MAX, windowSpan);
+
+  const options = {
+    start,
+    end,
+    zoomMin: ZOOM_MIN,
+    zoomMax: dynamicZoomMax,
+    zoomKey: null,
+    horizontalScroll: true,
+    zoomable: true,
+    moveable: true,
+    stack: false,
+    tooltip: {
+      followMouse: true,
+      overflowMethod: 'cap'
+    }
+  };
+
+  if (timelineInstance.current) {
+    timelineInstance.current.destroy();
+  }
+  timelineInstance.current = new VisTimeline(
+    timelineContainer.current,
+    dataItems,
+    dataGroups,
+    options
+  );
+
+  timelineInstance.current.on('itemclick', ({ item }) => {
+    const itm = items.find(i => i.id === item);
+    if (itm) {
+      alert(`${itm.content}\n${new Date(itm.start).toLocaleString()}`);
+    }
+  });
+}, [viewMode, items, ZOOM_MIN, ZOOM_MAX]);
+
 
   const showToast = (msg, variant = 'info') => setToast({ show: true, msg, variant });
 
@@ -225,7 +259,7 @@ export default function PayloadPage() {
       const data = nosqlData || await fetchNoSQL();
       setNosqlData(data);
       const now = new Date(); const pad = n => n.toString().padStart(2, '0');
-      const yyyymmdd = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
+      const yyyymmdd = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
       const { packageUUID, patient: { name: familyName, given: givenName } } = data;
       const sanitize = str => str.normalize('NFKD').replace(/[^\w]/g, '_').toUpperCase();
       const fileName = `${yyyymmdd}-${sanitize(familyName)}_${sanitize(givenName)}_${packageUUID.slice(-6)}_fhir.json`;
@@ -276,7 +310,7 @@ export default function PayloadPage() {
         </Button>
       </div>
 
-      {loading? (<div>Loading...</div>) : error? (<Alert variant="danger">{error}</Alert>) : viewMode==='timeline' ? (
+      {loading ? (<div>Loading...</div>) : error ? (<Alert variant="danger">{error}</Alert>) : viewMode === 'timeline' ? (
         <>
           <div ref={timelineContainer} style={{ height: '35vh', border: '1px solid #ddd' }} />
           <div className="mt-2 mb-4 text-center">
@@ -284,10 +318,10 @@ export default function PayloadPage() {
             <Button variant="outline-primary" onClick={handleZoomOutTimeline}>Zoom Out</Button>
           </div>
         </>
-      ) : viewMode==='nosql' ? (
-        <Card><Card.Body><pre style={{ whiteSpace:'pre-wrap', wordBreak:'break-word' }}>{JSON.stringify(nosqlData,null,2)}</pre></Card.Body></Card>
+      ) : viewMode === 'nosql' ? (
+        <Card><Card.Body><pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{JSON.stringify(nosqlData, null, 2)}</pre></Card.Body></Card>
       ) : (
-        <Card><Card.Body><pre style={{ whiteSpace:'pre-wrap', wordBreak:'break-word' }}>{readableData}</pre></Card.Body></Card>
+        <Card><Card.Body><pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{readableData}</pre></Card.Body></Card>
       )}
 
       <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999 }}>
