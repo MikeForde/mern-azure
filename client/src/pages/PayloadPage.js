@@ -31,6 +31,37 @@ export default function PayloadPage() {
   const timelineContainer = useRef(null);
   const timelineInstance = useRef(null);
 
+  // Zoom bounds
+  const ZOOM_MIN = 1000 * 60 * 60;              // 1 hour
+  const ZOOM_MAX = 1000 * 60 * 60 * 24 * 365;    // 1 year
+
+  // Zoom helper functions
+  const handleZoomInTimeline = () => {
+    if (!timelineInstance.current) return;
+    const win = timelineInstance.current.getWindow();
+    const start = win.start.valueOf();
+    const end = win.end.valueOf();
+    const center = (start + end) / 2;
+    let interval = end - start;
+    interval = Math.max(interval * 0.5, ZOOM_MIN);
+    const newStart = new Date(center - interval / 2);
+    const newEnd = new Date(center + interval / 2);
+    timelineInstance.current.setWindow(newStart, newEnd);
+  };
+
+  const handleZoomOutTimeline = () => {
+    if (!timelineInstance.current) return;
+    const win = timelineInstance.current.getWindow();
+    const start = win.start.valueOf();
+    const end = win.end.valueOf();
+    const center = (start + end) / 2;
+    let interval = end - start;
+    interval = Math.min(interval * 2, ZOOM_MAX);
+    const newStart = new Date(center - interval / 2);
+    const newEnd = new Date(center + interval / 2);
+    timelineInstance.current.setWindow(newStart, newEnd);
+  };
+
   const toStandardBase64 = (b64) =>
     b64.replace(/-/g, '+').replace(/_/g, '/').padEnd(b64.length + (4 - b64.length % 4) % 4, '=');
 
@@ -118,14 +149,17 @@ export default function PayloadPage() {
     const dataItems = new DataSet(items);
     const dataGroups = new DataSet(TIMELINE_GROUPS);
     const options = {
-      zoomMin: 1000 * 60 * 60 * 24,        // 1 day
-      zoomMax: 1000 * 60 * 60 * 24 * 365,  // 1 year
+      zoomMin: ZOOM_MIN,
+      zoomMax: ZOOM_MAX,
+      zoomKey: null,
       horizontalScroll: true,
       zoomable: true,
       moveable: true,
       stack: false,
-      groupOrder: 'content',
-      tooltip: { followMouse: true, overflowMethod: 'cap' }
+      tooltip: {
+        followMouse: true,
+        overflowMethod: 'cap'
+      }
     };
     if (timelineInstance.current) timelineInstance.current.destroy();
     timelineInstance.current = new VisTimeline(
@@ -228,16 +262,6 @@ export default function PayloadPage() {
         <Button variant="secondary" onClick={handleViewTimeline} className="me-2 mb-2">
           {viewMode === 'timeline' ? 'Text' : 'Timeline'}
         </Button>
-        {viewMode === 'timeline' && (
-          <>
-            <Button variant="outline-primary" onClick={() => timelineInstance.current.zoomIn()} className="me-2 mb-2">
-              Zoom In
-            </Button>
-            <Button variant="outline-primary" onClick={() => timelineInstance.current.zoomOut()} className="me-2 mb-2">
-              Zoom Out
-            </Button>
-          </>
-        )}
         <Button variant="success" onClick={handleImport} disabled={!!operation} className="me-2 mb-2">
           {operation === 'import' ? <Spinner animation="border" size="sm" /> : 'Import'}
         </Button>
@@ -252,16 +276,18 @@ export default function PayloadPage() {
         </Button>
       </div>
 
-      {loading ? (
-        <div>Loading...</div>
-      ) : error ? (
-        <Alert variant="danger">{error}</Alert>
-      ) : viewMode === 'timeline' ? (
-        <div ref={timelineContainer} style={{ height: '70vh', border: '1px solid #ddd' }} />
-      ) : viewMode === 'nosql' ? (
-        <Card><Card.Body><pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{JSON.stringify(nosqlData, null, 2)}</pre></Card.Body></Card>
+      {loading? (<div>Loading...</div>) : error? (<Alert variant="danger">{error}</Alert>) : viewMode==='timeline' ? (
+        <>
+          <div ref={timelineContainer} style={{ height: '35vh', border: '1px solid #ddd' }} />
+          <div className="mt-2 mb-4 text-center">
+            <Button variant="outline-primary" onClick={handleZoomInTimeline} className="me-2">Zoom In</Button>
+            <Button variant="outline-primary" onClick={handleZoomOutTimeline}>Zoom Out</Button>
+          </div>
+        </>
+      ) : viewMode==='nosql' ? (
+        <Card><Card.Body><pre style={{ whiteSpace:'pre-wrap', wordBreak:'break-word' }}>{JSON.stringify(nosqlData,null,2)}</pre></Card.Body></Card>
       ) : (
-        <Card><Card.Body><pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{readableData}</pre></Card.Body></Card>
+        <Card><Card.Body><pre style={{ whiteSpace:'pre-wrap', wordBreak:'break-word' }}>{readableData}</pre></Card.Body></Card>
       )}
 
       <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999 }}>
