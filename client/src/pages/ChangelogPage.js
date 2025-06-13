@@ -653,6 +653,22 @@ function ChangeLogPage() {
                                 <li>Modularized implementation in <code>schema/ipsUniVal.js</code> for easy maintenance</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_68 - 13th June 2025</h5>
+                            <ul>
+                                <li><strong>Graphical Timeline Enhancements on Payload Viewer</strong></li>
+                                <li>Interactive timeline now supports pinch/scroll, zoom in/out buttons, and dynamic padding so items never touch the viewport edge</li>
+                                <li>Tap or click on any event to reveal a compact details panel showing date-time, name, code/system, and resource-specific fields (dosage, criticality, value)</li>
+                                <li>Improved mobile support: listens to <code>select</code> events for reliable touch interactions</li>
+                                <li><strong>New Validate Feature on NFC Reader Page</strong></li>
+                                <li>Added “Validate” button to NFC Reader page to run schema checks against loaded IPS Unified bundles before writing</li>
+                                <li>Validation results surface structural errors and missing required elements in a user-friendly toast notification</li>
+                                <li><strong>Navigation-Driven Access Mode for Viewer</strong></li>
+                                <li>Page can still be loaded via NFC card URL payload or directly through in-app navigation</li>
+                                <li>When reached via navigation, title switches to “Viewer” and the NFC info alert and Import button are hidden for a cleaner UI</li>
+                            </ul>
+                        </li>
+
                     </ul>
                 </Col>
             </Row>

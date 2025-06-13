@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBeer, faCloudUploadAlt, faFileMedical, faQrcode, faTag, faUpload, faCloudDownloadAlt, faPeopleArrows } from '@fortawesome/free-solid-svg-icons';
+import { faBeer, faCloudUploadAlt, faFileMedical, faQrcode, faTag, faUpload, faCloudDownloadAlt, faPeopleArrows, faEye } from '@fortawesome/free-solid-svg-icons';
 import { PatientContext } from '../PatientContext';
 import { useLoading } from '../contexts/LoadingContext';
 import PatientSearch from './PatientSearch'; // Import the new component
@@ -70,13 +70,16 @@ function NavigationBar() {
               {' '} Local {' '}
             </>
           )}
-          0_67
+          0_68
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
             <Nav.Link as={Link} to="/api" onClick={() => handleNavItemSelect(true)}>
               <FontAwesomeIcon icon={faFileMedical} /> API
+            </Nav.Link>
+            <Nav.Link as={Link} to="/cwix/payload" onClick={() => handleNavItemSelect(true)}>
+              <FontAwesomeIcon icon={faEye} /> View
             </Nav.Link>
             <Nav.Link as={Link} to="/qr" onClick={() => handleNavItemSelect(true)}>
               <FontAwesomeIcon icon={faQrcode} /> QR

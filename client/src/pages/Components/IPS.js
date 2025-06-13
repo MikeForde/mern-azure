@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { Button, Modal, Form, OverlayTrigger, Tooltip, Row, Col, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { faFileMedical, faQrcode, faTrash, faBeer, faEdit, faFileExport, faUpload, faPaperPlane, faCommentDots } from '@fortawesome/free-solid-svg-icons';
+import { faFileMedical, faQrcode, faTrash, faBeer, faEdit, faFileExport, faUpload, faPaperPlane, faCommentDots, faEye } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { PatientContext } from '../../PatientContext';
@@ -199,6 +199,14 @@ export function IPS({ ips, remove, update }) {
           <Link to="/api">
             <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
               <FontAwesomeIcon icon={faFileMedical} />
+            </Button>
+          </Link>
+        </OverlayTrigger>
+
+        <OverlayTrigger placement="top" overlay={renderTooltip('Visit Viewer Page')}>
+          <Link to="/cwix/payload">
+            <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
+              <FontAwesomeIcon icon={faEye} />
             </Button>
           </Link>
         </OverlayTrigger>
