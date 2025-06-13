@@ -10,6 +10,7 @@ export default function PayloadPage() {
   const [payload, setPayload] = useState('');                 // current displayed payload
   const [jsonData, setJsonData] = useState(null);             // parsed IPS JSON bundle
   const [readableData, setReadableData] = useState('');       // human-readable text
+  const [nosqlData, setNosqlData] = useState(null);           // cached NoSQL JSON object
   const [viewMode, setViewMode] = useState('readable');       // 'readable' or 'nosql'
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -32,7 +33,6 @@ export default function PayloadPage() {
           const parsed = JSON.parse(text);
           setJsonData(parsed);
 
-          // fetch human-readable
           const resp = await axios.post(
             '/convertips2plaintext', parsed,
             { headers: { 'Content-Type': 'application/json' }, responseType: 'text' }
@@ -75,66 +75,70 @@ export default function PayloadPage() {
     }
   };
 
-  const handleConvertNoSQL = async () => {
-    if (!payload) return;
-    setOperation('NoSQL');
-    try {
-      let endpoint;
-      if (jsonData) endpoint = '/convertips2mongo';
-      else if (payload.startsWith('MSH')) endpoint = '/converthl72xtomongo';
-      else if (payload.startsWith('H9')) endpoint = '/convertbeer2mongo';
-      else throw new Error('Unrecognized format for NoSQL');
-
-      const resp = await axios.post(
-        endpoint,
-        jsonData || payload,
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-      const data = typeof resp.data === 'object' ? JSON.stringify(resp.data, null, 2) : resp.data;
-      setPayload(data);
-      setViewMode('nosql');
-      showToast('Conversion to NoSQL successful', 'success');
-    } catch (err) {
-      showToast(`NoSQL conversion failed: ${err.message}`, 'danger');
-    } finally {
-      setOperation(null);
+  const fetchNoSQL = async () => {
+    let endpoint;
+    if (jsonData) endpoint = '/convertips2mongo';
+    else if (payload.startsWith('MSH') || payload.startsWith('H9')) {
+      // raw text payload: HL7 or Beer, but caching only IPS JSON -> Mongo
+      throw new Error('No JSON Bundle to convert to NoSQL');
+    } else {
+      throw new Error('No JSON Bundle to convert to NoSQL');
     }
+    const resp = await axios.post(endpoint, jsonData, { headers: { 'Content-Type': 'application/json' } });
+    return resp.data;
   };
 
-  const handleShowReadable = () => {
-    setPayload(readableData);
-    setViewMode('readable');
+  const handleToggleNoSQL = async () => {
+    if (viewMode === 'readable') {
+      // switch to NoSQL view
+      if (nosqlData) {
+        setPayload(JSON.stringify(nosqlData, null, 2));
+        setViewMode('nosql');
+      } else {
+        setOperation('NoSQL');
+        try {
+          const data = await fetchNoSQL();
+          setNosqlData(data);
+          setPayload(JSON.stringify(data, null, 2));
+          setViewMode('nosql');
+          showToast('Conversion to NoSQL successful', 'success');
+        } catch (err) {
+          showToast(`NoSQL conversion failed: ${err.message}`, 'danger');
+        } finally {
+          setOperation(null);
+        }
+      }
+    } else {
+      // switch back to readable
+      setPayload(readableData);
+      setViewMode('readable');
+    }
   };
 
   const handleExportFHIR = async () => {
     if (!jsonData) return;
     setOperation('ExportFHIR');
     try {
-      const resp = await axios.post(
-        '/convertips2mongo',
-        jsonData,
-        { headers: { 'Content-Type': 'application/json' }, responseType: 'json' }
-      );
-      const mongoData = resp.data;
+      // reuse cached or fetch fresh NoSQL for naming
+      const data = nosqlData || await fetchNoSQL();
+      setNosqlData(data);
 
-      // filename logic...
-      const today = new Date();
-      const pad = n => n.toString().padStart(2, '0');
+      const today = new Date(); const pad = n => n.toString().padStart(2, '0');
       const yyyymmdd = `${today.getFullYear()}${pad(today.getMonth()+1)}${pad(today.getDate())}`;
-      const { packageUUID, patient: { name: familyName, given: givenName } } = mongoData;
-      const sanitize = str => str.normalize('NFKD').replace(/[̀-ͯ]/g, '').toUpperCase()
-        .replace(/[^A-Z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
-      const fam = sanitize(familyName); const giv = sanitize(givenName);
-      const last6 = packageUUID.slice(-6);
+      const { packageUUID, patient: { name: familyName, given: givenName } } = data;
+      const sanitize = str => str.normalize('NFKD').replace(/[̀-ͯ]/g, '')
+        .toUpperCase().replace(/[^A-Z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+      const fam = sanitize(familyName), giv = sanitize(givenName), last6 = packageUUID.slice(-6);
       const fileName = `${yyyymmdd}-${fam}_${giv}_${last6}_fhir.json`;
 
-      const blob = new Blob([JSON.stringify(mongoData, null,2)], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify(data, null,2)], { type: 'application/json' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = fileName;
       document.body.appendChild(a); a.click(); a.remove(); window.URL.revokeObjectURL(url);
 
-      setViewMode('readable');
+      // revert to readable view
       setPayload(readableData);
+      setViewMode('readable');
       showToast('FHIR download initiated', 'success');
     } catch (err) {
       showToast(`FHIR download failed: ${err.message}`, 'danger');
@@ -147,11 +151,9 @@ export default function PayloadPage() {
     if (!jsonData) return;
     setOperation('ExportPDF');
     try {
-      const resp = await axios.post(
-        '/convertips2mongo', jsonData,
-        { headers: { 'Content-Type': 'application/json' }, responseType: 'json' }
-      );
-      await generatePDF(resp.data);
+      const data = nosqlData || await fetchNoSQL();
+      setNosqlData(data);
+      await generatePDF(data);
       showToast('PDF export initiated', 'success');
     } catch (err) {
       showToast(`PDF export failed: ${err.message}`, 'danger');
@@ -173,7 +175,7 @@ export default function PayloadPage() {
         </Button>
         <Button
           variant="secondary"
-          onClick={viewMode==='readable' ? handleConvertNoSQL : handleShowReadable}
+          onClick={handleToggleNoSQL}
           disabled={!!operation}
           className="me-2"
         >
