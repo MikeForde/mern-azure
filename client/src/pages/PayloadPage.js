@@ -2,216 +2,168 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import pako from 'pako';
 import axios from 'axios';
-import { Button, Toast, ToastContainer } from 'react-bootstrap';
+import { Button, Toast, ToastContainer, Alert, Card, Spinner } from 'react-bootstrap';
 
 export default function PayloadPage() {
   const [searchParams] = useSearchParams();
-  const [decodedData, setDecodedData] = useState('');
+  const [payload, setPayload] = useState('');        // raw decoded payload or human-readable
+  const [jsonData, setJsonData] = useState(null);    // parsed JSON bundle
   const [error, setError] = useState(null);
-  const [isImporting, setIsImporting] = useState(false);
-  const [isConverting, setIsConverting] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMsg, setToastMsg] = useState('');
-  const [toastVariant, setToastVariant] = useState('info');
-  const [isReadable, setIsReadable] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [operation, setOperation] = useState(null);   // import/convert/export status
+  const [toast, setToast] = useState({ show: false, msg: '', variant: 'info' });
 
-
+  // Utility to normalize base64
   const toStandardBase64 = (b64) =>
-    b64
-      .replace(/-/g, '+')
-      .replace(/_/g, '/')
-      .padEnd(b64.length + (4 - b64.length % 4) % 4, '=');
-
+    b64.replace(/-/g, '+').replace(/_/g, '/').padEnd(b64.length + (4 - b64.length % 4) % 4, '=');
 
   useEffect(() => {
-    const base64data = searchParams.get('d');
-    if (!base64data) {
-      setError('No data found in URL.');
-      return;
-    }
+    async function decodeAndConvert() {
+      try {
+        const b64 = searchParams.get('d');
+        if (!b64) throw new Error('No data found in URL.');
+        // decode & unzip
+        const std = toStandardBase64(b64);
+        const bytes = Uint8Array.from(atob(std), c => c.charCodeAt(0));
+        const text = pako.ungzip(bytes, { to: 'string' });
 
-    try {
-      const standardBase64 = toStandardBase64(base64data);
-
-      // Decode base64
-      const byteArray = Uint8Array.from(atob(standardBase64), c => c.charCodeAt(0));
-      // Gunzip
-      const unzipped = pako.ungzip(byteArray, { to: 'string' });
-      setDecodedData(unzipped);
-    } catch (err) {
-      console.error('Failed to decompress:', err);
-      setError('Failed to decode or decompress payload.' + base64data);
+        // try parse JSON for IPS bundle
+        let parsed = null;
+        if (text.trim().startsWith('{') && text.includes('"resourceType"') && text.includes('Bundle')) {
+          parsed = JSON.parse(text);
+          setJsonData(parsed);
+          // fetch human-readable
+          const resp = await axios.post(
+            '/convertips2plaintext', parsed,
+            { headers: { 'Content-Type': 'application/json' }, responseType: 'text' }
+          );
+          setPayload(resp.data);
+        } else {
+          // non-JSON fallback
+          setPayload(text);
+        }
+      } catch (err) {
+        console.error(err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     }
+    decodeAndConvert();
   }, [searchParams]);
 
+  const showToast = (msg, variant='info') => setToast({ show: true, msg, variant });
+
   const handleImport = async () => {
-    if (!decodedData) return;
-    setIsImporting(true);
-    let endpoint;
-    let payloadToSend;
-
+    if (!payload) return;
+    setOperation('import');
     try {
-      if (decodedData.trim().startsWith('{') && decodedData.includes('"resourceType"') && decodedData.includes('Bundle')) {
-        endpoint = '/ipsbundle';
-        payloadToSend = JSON.parse(decodedData);
-      } else if (decodedData.startsWith('MSH')) {
-        endpoint = '/ipsfromhl72x';
-        payloadToSend = decodedData;
-      } else if (decodedData.startsWith('H9')) {
-        endpoint = '/ipsfrombeer';
-        payloadToSend = decodedData;
-      } else {
-        throw new Error('Unrecognized IPS format');
-      }
-
-      const isJson = endpoint === '/ipsbundle';
-      const contentType = isJson ? 'application/json' : 'text/plain';
-
-      const resp = await axios.post(endpoint, payloadToSend, {
-        headers: { 'Content-Type': contentType }
-      });
-
-      setToastMsg(`Import success: ${resp.status} ${resp.statusText}`);
-      setToastVariant('success');
+      let endpoint, body, json;
+      if (jsonData) { endpoint = '/ipsbundle'; body = jsonData; json = true; }
+      else if (payload.startsWith('MSH')) { endpoint = '/ipsfromhl72x'; body = payload; json = false; }
+      else if (payload.startsWith('H9')) { endpoint = '/ipsfrombeer'; body = payload; json = false; }
+      else throw new Error('Unrecognized format');
+      await axios.post(endpoint, body, { headers: { 'Content-Type': json? 'application/json' : 'text/plain' } });
+      showToast('Import successful', 'success');
     } catch (err) {
-      setToastMsg(`Import failed: ${err.message}`);
-      setToastVariant('danger');
+      showToast(`Import failed: ${err.message}`, 'danger');
     } finally {
-      setShowToast(true);
-      setIsImporting(false);
+      setOperation(null);
     }
   };
 
-  const handleConvertOnly = async () => {
-    if (!decodedData) return;
-    setIsConverting(true);
-    let endpoint;
-    let payloadToSend;
-
+  const handleConvert = async (type) => {
+    if (!payload) return;
+    setOperation(type);
     try {
-      if (decodedData.trim().startsWith('{') && decodedData.includes('"resourceType"') && decodedData.includes('Bundle')) {
-        endpoint = '/convertips2mongo';
-        payloadToSend = JSON.parse(decodedData);
-      } else if (decodedData.startsWith('MSH')) {
-        endpoint = '/converthl72xtomongo';
-        payloadToSend = decodedData;
-      } else if (decodedData.startsWith('H9')) {
-        endpoint = '/convertbeer2mongo';
-        payloadToSend = decodedData;
-      } else {
-        throw new Error('Unrecognized IPS format');
+      let endpoint;
+      if (type === 'NoSQL') {
+        if (jsonData) endpoint = '/convertips2mongo';
+        else if (payload.startsWith('MSH')) endpoint = '/converthl72xtomongo';
+        else if (payload.startsWith('H9')) endpoint = '/convertbeer2mongo';
+      } else if (type === 'ExportFHIR') {
+        endpoint = '/export/fhir';
       }
+      const config = { headers: { 'Content-Type': endpoint.includes('ips2mongo')? 'application/json':'text/plain' } };
+      if (type === 'ExportFHIR') config.responseType = 'blob';
+      const resp = await axios.post(endpoint, type==='ExportFHIR'? jsonData||payload : (jsonData||payload), config);
 
-      const isJson = endpoint === '/convertips2mongo';
-      const contentType = isJson ? 'application/json' : 'text/plain';
-
-      const resp = await axios.post(endpoint, payloadToSend, {
-        headers: { 'Content-Type': contentType },
-        responseType: 'json'
-      });
-
-      const converted = typeof resp.data === 'object'
-        ? JSON.stringify(resp.data, null, 2)
-        : resp.data;
-
-      setDecodedData(converted);
-      setToastMsg('Conversion successful');
-      setToastVariant('success');
+      if (type === 'NoSQL') {
+        const data = typeof resp.data === 'object' ? JSON.stringify(resp.data, null, 2) : resp.data;
+        setPayload(data);
+        showToast('Conversion successful', 'success');
+      } else if (type === 'ExportFHIR') {
+        // trigger download
+        const blob = new Blob([resp.data], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'export.fhir.json'; document.body.appendChild(a); a.click(); a.remove();
+        showToast('FHIR export downloaded', 'success');
+      }
     } catch (err) {
-      setToastMsg(`Conversion failed: ${err.message}`);
-      setToastVariant('danger');
+      showToast(`${type} failed: ${err.message}`, 'danger');
     } finally {
-      setShowToast(true);
-      setIsConverting(false);
+      setOperation(null);
     }
   };
 
-  const handleHumanReadable = async () => {
-    if (!decodedData) return;
-    setIsReadable(true);
-
+  const handleExportPDF = async () => {
+    setOperation('ExportPDF');
     try {
-      if (!(decodedData.trim().startsWith('{') && decodedData.includes('"resourceType"') && decodedData.includes('Bundle'))) {
-        throw new Error('Human-readable view only works with IPS JSON format.');
-      }
-
-      const payload = JSON.parse(decodedData);
-
-      const resp = await axios.post('/convertips2plaintext', payload, {
-        headers: { 'Content-Type': 'application/json' },
-        responseType: 'text'
-      });
-
-      setDecodedData(resp.data);
-      setToastMsg('Converted to human-readable text');
-      setToastVariant('success');
+      const resp = await axios.post(
+        '/export/pdf', jsonData,
+        { headers: { 'Content-Type': 'application/json' }, responseType: 'blob' }
+      );
+      const blob = new Blob([resp.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'export.pdf'; document.body.appendChild(a); a.click(); a.remove();
+      showToast('PDF exported', 'success');
     } catch (err) {
-      setToastMsg(`Human-readable failed: ${err.message}`);
-      setToastVariant('danger');
+      showToast(`PDF export failed: ${err.message}`, 'danger');
     } finally {
-      setShowToast(true);
-      setIsReadable(false);
+      setOperation(null);
     }
   };
-
-
 
   return (
     <div className="container mt-4">
       <h4>CWIX Payload Viewer</h4>
+      <Alert variant="info">
+        This site displays the data on the NFC card presented. It can be exported to various formats for import into an electronic health record. No data is held on this website.
+      </Alert>
 
       <div className="mb-3">
-        <Button
-          variant="success"
-          className="me-2"
-          onClick={handleImport}
-          disabled={!decodedData || isImporting}
-        >
-          {isImporting ? 'Importing...' : 'Import'}
+        <Button variant="success" onClick={handleImport} disabled={!!operation} className="me-2">
+          {operation==='import'? <Spinner animation="border" size="sm"/>:'Import'}
         </Button>
-        <Button
-          variant="secondary"
-          onClick={handleConvertOnly}
-          disabled={!decodedData || isConverting}
-        >
-          {isConverting ? 'Converting...' : 'NoSQL'}
+        <Button variant="secondary" onClick={() => handleConvert('NoSQL')} disabled={!!operation} className="me-2">
+          {operation==='NoSQL'? <Spinner animation="border" size="sm"/>:'NoSQL'}
         </Button>
-
-        <Button
-          variant="warning"
-          onClick={handleHumanReadable}
-          disabled={!decodedData || isReadable}
-        >
-          {isReadable ? 'Converting...' : 'Human Readable'}
+        <Button variant="primary" onClick={() => handleConvert('ExportFHIR')} disabled={!jsonData||!!operation} className="me-2">
+          {operation==='ExportFHIR'? <Spinner animation="border" size="sm"/>:'Export FHIR'}
+        </Button>
+        <Button variant="dark" onClick={handleExportPDF} disabled={!jsonData||!!operation}>
+          {operation==='ExportPDF'? <Spinner animation="border" size="sm"/>:'Export PDF'}
         </Button>
       </div>
 
-      {error ? (
-        <div className="alert alert-danger">{error}</div>
+      {loading ? (
+        <div>Loading...</div>
+      ) : error ? (
+        <Alert variant="danger">{error}</Alert>
       ) : (
-        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-          {decodedData}
-        </pre>
+        <Card>
+          <Card.Body>
+            <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{payload}</pre>
+          </Card.Body>
+        </Card>
       )}
 
       <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999 }}>
-        <Toast
-          onClose={() => setShowToast(false)}
-          show={showToast}
-          bg={toastVariant}
-          delay={4000}
-          autohide
-        >
-          <Toast.Header>
-            <strong className="me-auto">IPS MERN NFC</strong>
-          </Toast.Header>
-          <Toast.Body className={toastVariant !== 'light' ? 'text-white' : ''}>
-            {toastMsg}
-          </Toast.Body>
+        <Toast onClose={() => setToast(t => ({...t, show:false}))} show={toast.show} bg={toast.variant} delay={4000} autohide>
+          <Toast.Header><strong className="me-auto">IPS MERN NFC</strong></Toast.Header>
+          <Toast.Body className={toast.variant!=='light'?'text-white':''}>{toast.msg}</Toast.Body>
         </Toast>
       </ToastContainer>
     </div>
-
-
   );
 }
