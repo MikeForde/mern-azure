@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useContext } from 'react';
 import { PatientContext } from '../PatientContext';
 import { useSearchParams } from 'react-router-dom';
@@ -134,56 +134,56 @@ export default function PayloadPage() {
     loadBundle();
   }, [searchParams, selectedPatient, stopLoading]);
 
+  const fetchNoSQL = useCallback(async () => {
+    if (!jsonData) throw new Error('No JSON bundle to convert');
+    const resp = await axios.post('/convertips2mongo', jsonData, { headers: { 'Content-Type': 'application/json' } });
+    return resp.data;
+  }, [jsonData]);
+
 
   // Prepare timeline items grouped into fixed lanes
   useEffect(() => {
-    if (!jsonData) return;
-    const entries = jsonData.entry || [];
-    const mapped = entries.map((e, idx) => {
-      const res = e.resource;
-      let groupId, start, content;
-      switch (res.resourceType) {
-        case 'MedicationRequest':
-          groupId = 'Medications';
-          start = res.authoredOn;
-          content = res.medicationReference?.display || res.id;
-          break;
-        case 'AllergyIntolerance':
-          groupId = 'Allergies';
-          start = res.onsetDateTime;
-          content = res.code?.coding?.[0]?.display || res.id;
-          break;
-        case 'Condition':
-          groupId = 'Conditions';
-          start = res.onsetDateTime;
-          content = res.code?.coding?.[0]?.display || res.id;
-          break;
-        case 'Observation':
-          groupId = 'Observations';
-          start = res.effectiveDateTime;
-          if (res.valueQuantity) {
-            content = `${res.code?.coding?.[0]?.display}: ${res.valueQuantity.value} ${res.valueQuantity.unit}`;
-          } else if (res.bodySite) {
-            content = `${res.code?.coding?.[0]?.display} (${res.bodySite.coding?.[0]?.display})`;
-          } else {
-            content = res.code?.coding?.[0]?.display || res.id;
-          }
-          break;
-        default:
-          return null;
-      }
-      if (!start) return null;
-      return {
-        id: idx + 1,
-        content,
-        start,
-        group: groupId,
-        data: res,
-      };
-    }).filter(item => item);
-    setItems(mapped);
-  }, [jsonData]);
+    // only build items when we switch to the timeline
+    if (viewMode !== 'timeline') return;
 
+    // helper to build items from the flattened NoSQL shape
+    const buildFromNoSQL = data => {
+      let idx = 0;
+      const mapList = (arr, group) =>
+        (arr || []).map(o => ({
+          id: ++idx,
+          content: o.name,
+          start: o.date,
+          group,
+          data: o
+        }));
+
+      return [
+        ...mapList(data.medication, 'Medications'),
+        ...mapList(data.allergies, 'Allergies'),
+        ...mapList(data.conditions, 'Conditions'),
+        ...mapList(data.observations, 'Observations')
+      ];
+    };
+
+    // if we have NoSQL already, use it…
+    if (nosqlData) {
+      setItems(buildFromNoSQL(nosqlData));
+      return;
+    }
+
+    // otherwise fetch it once, then map…
+    fetchNoSQL()
+      .then(data => {
+        setNosqlData(data);
+        setItems(buildFromNoSQL(data));
+      })
+      .catch(err => {
+        console.error('Failed to fetch NoSQL for timeline', err);
+      });
+  }, [viewMode, nosqlData, fetchNoSQL]);
+
+  // Initialize or update VisTimeline when switching to timeline
   // Initialize or update VisTimeline when switching to timeline
   useEffect(() => {
     if (viewMode !== 'timeline' || !timelineContainer.current) return;
@@ -191,31 +191,25 @@ export default function PayloadPage() {
     const dataItems = new DataSet(items);
     const dataGroups = new DataSet(TIMELINE_GROUPS);
 
+    // compute optional start/end with padding
     let start, end;
-
     if (items.length) {
-      // 1) find absolute min/max
       const times = items.map(i => new Date(i.start).valueOf());
       const minT = Math.min(...times);
       const maxT = Math.max(...times);
       const span = maxT - minT;
-
-      // 2) choose padding: 5% of span, but at least 5 minutes
-      const MIN_PAD = 1000 * 60 * 5;
+      const MIN_PAD = 1000 * 60 * 5;           // 5 minutes
       const pad = Math.max(span * 0.05, MIN_PAD);
-
-      // 3) build window corners
       start = new Date(minT - pad);
       end = new Date(maxT + pad);
     }
 
-    // 4) ensure zoomMax is ≥ your initial window span
-    const windowSpan = end.getTime() - start.getTime();
+    // determine zoomMax so it’s at least big enough to show all items
+    const windowSpan = start && end ? end.getTime() - start.getTime() : 0;
     const dynamicZoomMax = Math.max(ZOOM_MAX, windowSpan);
 
+    // base options
     const options = {
-      start,
-      end,
       zoomMin: ZOOM_MIN,
       zoomMax: dynamicZoomMax,
       zoomKey: null,
@@ -229,6 +223,13 @@ export default function PayloadPage() {
       }
     };
 
+    // only inject start/end if we computed them
+    if (start && end) {
+      options.start = start;
+      options.end = end;
+    }
+
+    // destroy & recreate the timeline
     if (timelineInstance.current) {
       timelineInstance.current.destroy();
     }
@@ -239,20 +240,21 @@ export default function PayloadPage() {
       options
     );
 
-    // listen for select (works on touch & click)
+    // touch & click selection
     timelineInstance.current.on('select', ({ items: selectedIds }) => {
       if (selectedIds.length > 0) {
-        const id = selectedIds[0];
-        const itm = items.find(i => i.id === id);
-        setSelectedItem(itm?.data ?? null);
+        const itm = items.find(i => i.id === selectedIds[0]);
+        setSelectedItem(itm ?? null);
       }
     });
 
-    // clear when you click outside or deselect
+    // clear on deselect
     timelineInstance.current.on('deselect', () => {
       setSelectedItem(null);
     });
+
   }, [viewMode, items, ZOOM_MIN, ZOOM_MAX]);
+
 
 
   const showToast = (msg, variant = 'info') => setToast({ show: true, msg, variant });
@@ -268,12 +270,6 @@ export default function PayloadPage() {
     } finally {
       setOperation(null);
     }
-  };
-
-  const fetchNoSQL = async () => {
-    if (!jsonData) throw new Error('No JSON bundle to convert');
-    const resp = await axios.post('/convertips2mongo', jsonData, { headers: { 'Content-Type': 'application/json' } });
-    return resp.data;
   };
 
   const handleToggleNoSQL = async () => {
@@ -406,57 +402,64 @@ export default function PayloadPage() {
           {/* ←←← INSERT YOUR DETAILS CARD HERE →→→ */}
           {selectedItem && (
             <Card className="mb-4" style={{ fontSize: '0.9rem' }}>
-              <Card.Header className="py-1">Details — {selectedItem.resourceType}</Card.Header>
+              <Card.Header className="py-1">
+                Details — {selectedItem.group}
+              </Card.Header>
               <Card.Body className="py-2">
                 <dl className="row mb-0">
                   <dt className="col-4">Date</dt>
                   <dd className="col-8">
-                    {new Date(
-                      selectedItem.authoredOn ||
-                      selectedItem.onsetDateTime ||
-                      selectedItem.effectiveDateTime
-                    ).toLocaleString()}
+                    {(() => {
+                      const d = new Date(selectedItem.data.date);
+                      const datePart = d.toISOString().split('T')[0];      // "YYYY-MM-DD"
+                      const timePart = d.toLocaleTimeString();            // local "HH:MM:SS"
+                      return `${datePart} ${timePart}`;
+                    })()}
                   </dd>
 
                   <dt className="col-4">Name</dt>
-                  <dd className="col-8">
-                    {selectedItem.code?.coding?.[0]?.display ||
-                      selectedItem.medicationReference?.display}
-                  </dd>
+                  <dd className="col-8">{selectedItem.data.name}</dd>
 
                   <dt className="col-4">Code</dt>
                   <dd className="col-8">
-                    {selectedItem.code?.coding?.[0]?.code} (
-                    <small>{selectedItem.code?.coding?.[0]?.system}</small>)
+                    {selectedItem.data.code ?? '—'}{' '}
+                    <small>({selectedItem.data.system ?? '—'})</small>
                   </dd>
 
-                  {selectedItem.resourceType === 'MedicationRequest' && (
+                  {/* Medication-specific */}
+                  {selectedItem.data.dosage && (
                     <>
                       <dt className="col-4">Dosage</dt>
-                      <dd className="col-8">{selectedItem.dosageInstruction?.[0]?.text || '—'}</dd>
+                      <dd className="col-8">{selectedItem.data.dosage}</dd>
+                    </>
+                  )}
+                  {selectedItem.data.status && (
+                    <>
+                      <dt className="col-4">Status</dt>
+                      <dd className="col-8">{selectedItem.data.status}</dd>
                     </>
                   )}
 
-                  {selectedItem.resourceType === 'AllergyIntolerance' && (
+                  {/* Allergy-specific */}
+                  {selectedItem.data.criticality && (
                     <>
                       <dt className="col-4">Criticality</dt>
-                      <dd className="col-8">{selectedItem.criticality}</dd>
+                      <dd className="col-8">{selectedItem.data.criticality}</dd>
                     </>
                   )}
 
-                  {selectedItem.resourceType === 'Observation' && selectedItem.valueQuantity && (
+                  {/* Observation-specific */}
+                  {selectedItem.data.value && (
                     <>
                       <dt className="col-4">Value</dt>
-                      <dd className="col-8">
-                        {selectedItem.valueQuantity.value}{' '}
-                        {selectedItem.valueQuantity.unit}
-                      </dd>
+                      <dd className="col-8">{selectedItem.data.value}</dd>
                     </>
                   )}
                 </dl>
               </Card.Body>
             </Card>
           )}
+
           {/* ←←← DETAILS CARD END →→→ */}
 
         </>
