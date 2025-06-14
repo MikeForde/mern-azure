@@ -77,7 +77,7 @@ function convertIPSBundleToSchema(ipsBundle) {
         break;
 
       case "organization":
-        console.log("Processing Org resource");
+        //console.log("Processing Org resource");
         patient.organization = resource.name  ? resource.name : "Unknown";
         break;
 
@@ -149,7 +149,7 @@ function convertIPSBundleToSchema(ipsBundle) {
           system: medsystem,  // if available from medicationCodeableConcept
           code: medcode,      // if available from medicationCodeableConcept
           status: "active",
-          medRef: medReferenceId  // temporary field for matching later
+          medRef: medReferenceId.split('/')[1]  // temporary field for matching later
         });
         break;
 
@@ -227,7 +227,7 @@ function convertIPSBundleToSchema(ipsBundle) {
           system: alSystem,
           code: alCode
         });
-        console.log("Allergies = " + JSON.stringify(allergies));
+        //console.log("Allergies = " + JSON.stringify(allergies));
         break;
 
       case "condition":
