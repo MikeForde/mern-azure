@@ -20,6 +20,19 @@
         "description": "simple ids preferred",
         "examples": ["proc1, proc2...procN"]
       },
+      "status": {
+        "type": "string",
+        "enum": [
+          "preparation",
+          "in-progress",
+          "not-done",
+          "on-hold",
+          "stopped",
+          "completed",
+          "entered-in-error",
+          "unknown"
+        ]
+      },
       "code": {
         "$ref": "#/definitions/CodeableConcept"
       },
