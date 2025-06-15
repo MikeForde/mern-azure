@@ -30,6 +30,7 @@ function convertIPSBundleToSchema(ipsBundle) {
   let conditions = [];
   let observations = [];
   let immunizations = [];
+  let procedures = [];
 
   // Create a map for Medication resources (keyed by resource.id)
   let medicationResourceMap = {};
@@ -322,6 +323,28 @@ function convertIPSBundleToSchema(ipsBundle) {
         });
         break;
 
+      case "procedure":
+        //console.log("Processing Procedure resource");
+        let procName = null;
+        let procCode = null;
+        let procSystem = null;
+        if (resource.code) {
+          procName = resource.code.coding[0].display ? resource.code.coding[0].display : null;
+          procCode = resource.code.coding[0].code ? resource.code.coding[0].code : null;
+          procSystem = resource.code.coding[0].system ? resource.code.coding[0].system : null;
+          if (procName === null) {
+            procName = resource.code.text ? resource.code.text : null;
+          }
+        }
+
+        procedures.push({
+          name: procName,
+          date: new Date(resource.performedDateTime).toISOString(),
+          system: procSystem,
+          code: procCode
+        });
+        break;
+
       default:
         break;
     }
@@ -343,7 +366,7 @@ function convertIPSBundleToSchema(ipsBundle) {
     return med;
   });
 
-  return { packageUUID, timeStamp, patient, medication, allergies, conditions, observations, immunizations };
+  return { packageUUID, timeStamp, patient, medication, allergies, conditions, observations, immunizations, procedures };
 }
 
 module.exports = { convertIPSBundleToSchema };

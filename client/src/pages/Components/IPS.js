@@ -437,6 +437,34 @@ export function IPS({ ips, remove, update }) {
               </>
             )}
 
+            {ips.procedures && ips.procedures.length > 0 && (
+              <>                    
+                <h4>Procedures:</h4>
+                <div className="table-responsive">
+                  <table className="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Date</th>
+                        <th>System</th>
+                        <th>Code</th>
+                      </tr> 
+                    </thead>
+                    <tbody>
+                      {ips.procedures.map((procedure, index) => (
+                        <tr key={index}>
+                          <td>{procedure.name}</td>
+                          <td>{formatDate(procedure.date)}</td>
+                          <td>{procedure.system}</td>
+                          <td>{procedure.code}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+
             <Button variant="link" onClick={() => setExpanded(false)}>
               Show Less
             </Button>
@@ -984,6 +1012,68 @@ export function IPS({ ips, remove, update }) {
             </div>
             <Button variant="primary" className="resp-add-button" onClick={() => handleAddItem("immunizations")}>
               Add Immunization
+            </Button>
+
+            {/* Procedures Table */}
+            <h4 className="ipsedit">Procedures:</h4>
+            <div className="table-responsive">
+              <table className="table table-bordered table-sm">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>System</th>
+                    <th>Code</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {editIPS.procedures.map((procedure, index) => (
+                    <tr key={index}>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="name"
+                          value={procedure.name}
+                          onChange={(e) => handleChangeItem("procedures", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="system"
+                          value={procedure.system}
+                          onChange={(e) => handleChangeItem("procedures", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          name="code"
+                          value={procedure.code}
+                          onChange={(e) => handleChangeItem("procedures", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="datetime-local"
+                          name="date"
+                          value={formatDate(procedure.date)}
+                          onChange={(e) => handleChangeItem("procedures", index, e)}
+                        />
+                      </td>
+                      <td>
+                        <Button variant="outline-danger" className="resp-button" onClick={() => handleRemoveItem("procedures", index)}>
+                          <FontAwesomeIcon icon={faTrash} />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Button variant="primary" className="resp-add-button" onClick={() => handleAddItem("procedures")}>
+              Add Procedure
             </Button>
           </Form>
         </Modal.Body>

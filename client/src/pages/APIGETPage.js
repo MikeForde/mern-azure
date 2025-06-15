@@ -190,43 +190,42 @@ function APIGETPage() {
   };
 
   const handleNfcWriteMode = async (nfctype) => {
-    if (!('NDEFReader' in window)) {
-      setToastMsg('Web NFC not supported on this device/browser.');
-      setToastVariant('warning');
-      setShowToast(true);
-      return;
-    }
-
-    setIsWriting(true);
     try {
-      const writer = new window.NDEFReader();
+      if (nfctype === 'copyurl') {
+        // Dev only: copy gzipped data URL to clipboard
+        const gzipped = pako.gzip(data);
+        const base64 = btoa(String.fromCharCode(...gzipped))
+          .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        const url = `${window.location.origin}/cwix/payload?d=${base64}`;
+        await navigator.clipboard.writeText(url);
+        setToastMsg('Gzipped data URL copied to clipboard!');
+        setToastVariant('success');
+        setShowToast(true);
+        return;
+      }
 
-      if (nfctype=== 'plain') {
+      if (!('NDEFReader' in window)) {
+        setToastMsg('Web NFC not supported on this device/browser.');
+        setToastVariant('warning');
+        setShowToast(true);
+        return;
+      }
+      setIsWriting(true);
+      const writer = new window.NDEFReader();
+      if (nfctype === 'plain') {
         await writer.write(data);
-      } else if (nfctype=== 'binary') {
+      } else if (nfctype === 'binary') {
         const resp = await axios.get(
-          `/${mode}/${selectedPatient._id}`, {
-          headers: { Accept: 'application/octet-stream' },
-          responseType: 'arraybuffer'
-        }
+          `/${mode}/${selectedPatient._id}`, { headers: { Accept: 'application/octet-stream' }, responseType: 'arraybuffer' }
         );
-        await writer.write({
-          records: [{
-            recordType: 'mime',
-            mediaType: 'application/x.ips.gzip.aes256.v1-0',
-            data: new Uint8Array(resp.data)
-          }]
-        });
+        await writer.write({ records: [{ recordType: 'mime', mediaType: 'application/x.ips.gzip.aes256.v1-0', data: new Uint8Array(resp.data) }] });
       } else if (nfctype === 'url') {
         const gzipped = pako.gzip(data);
         const base64 = btoa(String.fromCharCode(...gzipped))
-          .replace(/\+/g, '-')
-          .replace(/\//g, '_')
-          .replace(/=+$/, '');
+          .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         const url = `${window.location.origin}/cwix/payload?d=${base64}`;
         await writer.write({ records: [{ recordType: 'url', data: url }] });
       }
-
       setToastMsg(`NFC write success (${nfctype})!`);
       setToastVariant('success');
     } catch (err) {
@@ -238,9 +237,6 @@ function APIGETPage() {
       setShowToast(true);
     }
   };
-
-
-
 
   return (
     <div className="app">
@@ -354,6 +350,7 @@ function APIGETPage() {
                 <Dropdown.Item eventKey="plain">Plain Text</Dropdown.Item>
                 <Dropdown.Item eventKey="binary">Binary (AES256 + gzip)</Dropdown.Item>
                 <Dropdown.Item eventKey="url">Gzipped Data URL</Dropdown.Item>
+                <Dropdown.Item eventKey="copyurl">Gzipped Data URL - CopyPaste Buffer Only</Dropdown.Item>
               </DropdownButton>
             </div>
           </div>

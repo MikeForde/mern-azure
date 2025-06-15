@@ -12,7 +12,7 @@ function mergeIPS(ipsDoc, updateData) {
   }
 
   // 2) Define which fields to dedupe on [name, date]
-  const arrayFields = ['medication','allergies','conditions','observations','immunizations'];
+  const arrayFields = ['medication','allergies','conditions','observations','immunizations','procedures'];
 
   arrayFields.forEach(field => {
     const incoming = updateData[field];

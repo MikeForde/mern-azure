@@ -98,6 +98,15 @@ const IPSModel = mongoose.model(
                 status: String,
             }
         ],
+        procedures: [
+            {
+                name: String,
+                system: String,
+                code: String,
+                date: Date,
+                status: String,
+            }
+        ],
     })
 );
 

@@ -38,6 +38,12 @@ function generateIPSBasic(ipsRecord) {
         basicInfo += `I:\r\n${immunization.name}\r\n${immunization.system}\r\n${immunizationDate}\r\n`;
     });
 
+    ipsRecord.procedures.forEach((procedure) => {
+        const procedureDate = procedure.date.toISOString().substring(0, 10);
+        basicInfo += `P:\r\n${procedure.name}\r\n${procedureDate}\r\n`;
+    }
+    );
+
     return basicInfo;
 }
 

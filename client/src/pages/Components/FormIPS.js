@@ -30,7 +30,8 @@ export function FormIPS({ add }) {
     allergies: [{ name: "", code: "", system: "", criticality: "", date: "" }],
     conditions: [{ name: "", code: "", system: "", date: "" }],
     observations: [{ name: "", code: "", system: "", date: "", value: "" }],
-    immunizations: [{ name: "", code: "", system: "", date: "" }]
+    immunizations: [{ name: "", code: "", system: "", date: "" }],
+    procedures: [{ name: "", code: "", system: "", date: "" }]
   });
 
   const [showAlert, setShowAlert] = useState(false);
@@ -97,6 +98,16 @@ export function FormIPS({ add }) {
     });
   };
 
+  const handleProcedureChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedProcedures = [...formData.procedures];
+    updatedProcedures[index][name] = value;
+    setFormData({
+      ...formData,
+      procedures: updatedProcedures,
+    });
+  };
+
   const handleAddMedication = () => {
     setFormData({
       ...formData,
@@ -129,6 +140,13 @@ export function FormIPS({ add }) {
     setFormData({
       ...formData,
       immunizations: [...formData.immunizations, { name: "", code: "", system: "", date: "" }],
+    });
+  };
+
+  const handleAddProcedure = () => {
+    setFormData({
+      ...formData,
+      procedures: [...formData.procedures, { name: "", code: "", system: "", date: "" }],
     });
   };
 
@@ -181,7 +199,8 @@ export function FormIPS({ add }) {
       allergies: [{ name: "", code: "", system: "", criticality: "", date: "" }],
       conditions: [{ name: "", code: "", system: "", date: "" }],
       observations: [{ name: "", code: "", system: "", date: "", value: "" }],
-      immunizations: [{ name: "", code: "", system: "", date: "" }]
+      immunizations: [{ name: "", code: "", system: "", date: "" }],
+      procedures: [{ name: "", code: "", system: "", date: "" }]
     });
   };
 
@@ -612,6 +631,56 @@ export function FormIPS({ add }) {
               </Form.Group>
             </div>
           ))}
+          <Button className="mb-3 minor-button" onClick={handleAddProcedure}>Add Procedure</Button>
+          {formData.procedures.map((procedure, index) => (
+            <div key={index}>
+              <Form.Group className="row">
+                <Form.Label className="col-sm-2">Procedure</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="text"
+                    name="name"
+                    value={procedure.name}
+                    onChange={(e) => handleProcedureChange(index, e)}
+                    placeholder="Procedure Name or Code" />
+                </div>
+              </Form.Group>
+              <Form.Group className="row">
+                <Form.Label className="col-sm-2">Code</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="text"
+                    name="code"
+                    value={procedure.code}
+                    onChange={(e) => handleProcedureChange(index, e)}
+                    placeholder="Procedure Code" />
+                </div>
+              </Form.Group>
+              <Form.Group className="row">
+                <Form.Label className="col-sm-2">System</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="text"
+                    name="system"
+                    value={procedure.system}
+                    onChange={(e) => handleProcedureChange(index, e)}
+                    placeholder="Coding System (e.g., LOINC, SNOMED) or url" />
+                </div>
+              </Form.Group>
+              <Form.Group className="row">
+                <Form.Label className="col-sm-2">Date</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="datetime-local"
+                    name="date"
+                    value={formatDate(procedure.date)}
+                    onChange={(e) => handleProcedureChange(index, e)}
+                    placeholder="Date" />
+                </div>
+              </Form.Group>
+            </div>
+          ))}
+          <br />
 
           <Button className="submit" variant="primary" type="submit">Submit IPS Data</Button>
           <Toast
