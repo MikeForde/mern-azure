@@ -16,7 +16,8 @@ const schemaFiles = [
   'Medication.schema.json',
   'AllergyIntolerance.schema.json',
   'Condition.schema.json',
-  'Observation.schema.json'
+  'Observation.schema.json',
+  'Procedure.schema.json'
 ];
 
 const schemas = {};

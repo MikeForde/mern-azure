@@ -21,7 +21,7 @@ async function getIPSHL72_x(req, res) {
         res.set('Content-Type', 'text/plain');
         res.send(hl72xData);
     } catch (error) {
-        console.error('Error fetching HL7 2.8 record format:', error);
+        console.error('Error fetching HL7 2.x record format:', error);
         res.status(500).send('Internal Server Error');
     }
 };

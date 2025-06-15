@@ -272,6 +272,27 @@ function generateIPSBundleUnified(ips) {
     
                         return observationResource;
                     }),
+                    // Procedure entries
+                    ...ips.procedures.map((procedure) => ({
+                        resource: {
+                            resourceType: "Procedure",
+                            id: "proc" + uuidv4().split("-")[0],
+                            status: procedure.status ? procedure.status.toLowerCase() : "completed",
+                            code: {
+                                coding: [
+                                    {
+                                        display: procedure.name,
+                                        system: procedure.system,
+                                        code: procedure.code,
+                                    },
+                                ],
+                            },
+                            subject: {
+                                reference: "Patient/" + ptId,
+                            },
+                            performedDateTime: stripMilliseconds(procedure.date),
+                        },
+                    })),
                 ],
             };
 
