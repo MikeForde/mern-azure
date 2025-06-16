@@ -12,6 +12,7 @@ function generateIPSBundleUnified(ips) {
     var algcount = 0;
     var condcount = 0;
     var obscount = 0;
+    var proccount = 0;
 
     const ipsBundle = {
                 resourceType: "Bundle",
@@ -276,7 +277,7 @@ function generateIPSBundleUnified(ips) {
                     ...ips.procedures.map((procedure) => ({
                         resource: {
                             resourceType: "Procedure",
-                            id: "proc" + uuidv4().split("-")[0],
+                            id: "proc" + ++proccount,
                             status: procedure.status ? procedure.status.toLowerCase() : "completed",
                             code: {
                                 coding: [
