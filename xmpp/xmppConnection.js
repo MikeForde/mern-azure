@@ -122,11 +122,11 @@ async function initXMPP_WebSocket() {
     );
 
     // Send a quick message to the room
-    xmpp.send(
-      xml("message", { type: "groupchat", to: XMPP_ROOM },
-        xml("body", {}, `Hello, this is ${DEFAULT_ROOM_NICK} from Node WebSocket!`)
-      )
-    );
+    // xmpp.send(
+    //   xml("message", { type: "groupchat", to: XMPP_ROOM },
+    //     xml("body", {}, `Hello, this is ${DEFAULT_ROOM_NICK} from Node WebSocket!`)
+    //   )
+    // );
   });
 
   xmpp.on("stanza", async (stanza) => {
