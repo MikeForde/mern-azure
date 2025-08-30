@@ -668,7 +668,13 @@ function ChangeLogPage() {
                                 <li>When reached via navigation, title switches to “Viewer” and the NFC info alert and Import button are hidden for a cleaner UI</li>
                             </ul>
                         </li>
-
+                        <li>
+                            <h5>Version 0_69 - 30th Aug 2025</h5>
+                            <ul>
+                                <li><strong>PDF Formatting changes</strong></li>
+                                <li>PDF visual improvements to make it look less a British Rail timetable</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>
