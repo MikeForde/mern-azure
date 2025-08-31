@@ -8,10 +8,19 @@ const formatDate = (dateString) => {
 };
 const formatDateNoTime = (dateString) => (String(dateString || "").split("T")[0] || "");
 
+const toEpoch = (v) => {
+  if (!v) return Infinity;                        // push missing dates to end
+  const s = String(v).trim();
+  const iso = s.includes("T") ? s : s.includes(" ") ? s.replace(" ", "T") : s;
+  const t = new Date(iso).getTime();
+  return Number.isNaN(t) ? Infinity : t;
+};
+const byOldest = (a, b) => toEpoch(a?.date) - toEpoch(b?.date);
+
 export const generatePDF = async (ips) => {
   const pdfDoc = await PDFDocument.create();
 
-  // start with the first page
+  // first page
   let page = pdfDoc.addPage([595.28, 841.89]); // A4
   let { width, height } = page.getSize();
 
@@ -22,14 +31,14 @@ export const generatePDF = async (ips) => {
   const margin = 50;
   let yOffset = height - margin;
 
-  // --- brand colours + helpers ---
+  // --- brand colours - test and adjust (not sure about the teal!) ---
   const BRAND = {
     primary: rgb(0.12, 0.45, 0.83),   // deep blue
-    accent:  rgb(0.00, 0.68, 0.52),   // teal
-    light:   rgb(0.95, 0.97, 1.00),   // very light blue
-    text:    rgb(0.10, 0.10, 0.12),   // near-black
-    subtle:  rgb(0.55, 0.58, 0.60),   // muted grey
-    stripe:  rgb(0.96, 0.96, 0.97)    // zebra row bg
+    accent: rgb(0.00, 0.68, 0.52),   // teal
+    light: rgb(0.95, 0.97, 1.00),   // very light blue
+    text: rgb(0.10, 0.10, 0.12),   // near-black
+    subtle: rgb(0.55, 0.58, 0.60),   // muted grey
+    stripe: rgb(0.96, 0.96, 0.97)    // zebra row bg - light but not too light
   };
 
   const drawText = (text, fnt, size, x, y, color = BRAND.text, maxW = width - 2 * margin) => {
@@ -76,7 +85,7 @@ export const generatePDF = async (ips) => {
 
   const drawRibbon = (title) => {
     ensureSpace(34);
-    // ribbon background
+    // ribbon background for main sections e.g. Meds
     page.drawRectangle({
       x: margin, y: yOffset - 20, width: width - margin * 2, height: 20,
       color: BRAND.primary, borderColor: BRAND.primary, borderWidth: 1,
@@ -88,7 +97,7 @@ export const generatePDF = async (ips) => {
     yOffset -= 20;
   };
 
-  // Clip text to column width with ellipsis
+  // We'll clip text to column width with ellipsis - mainly for code system and dosages but works for long drug names as usually clear
   const clipText = (text, maxWidth, fnt = font, size = fontSize) => {
     const t = String(text ?? "");
     if (fnt.widthOfTextAtSize(t, size) <= maxWidth) return t;
@@ -109,7 +118,7 @@ export const generatePDF = async (ips) => {
 
   // Table renderer with repeated headers and zebra rows
   const drawTable = (columns, rows, opts = {}) => {
-    // If any column is datetime, slightly increase row height to fit two lines
+    // If datetime in columns then slightly increase row height to fit two lines
     const hasDateTimeCol = columns.some(c => c.kind === 'datetime');
     const rowH = opts.rowHeight || (hasDateTimeCol ? 24 : 18);
     const headerH = opts.headerHeight || 22;
@@ -186,6 +195,13 @@ export const generatePDF = async (ips) => {
               size: timeSize, font, color: BRAND.text
             });
           }
+        } else if (col.kind === 'small') {
+          const colPad = 6;
+          const cell = colXs[i];
+          const clipped = clipText(v ?? "", cell.w - 2 * colPad, font, Math.max(8, fontSize - 2));
+          page.drawText(clipped, {
+            x: cell.x + colPad, y: yOffset - rowH + 6, size: Math.max(8, fontSize - 2), font, color: BRAND.text
+          });
         } else {
           const clipped = clipText(v ?? "", cell.w - 2 * colPad, font, fontSize);
           page.drawText(clipped, {
@@ -221,7 +237,7 @@ export const generatePDF = async (ips) => {
     yOffset = height - margin;
 
     // running header on subsequent pages
-    page.drawRectangle({ x: 0, y: height - 32, width, height: 32, color: rgb(1,1,1) });
+    page.drawRectangle({ x: 0, y: height - 32, width, height: 32, color: rgb(1, 1, 1) });
     page.drawRectangle({ x: 0, y: height - 33, width, height: 1, color: BRAND.light });
     drawText('International Patient Summary', boldFont, 11, margin, height - 20, BRAND.primary);
     rightAlignedText(`${ips?.patient?.given ?? ''} ${ips?.patient?.name ?? ''}`, 10, width - margin, height - 20, font, BRAND.subtle);
@@ -231,9 +247,9 @@ export const generatePDF = async (ips) => {
   // --- header bar on first page ---
   page.drawRectangle({ x: 0, y: height - 70, width, height: 70, color: BRAND.primary });
   page.drawText('International Patient Summary', {
-    x: margin, y: height - 46, size: 16, font: boldFont, color: rgb(1,1,1)
+    x: margin, y: height - 46, size: 16, font: boldFont, color: rgb(1, 1, 1)
   });
-  rightAlignedText(formatDate(new Date().toISOString()), 10, width - margin, height - 38, font, rgb(1,1,1));
+  rightAlignedText(formatDate(new Date().toISOString()), 10, width - margin, height - 38, font, rgb(1, 1, 1));
 
   yOffset = height - margin - 70;
 
@@ -248,7 +264,7 @@ export const generatePDF = async (ips) => {
   const cardH = 90;
   page.drawRectangle({
     x: margin, y: yOffset - cardH, width: width - margin * 2, height: cardH,
-    color: rgb(1,1,1), borderColor: BRAND.primary, borderWidth: 1
+    color: rgb(1, 1, 1), borderColor: BRAND.primary, borderWidth: 1
   });
 
   const leftX = margin + 12;
@@ -258,17 +274,17 @@ export const generatePDF = async (ips) => {
   let lineY = yOffset - 18;
 
   const label = (t, x, y) => drawText(t, boldFont, 10, x, y, BRAND.subtle);
-  const val   = (t, x, y) => drawText(t, font, 11, x, y, BRAND.text);
+  const val = (t, x, y) => drawText(t, font, 11, x, y, BRAND.text);
 
-  label('Name', leftX, lineY);               val(`${ips?.patient?.given ?? ''} ${ips?.patient?.name ?? ''}`, leftVX, lineY);
-  label('DOB', leftX, lineY - 18);           val(`${formatDateNoTime(ips?.patient?.dob)}`, leftVX, lineY - 18);
-  label('Gender', leftX, lineY - 36);        val(`${ips?.patient?.gender ?? ''}`, leftVX, lineY - 36);
-  label('NATO id', leftX, lineY - 54);       val(`${ips?.patient?.identifier ?? ''}`, leftVX, lineY - 54);
+  label('Name', leftX, lineY); val(`${ips?.patient?.given ?? ''} ${ips?.patient?.name ?? ''}`, leftVX, lineY);
+  label('DOB', leftX, lineY - 18); val(`${formatDateNoTime(ips?.patient?.dob)}`, leftVX, lineY - 18);
+  label('Gender', leftX, lineY - 36); val(`${ips?.patient?.gender ?? ''}`, leftVX, lineY - 36);
+  label('NATO id', leftX, lineY - 54); val(`${ips?.patient?.identifier ?? ''}`, leftVX, lineY - 54);
 
-  label('Country', rightX, lineY);           val(`${ips?.patient?.nation ?? ''}`, rightVX, lineY);
+  label('Country', rightX, lineY); val(`${ips?.patient?.nation ?? ''}`, rightVX, lineY);
   label('Practitioner', rightX, lineY - 18); val(`${ips?.patient?.practitioner ?? ''}`, rightVX, lineY - 18);
   label('Organization', rightX, lineY - 36); val(`${ips?.patient?.organization ?? ''}`, rightVX, lineY - 36);
-  label('National id', rightX, lineY - 54);  val(`${ips?.patient?.identifier2 ?? ''}`, rightVX, lineY - 54);
+  label('National id', rightX, lineY - 54); val(`${ips?.patient?.identifier2 ?? ''}`, rightVX, lineY - 54);
 
   yOffset -= cardH + 14;
 
@@ -277,19 +293,23 @@ export const generatePDF = async (ips) => {
     drawRibbon('Medications');
     drawTable(
       [
-        { key: 'name',   title: 'Name',   w: 0.30 },
-        { key: 'code',   title: 'Code',   w: 0.14 },
-        { key: 'system', title: 'System', w: 0.16 },
-        { key: 'date',   title: 'Date',   w: 0.18, kind: 'datetime' }, 
-        { key: 'dosage', title: 'Dosage', w: 0.22 },
+        { key: 'name', title: 'Name', w: 0.30 },
+        { key: 'dosage', title: 'Dosage', w: 0.22, kind: 'small' },
+        { key: 'code', title: 'Code', w: 0.14 },
+        { key: 'system', title: 'System', w: 0.16, kind: 'small' },
+        { key: 'date', title: 'Date', w: 0.10, kind: 'datetime' },
       ],
-      ips.medication.map(m => ({
-        name: m.name || '',
-        code: m.code || '',
-        system: m.system || '',
-        date: String(m.date || ''),
-        dosage: m.dosage || ''
-      })),
+      ips.medication
+        .slice()
+        .sort(byOldest)
+        .map(m => ({
+          name: m.name || '',
+          code: m.code || '',
+          system: m.system || '',
+          date: String(m.date || ''),
+          dosage: m.dosage || ''
+        }))
+      ,
       { rowHeight: 18, headerHeight: 22 }
     );
   }
@@ -299,19 +319,23 @@ export const generatePDF = async (ips) => {
     drawRibbon('Allergies');
     drawTable(
       [
-        { key: 'name',        title: 'Name',        w: 0.32 },
-        { key: 'code',        title: 'Code',        w: 0.16 },
-        { key: 'system',      title: 'System',      w: 0.18 },
+        { key: 'name', title: 'Name', w: 0.32 },
         { key: 'criticality', title: 'Criticality', w: 0.16 },
-        { key: 'date',        title: 'Date',        w: 0.18, kind: 'datetime' }, 
+        { key: 'code', title: 'Code', w: 0.16 },
+        { key: 'system', title: 'System', w: 0.18, kind: 'small' },
+        { key: 'date', title: 'Date', w: 0.18, kind: 'datetime' },
       ],
-      ips.allergies.map(a => ({
-        name: a.name || '',
-        code: a.code || '',
-        system: a.system || '',
-        criticality: a.criticality || '',
-        date: String(a.date || ''),
-      })),
+      ips.allergies
+        .slice()
+        .sort(byOldest)
+        .map(a => ({
+          name: a.name || '',
+          code: a.code || '',
+          system: a.system || '',
+          criticality: a.criticality || '',
+          date: String(a.date || ''),
+        }))
+      ,
       { rowHeight: 18, headerHeight: 22 }
     );
   }
@@ -321,17 +345,20 @@ export const generatePDF = async (ips) => {
     drawRibbon('Conditions');
     drawTable(
       [
-        { key: 'name',   title: 'Name',   w: 0.46 },
-        { key: 'code',   title: 'Code',   w: 0.18 },
-        { key: 'system', title: 'System', w: 0.18 },
-        { key: 'date',   title: 'Date',   w: 0.18, kind: 'datetime' },
+        { key: 'name', title: 'Name', w: 0.46 },
+        { key: 'code', title: 'Code', w: 0.18 },
+        { key: 'system', title: 'System', w: 0.18, kind: 'small' },
+        { key: 'date', title: 'Date', w: 0.18, kind: 'datetime' },
       ],
-      ips.conditions.map(c => ({
-        name: c.name || '',
-        code: c.code || '',
-        system: c.system || '',
-        date: String(c.date || ''),
-      })),
+      ips.conditions
+        .slice()
+        .sort(byOldest)
+        .map(c => ({
+          name: c.name || '',
+          code: c.code || '',
+          system: c.system || '',
+          date: String(c.date || ''),
+        })),
       { rowHeight: 18, headerHeight: 22 }
     );
   }
@@ -341,19 +368,22 @@ export const generatePDF = async (ips) => {
     drawRibbon('Observations');
     drawTable(
       [
-        { key: 'name',   title: 'Name',   w: 0.30 },
-        { key: 'code',   title: 'Code',   w: 0.14 },
-        { key: 'system', title: 'System', w: 0.16 },
-        { key: 'date',   title: 'Date',   w: 0.18, kind: 'datetime' },
-        { key: 'value',  title: 'Value',  w: 0.22 },
+        { key: 'name', title: 'Name', w: 0.30 },
+        { key: 'value', title: 'Value', w: 0.22 },
+        { key: 'code', title: 'Code', w: 0.14 },
+        { key: 'system', title: 'System', w: 0.16, kind: 'small' },
+        { key: 'date', title: 'Date', w: 0.18, kind: 'datetime' },
       ],
-      ips.observations.map(o => ({
-        name: o.name || '',
-        code: o.code || '',
-        system: o.system || '',
-        date: String(o.date || ''),
-        value: o.value || ''
-      })),
+      ips.observations
+        .slice()
+        .sort(byOldest)
+        .map(o => ({
+          name: o.name || '',
+          code: o.code || '',
+          system: o.system || '',
+          date: String(o.date || ''),
+          value: o.value || ''
+        })),
       { rowHeight: 18, headerHeight: 22 }
     );
   }
@@ -363,17 +393,20 @@ export const generatePDF = async (ips) => {
     drawRibbon('Immunizations');
     drawTable(
       [
-        { key: 'name',   title: 'Name',   w: 0.44 },
-        { key: 'date',   title: 'Date',   w: 0.18, kind: 'datetime' },
-        { key: 'system', title: 'System', w: 0.20 },
-        { key: 'code',   title: 'Code',   w: 0.18 },
+        { key: 'name', title: 'Name', w: 0.44 },
+        { key: 'date', title: 'Date', w: 0.18, kind: 'datetime' },
+        { key: 'system', title: 'System', w: 0.20, kind: 'small' },
+        { key: 'code', title: 'Code', w: 0.18 },
       ],
-      ips.immunizations.map(i => ({
-        name: i.name || '',
-        date: String(i.date || ''),
-        system: i.system || '',
-        code: i.code || ''
-      })),
+      ips.immunizations
+        .slice()
+        .sort(byOldest)
+        .map(i => ({
+          name: i.name || '',
+          date: String(i.date || ''),
+          system: i.system || '',
+          code: i.code || ''
+        })),
       { rowHeight: 18, headerHeight: 22 }
     );
   }
@@ -383,17 +416,20 @@ export const generatePDF = async (ips) => {
     drawRibbon('Procedures');
     drawTable(
       [
-        { key: 'name',   title: 'Name',   w: 0.46 },
-        { key: 'date',   title: 'Date',   w: 0.18, kind: 'datetime' },
-        { key: 'system', title: 'System', w: 0.18 },
-        { key: 'code',   title: 'Code',   w: 0.18 },
+        { key: 'name', title: 'Name', w: 0.46 },
+        { key: 'system', title: 'System', w: 0.18, kind: 'small' },
+        { key: 'code', title: 'Code', w: 0.18 },
+        { key: 'date', title: 'Date', w: 0.18, kind: 'datetime' },
       ],
-      ips.procedures.map(p => ({
-        name: p.name || '',
-        date: String(p.date || ''),
-        system: p.system || '',
-        code: p.code || ''
-      })),
+      ips.procedures
+        .slice()
+        .sort(byOldest)
+        .map(p => ({
+          name: p.name || '',
+          date: String(p.date || ''),
+          system: p.system || '',
+          code: p.code || ''
+        })),
       { rowHeight: 18, headerHeight: 22 }
     );
   }
@@ -410,7 +446,7 @@ export const generatePDF = async (ips) => {
     p.drawRectangle({ x: 40, y: 40, width: w - 80, height: 0.6, color: BRAND.subtle });
 
     const tag = `Page ${i + 1} of ${total}`;
-    const ts  = `Generated ${formatDate(new Date().toISOString())}`;
+    const ts = `Generated ${formatDate(new Date().toISOString())}`;
     const fntSize = 9;
 
     const tagW = font.widthOfTextAtSize(tag, fntSize);
