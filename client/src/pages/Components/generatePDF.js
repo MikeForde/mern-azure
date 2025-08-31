@@ -116,12 +116,63 @@ export const generatePDF = async (ips) => {
     return out;
   };
 
+  // --- NEW: fit as much text as possible in one line (prefers breaking on spaces)
+  const fitOneLine = (text, maxWidth, fnt = font, size = fontSize) => {
+    const t = String(text ?? "");
+    if (!t) return "";
+    if (fnt.widthOfTextAtSize(t, size) <= maxWidth) return t;
+
+    // binary search hard limit
+    let low = 0, high = t.length, best = 0;
+    while (low <= high) {
+      const mid = (low + high) >> 1;
+      const cand = t.slice(0, mid);
+      if (fnt.widthOfTextAtSize(cand, size) <= maxWidth) { best = mid; low = mid + 1; }
+      else { high = mid - 1; }
+    }
+    // try to break on last space within best slice
+    const slice = t.slice(0, best);
+    const lastSpace = slice.lastIndexOf(" ");
+    return lastSpace > 0 ? slice.slice(0, lastSpace) : slice;
+  };
+
+  // --- NEW: layout text into up to two lines with a 2pt smaller font; ellipsis if still too long
+  const twoLineLayout = (text, maxWidth, fnt = font, baseSize = fontSize) => {
+    const smaller = Math.max(7, baseSize - 2);
+    const t = String(text ?? "");
+    if (!t) return { lines: [""], usedSize: baseSize, twoLine: false };
+
+    // If it already fits on one line with base size, keep it single-line
+    if (fnt.widthOfTextAtSize(t, baseSize) <= maxWidth) {
+      return { lines: [t], usedSize: baseSize, twoLine: false };
+    }
+
+    // Switch to smaller size and try two lines
+    const first = fitOneLine(t, maxWidth, fnt, smaller);
+    const rest = t.slice(first.length).trimStart();
+    if (!rest) return { lines: [first], usedSize: smaller, twoLine: false };
+
+    let second = fitOneLine(rest, maxWidth, fnt, smaller);
+    // If the remaining text still doesn't fit entirely, add ellipsis
+    if (second.length < rest.length) {
+      // ensure ellipsis fits
+      while (second && fnt.widthOfTextAtSize(second + "…", smaller) > maxWidth) {
+        second = second.slice(0, -1);
+      }
+      second = second ? second + "…" : "…";
+    }
+
+    return { lines: [first, second], usedSize: smaller, twoLine: true };
+  };
+
+
   // Table renderer with repeated headers and zebra rows
+  // --- CHANGED: table supports dynamic two-line cells (font -2) and datetime stacking
   const drawTable = (columns, rows, opts = {}) => {
-    // If datetime in columns then slightly increase row height to fit two lines
-    const hasDateTimeCol = columns.some(c => c.kind === 'datetime');
-    const rowH = opts.rowHeight || (hasDateTimeCol ? 24 : 18);
     const headerH = opts.headerHeight || 22;
+    const baseRowH = 18;  // single-line height
+    const dblRowH = 24;  // enough for two lines (or datetime)
+
     const tableLeft = margin;
     const tableWidth = width - 2 * margin;
     const colXs = [];
@@ -137,12 +188,10 @@ export const generatePDF = async (ips) => {
 
     const drawHeader = () => {
       ensureSpace(headerH + 10);
-      // header bg
       page.drawRectangle({
         x: tableLeft, y: yOffset - headerH, width: tableWidth, height: headerH - 2,
         color: BRAND.light, borderColor: BRAND.primary, borderWidth: 1
       });
-      // header text
       columns.forEach((col, i) => {
         const colPad = 6;
         const cell = colXs[i];
@@ -154,8 +203,27 @@ export const generatePDF = async (ips) => {
       yOffset -= headerH + 4;
     };
 
+    const rowNeedsTwoLine = (row) => {
+      // If any datetime column exists => two-line height anyway
+      if (columns.some(c => c.kind === 'datetime')) return true;
+
+      // Otherwise check if any non-datetime cell will require two lines at smaller font
+      return columns.some((col, i) => {
+        if (col.kind === 'datetime') return true;
+        const colPad = 6;
+        const cell = colXs[i];
+        const v = row[col.key];
+        const baseSize = (col.kind === 'small') ? Math.max(8, fontSize - 2) : fontSize;
+        const layout = twoLineLayout(v ?? "", cell.w - 2 * colPad, font, baseSize);
+        return layout.twoLine;
+      });
+    };
+
     const drawRow = (row, idx) => {
+      const twoLine = rowNeedsTwoLine(row);
+      const rowH = twoLine ? dblRowH : baseRowH;
       ensureSpace(rowH + 2);
+
       // zebra
       if (idx % 2 === 0) {
         page.drawRectangle({ x: tableLeft, y: yOffset - rowH + 2, width: tableWidth, height: rowH, color: BRAND.stripe });
@@ -170,15 +238,13 @@ export const generatePDF = async (ips) => {
           const { d, t } = splitDateAndTime(v);
           const dateSize = Math.max(8, fontSize - 2);
           const timeSize = Math.max(7, fontSize - 3);
-          const colPad = 6;
-          const cell = colXs[i];
           const maxW = cell.w - 2 * colPad;
 
           const dateClipped = clipText(d, maxW, font, dateSize);
           const timeClipped = clipText(t, maxW, font, timeSize);
 
-          // Position relative to the row box so it stacks clearly
-          const topInset = -2;                       // padding from top of row
+          // stacked inside row
+          const topInset = 0;
           const dateBaseline = yOffset - topInset - dateSize;
           const timeBaseline = dateBaseline - (timeSize + 2);
 
@@ -187,7 +253,6 @@ export const generatePDF = async (ips) => {
             y: dateBaseline,
             size: dateSize, font, color: BRAND.text
           });
-
           if (t) {
             page.drawText(timeClipped, {
               x: cell.x + colPad,
@@ -195,18 +260,38 @@ export const generatePDF = async (ips) => {
               size: timeSize, font, color: BRAND.text
             });
           }
-        } else if (col.kind === 'small') {
-          const colPad = 6;
-          const cell = colXs[i];
-          const clipped = clipText(v ?? "", cell.w - 2 * colPad, font, Math.max(8, fontSize - 2));
-          page.drawText(clipped, {
-            x: cell.x + colPad, y: yOffset - rowH + 6, size: Math.max(8, fontSize - 2), font, color: BRAND.text
-          });
         } else {
-          const clipped = clipText(v ?? "", cell.w - 2 * colPad, font, fontSize);
-          page.drawText(clipped, {
-            x: cell.x + colPad, y: yOffset - rowH + 6, size: fontSize, font, color: BRAND.text
-          });
+          // two-line auto layout for long text in non-datetime columns
+          const baseSize = (col.kind === 'small') ? Math.max(8, fontSize - 2) : fontSize;
+          const maxW = cell.w - 2 * colPad;
+          const { lines, usedSize, twoLine: didWrap } = twoLineLayout(v ?? "", maxW, font, baseSize);
+
+          if (didWrap || twoLine) {
+            // draw up to two lines stacked
+            const topInset = lines[1] ? -2 : 6;
+            const firstBaseline = yOffset - topInset - usedSize;
+            page.drawText(lines[0], {
+              x: cell.x + colPad,
+              y: firstBaseline,
+              size: usedSize, font, color: BRAND.text
+            });
+
+            if (lines[1]) {
+              const secondBaseline = firstBaseline - (usedSize + 2);
+              page.drawText(lines[1], {
+                x: cell.x + colPad,
+                y: secondBaseline,
+                size: usedSize, font, color: BRAND.text
+              });
+            }
+          } else {
+            // single-line
+            page.drawText(lines?.[0] ?? String(v ?? ""), {
+              x: cell.x + colPad,
+              y: yOffset - rowH + 6,
+              size: usedSize ?? baseSize, font, color: BRAND.text,
+            });
+          }
         }
       });
 
@@ -218,7 +303,9 @@ export const generatePDF = async (ips) => {
 
     // rows with header-repeat on page break
     rows.forEach((row, idx) => {
-      if (yOffset - (rowH + 2) < margin) {
+      // anticipate per-row height
+      const h = rowNeedsTwoLine(row) ? dblRowH : baseRowH;
+      if (yOffset - (h + 2) < margin) {
         newPage();
         drawHeader();
       }
@@ -229,6 +316,7 @@ export const generatePDF = async (ips) => {
     page.drawRectangle({ x: tableLeft, y: yOffset + 2, width: tableWidth, height: 0.6, color: BRAND.light });
     yOffset -= 8;
   };
+
 
   // helper to start a new page
   const newPage = () => {
