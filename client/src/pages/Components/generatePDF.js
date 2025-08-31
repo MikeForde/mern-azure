@@ -344,7 +344,7 @@ export const generatePDF = async (ips) => {
   // main title
   yOffset = drawText(`Patient Report`, boldFont, 18, margin, yOffset - 6, BRAND.text);
   yOffset -= 8;
-  yOffset = drawText(`${ips?.patient?.given ?? ''} ${ips?.patient?.name ?? ''}`, boldFont, 14, margin, yOffset, BRAND.subtle);
+  yOffset = drawText(`${ips?.patient?.given ?? ''} ${ips?.patient?.name ?? ''} : ${ips?.packageUUID ?? ''}`, boldFont, 14, margin, yOffset, BRAND.subtle);
   yOffset -= 12;
 
   // --- patient card ---
@@ -533,9 +533,12 @@ export const generatePDF = async (ips) => {
     // thin divider line (use a 0.6pt rectangle)
     p.drawRectangle({ x: 40, y: 40, width: w - 80, height: 0.6, color: BRAND.subtle });
 
+    const ipsuuid = ips?.packageUUID ? `IPS: ${ips.packageUUID}` : '';
     const tag = `Page ${i + 1} of ${total}`;
     const ts = `Generated ${formatDate(new Date().toISOString())}`;
     const fntSize = 9;
+
+    p.drawText(ipsuuid, { x: 40, y: footY, size: fntSize, font, color: BRAND.subtle });
 
     const tagW = font.widthOfTextAtSize(tag, fntSize);
     p.drawText(tag, { x: (w - tagW) / 2, y: footY, size: fntSize, font, color: BRAND.subtle });
