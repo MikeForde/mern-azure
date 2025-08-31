@@ -672,7 +672,10 @@ function ChangeLogPage() {
                             <h5>Version 0_69 - 30th Aug 2025</h5>
                             <ul>
                                 <li><strong>PDF Formatting changes</strong></li>
-                                <li>PDF visual improvements to make it look less a British Rail timetable</li>
+                                <li>PDF visual improvements to make it look less a British Rail timetable!</li>
+                                <li>Column ordering such that most important column fields to left e.g., for Observations name and value</li>
+                                <li>Sorted by datetime - oldest first as would be typical for medical data</li>
+                                <li>Dynamic font and overflow to adjust for long drug, dosage or code system names</li>
                             </ul>
                         </li>
                     </ul>
