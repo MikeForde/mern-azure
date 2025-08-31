@@ -342,9 +342,10 @@ export const generatePDF = async (ips) => {
   yOffset = height - margin - 70;
 
   // main title
-  yOffset = drawText(`Patient Report`, boldFont, 18, margin, yOffset - 6, BRAND.text);
+  yOffset = drawText(`Patient Report `, boldFont, 18, margin, yOffset - 6, BRAND.text);
+  yOffset = drawText(`${ips?.packageUUID ?? ''}`, boldFont, 12, margin + 140, yOffset + 22, BRAND.text);
   yOffset -= 8;
-  yOffset = drawText(`${ips?.patient?.given ?? ''} ${ips?.patient?.name ?? ''} : ${ips?.packageUUID ?? ''}`, boldFont, 14, margin, yOffset, BRAND.subtle);
+  yOffset = drawText(`${ips?.patient?.given ?? ''} ${ips?.patient?.name ?? ''}`, boldFont, 14, margin, yOffset, BRAND.subtle);
   yOffset -= 12;
 
   // --- patient card ---
