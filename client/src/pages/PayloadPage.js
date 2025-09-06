@@ -26,6 +26,25 @@ const TIMELINE_GROUPS = [
   { id: 'Procedures', content: 'Procedures' }
 ];
 
+// Informational copy shown when user lands via URL (NFC flow)
+const infoHtml = `
+<p>This NATO patient tag contains the digital record of this patient and their recent care. This information has been carried securely by the patient without the requirement for transmission elsewhere.</p>
+<p>You can now digitally import the patient, their diagnoses, symptoms, observations and treatments to your electronic health record. It can be exported in different open formats or viewed as a PDF.</p>
+<p>This enables digital patient handover to any other medical facility, enabling optimal care for all.</p>
+<p><strong>This Defence Medical Services innovation is offered as a free good in the service of all.</strong></p>
+`;
+
+const BRAND = {
+  primary: '#1f73d4',   // deep blue
+  accent: '#00ad85',    // teal
+  light: '#f2f7ff',     // very light blue
+  text: '#1a1a1e',      // near-black
+  subtle: '#8c8f91',    // muted grey
+  stripe: '#f5f5f7'     // zebra background
+};
+
+
+
 export default function PayloadPage() {
   const [searchParams] = useSearchParams();
   const viaUrl = Boolean(searchParams.get('d'));
@@ -35,7 +54,7 @@ export default function PayloadPage() {
   const [jsonData, setJsonData] = useState(null);
   const [readableData, setReadableData] = useState('');
   const [nosqlData, setNosqlData] = useState(null);
-  const [viewMode, setViewMode] = useState('readable'); // 'readable', 'nosql', 'timeline'
+  const [viewMode, setViewMode] = useState(viaUrl ? 'info' : 'readable'); // 'info', 'readable', 'report', 'nosql', 'timeline'
   const [items, setItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [error, setError] = useState(null);
@@ -150,15 +169,6 @@ export default function PayloadPage() {
       setItems(buildFromNoSQL(nosqlData));
       return;
     }
-
-    // fetchNoSQL()
-    //   .then(data => {
-    //     setNosqlData(data);
-    //     setItems(buildFromNoSQL(data));
-    //   })
-    //   .catch(err => {
-    //     console.error('Failed to fetch NoSQL for timeline', err);
-    //   });
   }, [viewMode, nosqlData]);
 
 
@@ -262,16 +272,15 @@ export default function PayloadPage() {
     }
   };
 
-  const handleToggleNoSQL = async () => {
-    if (viewMode !== 'nosql') {
-      setOperation('NoSQL');
-      setViewMode('nosql');
-      showToast('Showing cached NoSQL', 'info');
-      setOperation(null);
+  // Cycle Info/Readable/NoSQL (Info only participates when viaUrl)
+  const handleCycleInfoReadableNoSQL = () => {
+    if (viaUrl) {
+      setViewMode(prev => (prev === 'info' ? 'readable' : prev === 'readable' ? 'report' : prev === 'report' ? 'nosql' : 'info'));
     } else {
-      setViewMode('readable');
+      setViewMode(prev => (prev === 'readable' ? 'report' : prev === 'report' ? 'nosql' : 'readable'));
     }
   };
+
 
   const handleExportFHIR = async () => {
     setOperation('ExportFHIR');
@@ -325,6 +334,17 @@ export default function PayloadPage() {
   const handleViewTimeline = () =>
     setViewMode(vm => vm === 'timeline' ? 'readable' : 'timeline');
 
+  // ---- helpers mirroring generatePDF ----
+  const formatDateNoTime = (dateString) => (String(dateString || '').split('T')[0] || '');
+  const toEpoch = (v) => {
+    if (!v) return Infinity;
+    const s = String(v).trim();
+    const iso = s.includes('T') ? s : s.includes(' ') ? s.replace(' ', 'T') : s;
+    const t = new Date(iso).getTime();
+    return Number.isNaN(t) ? Infinity : t;
+  };
+  const byOldest = (a, b) => toEpoch(a?.date) - toEpoch(b?.date);
+
 
   // Render
   return (
@@ -332,7 +352,7 @@ export default function PayloadPage() {
       <h4>{viaUrl ? 'CWIX Payload Viewer' : 'Viewer'}</h4>
       {viaUrl && (
         <Alert variant="info">
-          This site displays the data on the NFC card presented. It can be viewed as text or as a timeline. No data is held on this website.
+          This site displays the data on the NFC card presented. It can be viewed here in various formats. No data is held on this website unless you choose to import it.
         </Alert>
       )}
 
@@ -360,16 +380,24 @@ export default function PayloadPage() {
 
         <Button
           variant="secondary"
-          onClick={handleToggleNoSQL}
-          disabled={!!operation}
+          onClick={handleCycleInfoReadableNoSQL}
           className="me-2 mb-2"
         >
-          {operation === 'NoSQL'
-            ? <Spinner animation="border" size="sm" />
-            : viewMode === 'nosql'
-              ? 'Readable'
-              : 'NoSQL'}
+          {viaUrl
+            ? viewMode === 'info'
+              ? 'Simple Text'
+              : viewMode === 'readable'
+                ? 'Formatted Text'
+                : viewMode === 'report'
+                  ? 'NoSQL'
+                  : 'Info'
+            : viewMode === 'readable'
+              ? 'Formatted Text'
+              : viewMode === 'report'
+                ? 'NoSQL'
+                : 'Simple Text'}
         </Button>
+
 
         {viaUrl && (
           <Button
@@ -480,14 +508,248 @@ export default function PayloadPage() {
       ) : viewMode === 'nosql' ? (
         <Card>
           <Card.Body>
+            <h5>This is the data in machine-readable JSON format</h5>
+            <p>This could also be entered directly into a NoSQL Database</p>
             <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
               {JSON.stringify(nosqlData, null, 2)}
             </pre>
           </Card.Body>
         </Card>
+      ) : viewMode === 'info' ? (
+        <Card>
+          <Card.Body>
+            <div dangerouslySetInnerHTML={{ __html: infoHtml }} />
+          </Card.Body>
+        </Card>
+      ) : viewMode === 'report' ? (
+        <div>
+          <h5>This is the data as HTML Formatted text</h5>
+          {/* Patient header card */}
+          <Card className="mb-3">
+            <Card.Header style={{ backgroundColor: BRAND.primary, color: 'white', fontWeight: 'bold' }}>International Patient Summary</Card.Header>
+            <Card.Body style={{ color: BRAND.text }}>
+              <div className="row">
+                <div className="col-12 col-md-6">
+                  <div className="mb-1"><strong>Name: </strong>{nosqlData?.patient?.given} {nosqlData?.patient?.name}</div>
+                  <div className="mb-1"><strong>DOB: </strong>{formatDateNoTime(nosqlData?.patient?.dob)}</div>
+                  <div className="mb-1"><strong>Gender: </strong>{nosqlData?.patient?.gender}</div>
+                  <div className="mb-1"><strong>NATO id: </strong>{nosqlData?.patient?.identifier}</div>
+                </div>
+                <div className="col-12 col-md-6">
+                  <div className="mb-1"><strong>Country: </strong>{nosqlData?.patient?.nation}</div>
+                  <div className="mb-1"><strong>Practitioner: </strong>{nosqlData?.patient?.practitioner}</div>
+                  <div className="mb-1"><strong>Organization: </strong>{nosqlData?.patient?.organization}</div>
+                  <div className="mb-1"><strong>National id: </strong>{nosqlData?.patient?.identifier2}</div>
+                </div>
+              </div>
+            </Card.Body>
+          </Card>
+
+          {/* Section helper */}
+          {Boolean(nosqlData?.medication?.length) && (
+            <Card className="mb-3 border-0 shadow-sm">
+              <Card.Header style={{ backgroundColor: BRAND.primary, color: 'white', fontWeight: 'bold' }}>Medications</Card.Header>
+              <Card.Body style={{ backgroundColor: BRAND.light, color: BRAND.text }}>
+                <div className="table-responsive">
+                  <table className="table table-sm table-striped align-middle" style={{ backgroundColor: 'white', border: `1px solid ${BRAND.primary}` }}>
+                    <thead style={{ backgroundColor: BRAND.light, color: BRAND.primary }}>
+                      <tr>
+                        <th style={{ width: '30%' }}>Name</th>
+                        <th style={{ width: '22%' }}>Dosage</th>
+                        <th style={{ width: '14%' }}>Code</th>
+                        <th style={{ width: '16%' }}>System</th>
+                        <th style={{ width: '18%' }}>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...(nosqlData.medication || [])].sort(byOldest).map((m, i) => (
+                        <tr key={i}>
+                          <td>{m.name || ''}</td>
+                          <td className="text-muted">{m.dosage || ''}</td>
+                          <td>{m.code || ''}</td>
+                          <td className="text-muted">{m.system || ''}</td>
+                          <td>{m.date ? m.date.replace('T', ' ').split('.')[0] : ''}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card.Body>
+            </Card>
+          )}
+
+          {Boolean(nosqlData?.allergies?.length) && (
+            <Card className="mb-3">
+              <Card.Header style={{ backgroundColor: BRAND.primary, color: 'white', fontWeight: 'bold' }}>Allergies</Card.Header>
+              <Card.Body style={{ backgroundColor: BRAND.light, color: BRAND.text }}>
+                <div className="table-responsive">
+                  <table className="table table-sm table-striped align-middle" style={{ backgroundColor: 'white', border: `1px solid ${BRAND.primary}` }}>
+                    <thead style={{ backgroundColor: BRAND.light, color: BRAND.primary }}>
+                      <tr>
+                        <th style={{ width: '32%' }}>Name</th>
+                        <th style={{ width: '16%' }}>Criticality</th>
+                        <th style={{ width: '16%' }}>Code</th>
+                        <th style={{ width: '18%' }}>System</th>
+                        <th style={{ width: '18%' }}>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...(nosqlData.allergies || [])].sort(byOldest).map((a, i) => (
+                        <tr key={i}>
+                          <td>{a.name || ''}</td>
+                          <td>{a.criticality || ''}</td>
+                          <td>{a.code || ''}</td>
+                          <td className="text-muted">{a.system || ''}</td>
+                          <td>{a.date ? a.date.replace('T', ' ').split('.')[0] : ''}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card.Body>
+            </Card>
+          )}
+
+          {Boolean(nosqlData?.conditions?.length) && (
+            <Card className="mb-3">
+              <Card.Header style={{ backgroundColor: BRAND.primary, color: 'white', fontWeight: 'bold' }}>Conditions</Card.Header>
+              <Card.Body style={{ backgroundColor: BRAND.light, color: BRAND.text }}>
+                <div className="table-responsive">
+                  <table className="table table-sm table-striped align-middle" style={{ backgroundColor: 'white', border: `1px solid ${BRAND.primary}` }}>
+                    <thead style={{ backgroundColor: BRAND.light, color: BRAND.primary }}>
+                      <tr>
+                        <th style={{ width: '46%' }}>Name</th>
+                        <th style={{ width: '18%' }}>Code</th>
+                        <th style={{ width: '18%' }}>System</th>
+                        <th style={{ width: '18%' }}>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...(nosqlData.conditions || [])].sort(byOldest).map((c, i) => (
+                        <tr key={i}>
+                          <td>{c.name || ''}</td>
+                          <td>{c.code || ''}</td>
+                          <td className="text-muted">{c.system || ''}</td>
+                          <td>{c.date ? c.date.replace('T', ' ').split('.')[0] : ''}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card.Body>
+            </Card>
+          )}
+
+          {Boolean(nosqlData?.observations?.length) && (
+            <Card className="mb-3">
+              <Card.Header style={{ backgroundColor: BRAND.primary, color: 'white', fontWeight: 'bold' }}>Observations</Card.Header>
+              <Card.Body style={{ backgroundColor: BRAND.light, color: BRAND.text }}>
+                <div className="table-responsive">
+                  <table className="table table-sm table-striped align-middle" style={{ backgroundColor: 'white', border: `1px solid ${BRAND.primary}` }}>
+                    <thead style={{ backgroundColor: BRAND.light, color: BRAND.primary }}>
+                      <tr>
+                        <th style={{ width: '30%' }}>Name</th>
+                        <th style={{ width: '22%' }}>Value</th>
+                        <th style={{ width: '14%' }}>Code</th>
+                        <th style={{ width: '16%' }}>System</th>
+                        <th style={{ width: '18%' }}>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...(nosqlData.observations || [])].sort(byOldest).map((o, i) => (
+                        <tr key={i}>
+                          <td>{o.name || ''}</td>
+                          <td>{o.value || ''}</td>
+                          <td>{o.code || ''}</td>
+                          <td className="text-muted">{o.system || ''}</td>
+                          <td>{o.date ? o.date.replace('T', ' ').split('.')[0] : ''}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card.Body>
+            </Card>
+          )}
+
+          {Boolean(nosqlData?.immunizations?.length) && (
+            <Card className="mb-3">
+              <Card.Header style={{ backgroundColor: BRAND.primary, color: 'white', fontWeight: 'bold' }}>
+                Immunizations
+              </Card.Header>
+              <Card.Body style={{ backgroundColor: BRAND.light, color: BRAND.text }}>
+                <div className="table-responsive">
+                  <table
+                    className="table table-sm table-striped align-middle"
+                    style={{ backgroundColor: 'white', border: `1px solid ${BRAND.primary}` }}
+                  >
+                    <thead style={{ backgroundColor: BRAND.light, color: BRAND.primary }}>
+                      <tr>
+                        <th style={{ width: '44%' }}>Name</th>
+                        <th style={{ width: '18%' }}>Date</th>
+                        <th style={{ width: '20%' }}>System</th>
+                        <th style={{ width: '18%' }}>Code</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...(nosqlData.immunizations || [])].sort(byOldest).map((i, idx) => (
+                        <tr key={idx}>
+                          <td>{i.name || ''}</td>
+                          <td>{i.date ? i.date.replace('T', ' ').split('.')[0] : ''}</td>
+                          <td className="text-muted">{i.system || ''}</td>
+                          <td>{i.code || ''}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card.Body>
+            </Card>
+          )}
+
+          {Boolean(nosqlData?.procedures?.length) && (
+            <Card className="mb-3">
+              <Card.Header style={{ backgroundColor: BRAND.primary, color: 'white', fontWeight: 'bold' }}>
+                Procedures
+              </Card.Header>
+              <Card.Body style={{ backgroundColor: BRAND.light, color: BRAND.text }}>
+                <div className="table-responsive">
+                  <table
+                    className="table table-sm table-striped align-middle"
+                    style={{ backgroundColor: 'white', border: `1px solid ${BRAND.primary}` }}
+                  >
+                    <thead style={{ backgroundColor: BRAND.light, color: BRAND.primary }}>
+                      <tr>
+                        <th style={{ width: '46%' }}>Name</th>
+                        <th style={{ width: '18%' }}>System</th>
+                        <th style={{ width: '18%' }}>Code</th>
+                        <th style={{ width: '18%' }}>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...(nosqlData.procedures || [])].sort(byOldest).map((p, idx) => (
+                        <tr key={idx}>
+                          <td>{p.name || ''}</td>
+                          <td className="text-muted">{p.system || ''}</td>
+                          <td>{p.code || ''}</td>
+                          <td>{p.date ? p.date.replace('T', ' ').split('.')[0] : ''}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card.Body>
+            </Card>
+          )}
+
+
+        </div>
       ) : (
         <Card>
           <Card.Body>
+            <h5>This is the data as simple plain text</h5>
+            <p>When displayed in non-proportional font - e.g. courier - then the data will appear aligned as though in a table.</p>
+            <p>It will therefore display perfectly if copied and pasted into programs like JChat.</p>
             <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
               {readableData}
             </pre>

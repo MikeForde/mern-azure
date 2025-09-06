@@ -678,6 +678,19 @@ function ChangeLogPage() {
                                 <li>Dynamic font and overflow to adjust for long drug, dosage or code system names</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_70 - 6th Sep 2025</h5>
+                            <ul>
+                                <li><strong>New Info View</strong></li>
+                                <li>When data is loaded via URL, default view is now an information screen explaining the NATO patient tag</li>
+                                <li>Info text supports HTML formatting for paragraphs and emphasis</li>
+                                <li><strong>New Report View</strong></li>
+                                <li>Added a fourth viewing option styled to match PDF layout</li>
+                                <li>Brand colours applied (deep blue headers, light background, zebra rows, muted grey subtext)</li>
+                                <li>Tables for Medications, Allergies, Conditions, Observations, Immunizations, and Procedures included</li>
+                                <li>Data ordered chronologically (oldest first) for medical clarity</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>
