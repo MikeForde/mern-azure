@@ -349,7 +349,7 @@ export default function PayloadPage() {
   // Render
   return (
     <div className="container mt-4">
-      <h4>{viaUrl ? 'CWIX Payload Viewer' : 'Viewer'}</h4>
+      <h4>{viaUrl ? 'NATO Patient Tag Viewer' : 'Viewer'}</h4>
       {viaUrl && (
         <Alert variant="info">
           This site displays the data on the NFC card presented. It can be viewed here in various formats. No data is held on this website unless you choose to import it.
