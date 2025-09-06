@@ -30,6 +30,9 @@ export const generatePDF = async (ips) => {
   const imgBytes = await fetch('/DMS icon.png').then(res => res.arrayBuffer());
   const dmsIcon = await pdfDoc.embedPng(imgBytes);
 
+  const iconBlueBytes = await fetch('/DMS%20icon%20blue.png').then(r => r.arrayBuffer());
+  const dmsIconBlue = await pdfDoc.embedPng(iconBlueBytes);
+
   const fontSize = 10;
   const margin = 50;
   let yOffset = height - margin;
@@ -331,10 +334,35 @@ export const generatePDF = async (ips) => {
     // running header on subsequent pages
     page.drawRectangle({ x: 0, y: height - 32, width, height: 32, color: rgb(1, 1, 1) });
     page.drawRectangle({ x: 0, y: height - 33, width, height: 1, color: BRAND.light });
-    drawText('International Patient Summary', boldFont, 11, margin, height - 20, BRAND.primary);
-    rightAlignedText(`${ips?.patient?.given ?? ''} ${ips?.patient?.name ?? ''}`, 10, width - margin, height - 20, font, BRAND.subtle);
+
+    // small blue icon
+    const smallH = 18; // target height
+    const scale = Math.min(smallH / dmsIconBlue.height, 1);
+    const sW = dmsIconBlue.width * scale;
+    const sH = dmsIconBlue.height * scale;
+    page.drawImage(dmsIconBlue, {
+      x: margin,
+      y: height - 32 + (32 - sH) / 2, // vertically centered
+      width: sW,
+      height: sH,
+    });
+
+    // title text next to icon
+    drawText('International Patient Summary', boldFont, 11, margin + sW + 8, height - 20, BRAND.primary);
+
+    // patient name on the right
+    rightAlignedText(
+      `${ips?.patient?.given ?? ''} ${ips?.patient?.name ?? ''}`,
+      10,
+      width - margin,
+      height - 20,
+      font,
+      BRAND.subtle
+    );
+
     yOffset = height - margin - 36;
   };
+
 
   // --- header bar on first page ---
   page.drawRectangle({ x: 0, y: height - 70, width, height: 70, color: BRAND.primary });
