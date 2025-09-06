@@ -8,7 +8,6 @@ const formatDate = (dateString) => {
 };
 const formatDateNoTime = (dateString) => (String(dateString || "").split("T")[0] || "");
 
-
 const toEpoch = (v) => {
   if (!v) return Infinity;                        // push missing dates to end
   const s = String(v).trim();
@@ -27,6 +26,9 @@ export const generatePDF = async (ips) => {
 
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+  const imgBytes = await fetch('/DMS icon.png').then(res => res.arrayBuffer());
+  const dmsIcon = await pdfDoc.embedPng(imgBytes);
 
   const fontSize = 10;
   const margin = 50;
@@ -335,18 +337,21 @@ export const generatePDF = async (ips) => {
   };
 
   // --- header bar on first page ---
-  // --- header bar on first page (draw this FIRST so icon/title sit on top) ---
-  const barH = 70;
-  const barY = height - barH;
-  page.drawRectangle({ x: 0, y: barY, width, height: barH, color: BRAND.primary });
+  page.drawRectangle({ x: 0, y: height - 70, width, height: 70, color: BRAND.primary });
 
-  // try to draw the DMS icon inside the bar, left side, vertically centered
-  let titleX = margin;            // default if icon not available
+  // draw DMS icon
+  const iconDims = dmsIcon.scaleToFit(40, 40);  // adjust size as needed
+  page.drawImage(dmsIcon, {
+    x: margin,
+    y: height - 55,  // a little padding from the top
+    width: iconDims.width,
+    height: iconDims.height,
+  });
 
   // header title (aligned with icon if present)
   page.drawText('International Patient Summary', {
-    x: titleX,
-    y: height - 46,                 // same baseline you used before
+    x: margin + iconDims.width + 10,   // shift right of the icon
+    y: height - 46,
     size: 16,
     font: boldFont,
     color: rgb(1, 1, 1)
@@ -356,7 +361,7 @@ export const generatePDF = async (ips) => {
   rightAlignedText(formatDate(new Date().toISOString()), 10, width - margin, height - 38, font, rgb(1, 1, 1));
 
   // content starts below the bar
-  yOffset = height - margin - barH;
+  yOffset = height - margin - 70;
 
   // --- main title block below the bar (unchanged except it now starts at margin) ---
   yOffset = drawText(`Patient Report `, boldFont, 18, margin, yOffset - 6, BRAND.text);
