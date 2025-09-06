@@ -41,6 +41,45 @@ export const generatePDF = async (ips) => {
     stripe: rgb(0.96, 0.96, 0.97)    // zebra row bg - light but not too light
   };
 
+  // REPLACE the whole helpers block (dataURLToUint8Array + svgToPngBytes) with this:
+  const svgToPngBytes = async (url, outW = 128, outH = 128) => {
+    const res = await fetch(url, { cache: 'no-cache' });
+    const svgBlob = await res.blob();
+    const objUrl = URL.createObjectURL(svgBlob);
+  
+    const img = new Image();
+    img.src = objUrl;
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+    });
+  
+    const canvas = document.createElement('canvas');
+    canvas.width = outW; canvas.height = outH;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, outW, outH);
+    ctx.drawImage(img, 0, 0, outW, outH);
+  
+    // --- invert colours here ---
+    const imageData = ctx.getImageData(0, 0, outW, outH);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      data[i]     = 255 - data[i];
+      data[i + 1] = 255 - data[i + 1];
+      data[i + 2] = 255 - data[i + 2];
+    }
+    ctx.putImageData(imageData, 0, 0);
+  
+    URL.revokeObjectURL(objUrl);
+    const pngBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+    const buf = await pngBlob.arrayBuffer();
+    return new Uint8Array(buf);
+  };
+  
+
+  const dmsIconPngBytes = await svgToPngBytes(encodeURI('DMS icon.svg'), 128, 128);
+  const dmsIconImg = await pdfDoc.embedPng(dmsIconPngBytes);
+
   const drawText = (text, fnt, size, x, y, color = BRAND.text, maxW = width - 2 * margin) => {
     const lines = String(text ?? "").split('\n');
     lines.forEach((line, i) => {
@@ -333,15 +372,40 @@ export const generatePDF = async (ips) => {
   };
 
   // --- header bar on first page ---
-  page.drawRectangle({ x: 0, y: height - 70, width, height: 70, color: BRAND.primary });
+  // --- header bar on first page (draw this FIRST so icon/title sit on top) ---
+  const barH = 70;
+  const barY = height - barH;
+  page.drawRectangle({ x: 0, y: barY, width, height: barH, color: BRAND.primary });
+
+  // try to draw the DMS icon inside the bar, left side, vertically centered
+  let titleX = margin;            // default if icon not available
+  const iconPt = 40;              // icon size in points
+  const iconPad = 8;              // gap between icon and title
+  const iconY = barY + (barH - iconPt) / 2;
+
+  try {
+    if (typeof dmsIconImg !== 'undefined' && dmsIconImg) {
+      page.drawImage(dmsIconImg, { x: margin, y: iconY, width: iconPt, height: iconPt });
+      titleX = margin + iconPt + iconPad;  // shift title right of icon
+    }
+  } catch { /* ignore and keep titleX = margin */ }
+
+  // header title (aligned with icon if present)
   page.drawText('International Patient Summary', {
-    x: margin, y: height - 46, size: 16, font: boldFont, color: rgb(1, 1, 1)
+    x: titleX,
+    y: height - 46,                 // same baseline you used before
+    size: 16,
+    font: boldFont,
+    color: rgb(1, 1, 1)
   });
+
+  // header timestamp on the right
   rightAlignedText(formatDate(new Date().toISOString()), 10, width - margin, height - 38, font, rgb(1, 1, 1));
 
-  yOffset = height - margin - 70;
+  // content starts below the bar
+  yOffset = height - margin - barH;
 
-  // main title
+  // --- main title block below the bar (unchanged except it now starts at margin) ---
   yOffset = drawText(`Patient Report `, boldFont, 18, margin, yOffset - 6, BRAND.text);
   yOffset = drawText(`${ips?.packageUUID ?? ''}`, boldFont, 12, margin + 140, yOffset + 22, BRAND.text);
   yOffset -= 8;

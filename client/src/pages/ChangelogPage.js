@@ -681,14 +681,16 @@ function ChangeLogPage() {
                         <li>
                             <h5>Version 0_70 - 6th Sep 2025</h5>
                             <ul>
-                                <li><strong>New Info View</strong></li>
-                                <li>When data is loaded via URL, default view is now an information screen explaining the NATO patient tag</li>
+                                <li><strong>New URL Info View</strong></li>
+                                <li>When data is loaded via URL (NFC or other), default view is now an information screen explaining the NATO patient tag</li>
                                 <li>Info text supports HTML formatting for paragraphs and emphasis</li>
                                 <li><strong>New Report View</strong></li>
                                 <li>Added a fourth viewing option styled to match PDF layout</li>
                                 <li>Brand colours applied (deep blue headers, light background, zebra rows, muted grey subtext)</li>
                                 <li>Tables for Medications, Allergies, Conditions, Observations, Immunizations, and Procedures included</li>
                                 <li>Data ordered chronologically (oldest first) for medical clarity</li>
+                                <li><strong>DMS Logo for PDF</strong></li>
+                                <li>Branding improved with svg image for PDF</li>
                             </ul>
                         </li>
                     </ul>
