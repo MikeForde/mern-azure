@@ -28,8 +28,8 @@ const TIMELINE_GROUPS = [
 
 // Informational copy shown when user lands via URL (NFC flow)
 const infoHtml = `
-<p>This NATO patient tag contains the digital record of this patient and their recent care. This information has been carried securely by the patient without the requirement for transmission elsewhere.</p>
-<p>You can now digitally import the patient, their diagnoses, symptoms, observations and treatments to your electronic health record. It can be exported in different open formats or viewed as a PDF.</p>
+<p>This NATO patient tag contains the digital record of this patient and their recent care. This information has been securely carried by the patient with no requirement for connectivity or network synchronisation.</p>
+<p>You can now digitally import the patient, their diagnoses, symptoms, observations and treatments to an electronic health record. It can be exported in different open formats or viewed as a PDF.</p>
 <p>This enables digital patient handover to any other medical facility, enabling optimal care for all.</p>
 <p><strong>This Defence Medical Services innovation is offered as a free good in the service of all.</strong></p>
 `;
