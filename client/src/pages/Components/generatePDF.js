@@ -123,7 +123,7 @@ export const generatePDF = async (ips) => {
     return out;
   };
 
-  // --- NEW: fit as much text as possible in one line (prefers breaking on spaces)
+  // --- we will fit as much text as possible in one line (prefers breaking on spaces)
   const fitOneLine = (text, maxWidth, fnt = font, size = fontSize) => {
     const t = String(text ?? "");
     if (!t) return "";
@@ -143,7 +143,7 @@ export const generatePDF = async (ips) => {
     return lastSpace > 0 ? slice.slice(0, lastSpace) : slice;
   };
 
-  // --- NEW: layout text into up to two lines with a 2pt smaller font; ellipsis if still too long
+  // --- layout text into up to two lines with a 2pt smaller font; ellipsis if still too long
   const twoLineLayout = (text, maxWidth, fnt = font, baseSize = fontSize) => {
     const smaller = Math.max(7, baseSize - 2);
     const t = String(text ?? "");
@@ -399,31 +399,101 @@ export const generatePDF = async (ips) => {
   yOffset -= 12;
 
   // --- patient card ---
-  ensureSpace(110);
-  const cardH = 90;
+  ensureSpace(130);
+
+  // layout constants
+  const colGap = 12;                         // inner padding
+  const colWidth = (width - 2 * margin) / 2; // each column box width
+  const labelWidth = 54;                     // approx label width in pts
+  const valuePad = 12;                       // value left padding from label
+  const valueMaxW = colWidth - (labelWidth + valuePad + colGap); // available width for values
+
+  // card rows (left/right columns)
+  const leftFields = [
+    { label: 'Name',   value: `${ips?.patient?.given ?? ''} ${ips?.patient?.name ?? ''}` },
+    { label: 'DOB',    value: `${formatDateNoTime(ips?.patient?.dob)}` },
+    { label: 'Gender', value: `${ips?.patient?.gender ?? ''}` },
+    { label: 'NATO id', value: `${ips?.patient?.identifier ?? ''}` },
+  ];
+
+  const rightFields = [
+    { label: 'Country',      value: `${ips?.patient?.nation ?? ''}` },
+    { label: 'Practitioner', value: `${ips?.patient?.practitioner ?? ''}` },
+    { label: 'Organization', value: `${ips?.patient?.organization ?? ''}` },
+    { label: 'National id',  value: `${ips?.patient?.identifier2 ?? ''}` },
+  ];
+
+  // Measure rows to determine needed height per row (max of left/right)
+  const baseLabelSize = 10;
+  const baseValueSize = 11;
+  const rowBaseH = 18; // minimum row height (matches your table baseline)
+
+  const measureRowHeights = (pairs) => {
+    return pairs.map(({ left, right }) => {
+      const leftLayout  = left  ? twoLineLayout(left.value  ?? '', valueMaxW, font, baseValueSize)  : { lines:[''], usedSize: baseValueSize, twoLine:false };
+      const rightLayout = right ? twoLineLayout(right.value ?? '', valueMaxW, font, baseValueSize)  : { lines:[''], usedSize: baseValueSize, twoLine:false };
+
+      const heightFor = (layout) => layout.twoLine ? (layout.usedSize * 2 + 4) : (rowBaseH - 4);
+      const h = Math.max(heightFor(leftLayout), heightFor(rightLayout), rowBaseH);
+      return { h, leftLayout, rightLayout };
+    });
+  };
+
+  // Pair up rows by index
+  const maxRows = Math.max(leftFields.length, rightFields.length);
+  const pairs = Array.from({ length: maxRows }, (_, i) => ({
+    left: leftFields[i] ?? null,
+    right: rightFields[i] ?? null
+  }));
+
+  const measured = measureRowHeights(pairs);
+
+  // Compute card height: top padding + rows + bottom padding
+  const cardTopPad = 14;
+  const cardBottomPad = 12;
+  const cardH = cardTopPad + measured.reduce((s, r) => s + r.h, 0) + cardBottomPad;
+
+  // Draw card background
   page.drawRectangle({
     x: margin, y: yOffset - cardH, width: width - margin * 2, height: cardH,
     color: rgb(1, 1, 1), borderColor: BRAND.primary, borderWidth: 1
   });
 
-  const leftX = margin + 12;
-  const leftVX = margin + 60;
-  const rightX = margin + (width - 2 * margin) / 2 + 6;
-  const rightVX = rightX + 80;
-  let lineY = yOffset - 18;
+  // Column anchors
+  const colLeftX  = margin + colGap;
+  const colRightX = margin + colWidth + colGap;
 
-  const label = (t, x, y) => drawText(t, boldFont, 10, x, y, BRAND.subtle);
-  const val = (t, x, y) => drawText(t, font, 11, x, y, BRAND.text);
+  // Render rows
+  let rowY = yOffset - cardTopPad;
 
-  label('Name', leftX, lineY); val(`${ips?.patient?.given ?? ''} ${ips?.patient?.name ?? ''}`, leftVX, lineY);
-  label('DOB', leftX, lineY - 18); val(`${formatDateNoTime(ips?.patient?.dob)}`, leftVX, lineY - 18);
-  label('Gender', leftX, lineY - 36); val(`${ips?.patient?.gender ?? ''}`, leftVX, lineY - 36);
-  label('NATO id', leftX, lineY - 54); val(`${ips?.patient?.identifier ?? ''}`, leftVX, lineY - 54);
+  const drawField = (x, labelText, layout) => {
+    if (!labelText && !layout) return;
+    // label
+    drawText(labelText, boldFont, baseLabelSize, x, rowY - baseLabelSize, BRAND.subtle);
+    // value (stack up to 2 lines)
+    const vx = x + labelWidth + valuePad;
+    const firstBaseline = rowY - baseLabelSize; // align value top with label baseline
+    const vSize = layout.usedSize;
+    const vFirstY = firstBaseline;
+    page.drawText(layout.lines[0] ?? '', {
+      x: vx, y: vFirstY, size: vSize, font, color: BRAND.text
+    });
+    if (layout.lines[1]) {
+      page.drawText(layout.lines[1], {
+        x: vx, y: vFirstY - (vSize + 2), size: vSize, font, color: BRAND.text
+      });
+    }
+  };
 
-  label('Country', rightX, lineY); val(`${ips?.patient?.nation ?? ''}`, rightVX, lineY);
-  label('Practitioner', rightX, lineY - 18); val(`${ips?.patient?.practitioner ?? ''}`, rightVX, lineY - 18);
-  label('Organization', rightX, lineY - 36); val(`${ips?.patient?.organization ?? ''}`, rightVX, lineY - 36);
-  label('National id', rightX, lineY - 54); val(`${ips?.patient?.identifier2 ?? ''}`, rightVX, lineY - 54);
+  measured.forEach((row, i) => {
+    const L = pairs[i].left;
+    const R = pairs[i].right;
+
+    if (L) drawField(colLeftX,  L.label,  row.leftLayout);
+    if (R) drawField(colRightX, R.label,  row.rightLayout);
+
+    rowY -= row.h; // advance by row height
+  });
 
   yOffset -= cardH + 14;
 
