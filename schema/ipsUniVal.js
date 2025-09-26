@@ -27,6 +27,25 @@ schemaFiles.forEach(file => {
   schemas[name] = JSON.parse(raw);
 });
 
+function prettyAjvError(e, prefix = '') {
+  let message = e.message;
+
+  if (e.keyword === 'additionalProperties') {
+    message = `Unexpected property "${e.params.additionalProperty}"`;
+  } else if (e.keyword === 'required') {
+    message = `Missing required property "${e.params.missingProperty}"`;
+  } else if (e.keyword === 'enum' && Array.isArray(e.params?.allowedValues)) {
+    message = `Must be one of: ${e.params.allowedValues.join(', ')}`;
+  } else if (e.keyword === 'type' && e.params?.type) {
+    message = `Invalid type: expected ${e.params.type}`;
+  }
+
+  return {
+    path: `${prefix}${e.instancePath || ''}`,
+    message
+  };
+}
+
 // POST /ipsUniVal
 router.post('/', (req, res) => {
   const ajv = new Ajv({ allErrors: true, strict: false });
@@ -59,7 +78,7 @@ router.post('/', (req, res) => {
     },
     errors: true
   });
-  
+
   addFormats(ajv);
   // Register schemas under their resourceType name
   Object.entries(schemas).forEach(([name, schema]) => ajv.addSchema(schema, name));
@@ -87,9 +106,7 @@ router.post('/', (req, res) => {
     delete envelopeSchema.$id;
     envelopeSchema.properties.entry.items.properties.resource = { type: 'object' };
     if (!ajv.validate(envelopeSchema, obj)) {
-      (ajv.errors || []).forEach(e =>
-        errors.push({ path: e.instancePath, message: e.message })
-      );
+      (ajv.errors || []).forEach(e => errors.push(prettyAjvError(e)));
     }
     // 2) Validate each entry.resource
     obj.entry?.forEach((en, idx) => {
@@ -102,19 +119,14 @@ router.post('/', (req, res) => {
         });
       } else if (!ajv.validate(schemaName, resObj)) {
         (ajv.errors || []).forEach(e =>
-          errors.push({
-            path: `/entry/${idx}/resource/${schemaName}${e.instancePath}`,
-            message: e.message
-          })
+          errors.push(prettyAjvError(e, `/entry/${idx}/resource/${schemaName}`))
         );
       }
     });
   } else {
     // Single resource validation
     ajv.validate(topType, obj);
-    (ajv.errors || []).forEach(e =>
-      errors.push({ path: e.instancePath, message: e.message })
-    );
+    (ajv.errors || []).forEach(e => errors.push(prettyAjvError(e)));
   }
 
   res.json({ valid: errors.length === 0, errors });

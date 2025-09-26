@@ -693,6 +693,14 @@ function ChangeLogPage() {
                                 <li>Branding improved with svg image for PDF</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_71 - 26th Sep 2025</h5>
+                            <ul>
+                                <li><strong>More Informative Schema Validation Error Messages</strong></li>
+                                <li>Added a prettyAjvError function to backend validator to improve error messages</li>
+                                <li>Also tightened up schema restrcitions on CodeableConcept</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

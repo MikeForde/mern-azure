@@ -33,8 +33,10 @@
             "items": {
               "$ref": "#/definitions/Coding"
             }
-          }
-        }
+          },
+          "text": { "type": ["string", "null"] }
+        },
+        "additionalProperties": false
       },
       "Coding": {
         "type": "object",
