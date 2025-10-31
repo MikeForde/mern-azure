@@ -16,7 +16,7 @@ async function getIPSUnifiedBundle(req, res) {
         }
 
         // Constructing the JSON structure
-        const bundle = generateIPSBundleUnified(ips);
+        const bundle = await generateIPSBundleUnified(ips);
 
         res.json(bundle);
     } catch (err) {

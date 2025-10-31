@@ -1,11 +1,13 @@
 const { v4: uuidv4 } = require('uuid');
 const { stripMilliseconds, stripTime } = require('../../utils/timeUtils');
-const { encryptPrimitiveField, underscoreFieldFor } = require('../../encryption/fhirFieldCrypt');
+//const { encryptPrimitiveField, underscoreFieldFor } = require('../../encryption/fhirFieldCrypt');
+const { encryptPrimitiveFieldJWE, underscoreFieldFor } = require('../../encryption/jweFieldCrypt');
+
 
 // Helper function to check if a string contains a number
 const containsNumber = (str) => /\d/.test(str);
 
-function generateIPSBundleUnified(ips, encryptPatientIds = true) {
+async function generateIPSBundleUnified(ips, encryptPatientIds = true) {
 
     const ptId = "pt1";
 
@@ -305,18 +307,32 @@ function generateIPSBundleUnified(ips, encryptPatientIds = true) {
             if (patient?.identifier && Array.isArray(patient.identifier)) {
                 // Encrypt identifier[0].value if present
                 if (patient.identifier[0]?.value) {
-                    const enc0 = encryptPrimitiveField(
+                    const enc0 = await encryptPrimitiveFieldJWE(
                         patient.identifier[0].value,
-                        { url: 'https://example.org/fhir/StructureDefinition/encrypted-nato-id' }
+                        {
+                            url: 'https://example.org/fhir/StructureDefinition/encrypted-nato-id',
+                            recipients: [
+                                { type: 'pbes2', password: 'patient phrase', p2c: 150000, kid: 'patient-pw' }
+                            ],
+                            enc: 'A256GCM',
+                            aadUtf8: `Patient/${ptId}#identifier[0].value`
+                        }
                     );
                     patient.identifier[0].value = enc0.placeholder;
                     Object.assign(patient.identifier[0], underscoreFieldFor('value', enc0.extension));
                 }
                 // Encrypt identifier[1].value if present
                 if (patient.identifier[1]?.value) {
-                    const enc1 = encryptPrimitiveField(
+                    const enc1 = await encryptPrimitiveFieldJWE(
                         patient.identifier[1].value,
-                        { url: 'https://example.org/fhir/StructureDefinition/encrypted-national-id' }
+                        {
+                            url: 'https://example.org/fhir/StructureDefinition/encrypted-national-id',
+                            recipients: [
+                                { type: 'pbes2', password: 'patient phrase', p2c: 150000, kid: 'patient-pw' }
+                            ],
+                            enc: 'A256GCM',
+                            aadUtf8: `Patient/${ptId}#identifier[1].value`
+                        }
                     );
                     patient.identifier[1].value = enc1.placeholder;
                     Object.assign(patient.identifier[1], underscoreFieldFor('value', enc1.extension));

@@ -17,6 +17,8 @@
         "@grpc/grpc-js": "^1.13.0",
         "@grpc/proto-loader": "^0.7.13",
         "@xmpp/client": "0.13.4",
+        "ajv": "^8.17.1",
+        "ajv-formats": "^3.0.1",
         "autoprefixer": "^10.4.20",
         "axios": "^0.24.0",
         "concurrently": "^6.5.1",
@@ -27,16 +29,15 @@
         "graphql": "^16.10.0",
         "graphql-playground-middleware-express": "^1.7.23",
         "graphql-tag": "^2.12.6",
+        "jose": "^6.1.0",
         "moment": "^2.29.1",
         "mongoose": "^6.0.13",
         "nodemon": "^2.0.15",
         "postcss": "^8.5.1",
         "raw-body": "^2.4.0",
+        "socket.io": "^4.0.0",
         "swagger-ui-express": "^5.0.1",
         "uuid": "^8.3.2",
-        "xml-js": "1.6.11",
-        "socket.io": "^4.0.0",
-        "ajv": "^8.17.1",
-        "ajv-formats": "^3.0.1"
+        "xml-js": "1.6.11"
     }
 }
