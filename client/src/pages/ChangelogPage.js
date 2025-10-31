@@ -701,6 +701,15 @@ function ChangeLogPage() {
                                 <li>Also tightened up schema restrcitions on CodeableConcept</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_72 - 30th Oct 2025</h5>
+                            <ul>
+                                <li><strong>Field-Level Encryption - Early Demo + Gzip Only NFC</strong></li>
+                                <li>Added <code>encryption/fhirFieldCrypt.js</code> to support per-field AES-256-GCM encryption for selected FHIR primitives (currently applied to Patient.identifier fields).</li>
+                                <li>Updated <code>generateIPSBundleUnified.js</code> to optionally produce IPS bundles with encrypted identifiers when invoked with the encryption flag - but currently fixed to <code>true</code></li>
+                                <li>Added new <em>“Gzip Binary (as shown)”</em> NFC write option for gzipped, non-encrypted payloads.</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

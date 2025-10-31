@@ -219,6 +219,16 @@ function APIGETPage() {
           `/${mode}/${selectedPatient._id}`, { headers: { Accept: 'application/octet-stream' }, responseType: 'arraybuffer' }
         );
         await writer.write({ records: [{ recordType: 'mime', mediaType: 'application/x.ips.gzip.aes256.v1-0', data: new Uint8Array(resp.data) }] });
+      } else if (nfctype === 'gzipbin') {
+        // Gzip the visible text and write as a binary MIME record (no encryption)
+        const gzipped = pako.gzip(data); // Uint8Array
+        await writer.write({
+          records: [{
+            recordType: 'mime',
+            mediaType: 'application/x.ips.gzip.v1-0', // custom; use 'application/gzip' if you prefer
+            data: gzipped
+          }]
+        });
       } else if (nfctype === 'url') {
         const gzipped = pako.gzip(data);
         const base64 = btoa(String.fromCharCode(...gzipped))
@@ -292,7 +302,11 @@ function APIGETPage() {
                 className="form-check-input"
                 id="compressionEncryption"
                 checked={useCompressionAndEncryption}
-                onChange={(e) => setUseCompressionAndEncryption(e.target.checked)}
+                onChange={(e) => {
+                  const v = e.target.checked;
+                  setUseCompressionAndEncryption(v);
+                  // if (v) setUseGzipOnly(false); // mutually exclusive
+                }}
               />
               <label className="form-check-label" htmlFor="compressionEncryption">
                 Gzip + Encrypt (aes256 base64)
@@ -347,8 +361,9 @@ function APIGETPage() {
                 disabled={!data || isWriting}
                 onSelect={handleNfcWriteMode}
               >
-                <Dropdown.Item eventKey="plain">Plain Text</Dropdown.Item>
-                <Dropdown.Item eventKey="binary">Binary (AES256 + gzip)</Dropdown.Item>
+                <Dropdown.Item eventKey="plain">As Shown Above</Dropdown.Item>
+                <Dropdown.Item eventKey="binary">Binary (AES256 + gzip) - regardless to above</Dropdown.Item>
+                <Dropdown.Item eventKey="gzipbin">Gzip (as shown)</Dropdown.Item>
                 <Dropdown.Item eventKey="url">Gzipped Data URL</Dropdown.Item>
                 <Dropdown.Item eventKey="copyurl">Gzipped Data URL - CopyPaste Buffer Only</Dropdown.Item>
               </DropdownButton>
