@@ -22,7 +22,8 @@ export default function NFCReaderPage() {
   const [toastVariant, setToastVariant] = useState('info');
 
   // Custom MIME type
-  const BINARY_MIME = 'application/x.ips.gzip.aes256.v1-0';
+  const BINARY_MIME_ENC = 'application/x.ips.gzip.aes256.v1-0';
+  const BINARY_MIME_GZIP = 'application/x.ips.gzip.v1-0';
 
   const handleReadFromNfc = async () => {
     if (!('NDEFReader' in window)) {
@@ -58,7 +59,7 @@ export default function NFCReaderPage() {
         if (message.records.length > 0) {
           const record = message.records[0];
           // ... existing decoding logic ...
-          if (record.recordType === 'mime' && record.mediaType === BINARY_MIME) {
+          if (record.recordType === 'mime' && record.mediaType === BINARY_MIME_ENC) {
             const buffer = record.data instanceof ArrayBuffer
               ? record.data
               : record.data.buffer;
@@ -80,6 +81,26 @@ export default function NFCReaderPage() {
               extracted = bodyStr;
             } catch (err) {
               extracted = `Error decoding binary: ${err.message}`;
+            }
+          } else if (record.recordType === 'mime' &&
+            (record.mediaType === BINARY_MIME_GZIP || record.mediaType === 'application/gzip')) {
+            // Gzip-only: gunzip locally and show the UTF-8 text
+            try {
+              const buf = record.data instanceof ArrayBuffer
+                ? new Uint8Array(record.data)
+                : new Uint8Array(record.data?.buffer || record.data);
+              // lazy import to avoid bundling if unused
+              const { default: pako } = await import('pako');
+              const ungz = pako.ungzip(buf);
+              const text = new TextDecoder('utf-8').decode(ungz);
+              // If it's JSON, pretty-print; otherwise show as-is
+              try {
+                extracted = JSON.stringify(JSON.parse(text), null, 2);
+              } catch {
+                extracted = text;
+              }
+            } catch (err) {
+              extracted = `Error gunzipping payload: ${err.message}`;
             }
           } else if (record.recordType === 'text') {
             const decoder = new TextDecoder(record.encoding || 'utf-8');
