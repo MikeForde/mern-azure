@@ -340,7 +340,13 @@ async function generateIPSBundleUnified(ips, encryptPatientIds = true) {
             }
         } catch (err) {
             // Fail soft: leave bundle as-is if anything goes wrong
-            console.error('Field-level ID encryption skipped:', err?.message || err);
+            const msg = err?.message || String(err);
+            console.error('Field-level ID encryption skipped:', msg);
+
+            // inject a visible hint into the patient.identifier
+            if (ipsBundle?.entry?.[0]?.resource?.identifier?.[0]) {
+                ipsBundle.entry[0].resource.identifier[0].encryptionError = msg;
+            }
         }
     }
 
