@@ -704,10 +704,22 @@ function ChangeLogPage() {
                         <li>
                             <h5>Version 0_72 - 30th Oct 2025</h5>
                             <ul>
-                                <li><strong>Field-Level Encryption - Early Demo + Gzip Only NFC</strong></li>
-                                <li>Added <code>encryption/fhirFieldCrypt.js</code> to support per-field AES-256-GCM encryption for selected FHIR primitives (currently applied to Patient.identifier fields).</li>
-                                <li>Updated <code>generateIPSBundleUnified.js</code> to optionally produce IPS bundles with encrypted identifiers when invoked with the encryption flag - but currently fixed to <code>true</code></li>
-                                <li>Added new <em>“Gzip Binary (as shown)”</em> NFC write option for gzipped, non-encrypted payloads.</li>
+                                <li>
+                                    <h5>Version 0_72 - 30th Oct 2025</h5>
+                                    <ul>
+                                        <li><strong>Field-Level Encryption – Early Demo + Gzip-Only NFC</strong></li>
+                                        <li>Using: <code>encryption/jweFieldCrypt.js</code> (JWE, PBES2 + A256GCM) for per-field protection of FHIR primitives; currently applied to <code>Patient.identifier</code>.</li>
+                                        <li>Available but unused: <code>encryption/pwFieldCrypt.js</code> (password → PBKDF2-SHA256 → AES-256-GCM) as a lightweight, jose-free alternative for password-only scenarios.</li>
+                                        <li><strong>New Options on API Page:</strong>
+                                            <ul>
+                                                <li><em>Field-Level Id Encrypt</em> – replaces patient identifiers with secure, password-protected encrypted values.</li>
+                                                <li><em>Id Omit</em> – removes identifiers entirely, leaving only gender and birth date visible.</li>
+                                            </ul>
+                                        </li>
+                                        <li>Gzip-Only NFC Write – added “Gzip Binary (as shown)” mode for writing compressed but unencrypted data to NFC tags.</li>
+                                        <li>Improved NFC Reading - now recognises both encrypted and gzip-only payload formats automatically.</li>
+                                    </ul>
+                                </li>
                             </ul>
                         </li>
                     </ul>

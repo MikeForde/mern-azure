@@ -21,6 +21,8 @@ function APIGETPage() {
   const [toastMsg, setToastMsg] = useState('');
   const [toastVariant, setToastVariant] = useState('info');
   const [isWriting, setIsWriting] = useState(false);
+  const [useFieldEncrypt, setUseFieldEncrypt] = useState(false); // => protect=1 (JWE)
+  const [useIdOmit, setUseIdOmit] = useState(false);             // => protect=2 (omit)
   // const [useBinary, setUseBinary] = useState(false);
 
 
@@ -39,6 +41,15 @@ function APIGETPage() {
           endpoint = `/ipsbeer/${selectedPatient._id}/pipe`;
         } else {
           endpoint = `/${mode}/${selectedPatient._id}`;
+        }
+
+        // add protect flag for ipsunified only
+        if (mode === 'ipsunified') {
+          if (useFieldEncrypt) {
+            endpoint += (endpoint.includes('?') ? '&' : '?') + 'protect=1';
+          } else if (useIdOmit) {
+            endpoint += (endpoint.includes('?') ? '&' : '?') + 'protect=2';
+          }
         }
 
         console.log('Fetching data from:', endpoint);
@@ -81,7 +92,7 @@ function APIGETPage() {
 
       fetchData();
     }
-  }, [selectedPatient, mode, useCompressionAndEncryption, stopLoading, startLoading, useIncludeKey]);
+  }, [selectedPatient, mode, useCompressionAndEncryption, stopLoading, startLoading, useIncludeKey, useFieldEncrypt, useIdOmit]);
 
   const handleDownloadData = () => {
     if (!selectedPatient) return;
@@ -130,7 +141,8 @@ function APIGETPage() {
     // 4) Suffix for GE
     const ikSuffix = useIncludeKey && useCompressionAndEncryption ? '_ik' : '';
     const ceSuffix = useCompressionAndEncryption ? '_ce' : '';
-    const fileName = `${yyyymmdd}-${fam}_${giv}_${last6}_${mode}${ceSuffix}${ikSuffix}.${extension}`;
+    const pmSuffix = mode === 'ipsunified'? useFieldEncrypt ? '_jwefld' : (useIdOmit ? '_omit' : '') : '' ;
+    const fileName = `${yyyymmdd}-${fam}_${giv}_${last6}_${mode}${pmSuffix}${ceSuffix}${ikSuffix}.${extension}`;
 
     // 5) Create & click the download link
     const blob = new Blob([data], { type: mimeType });
@@ -322,6 +334,41 @@ function APIGETPage() {
               />
               <label className="form-check-label" htmlFor="includeKey">
                 Include key in response
+              </label>
+            </div>
+            <div className="form-check">
+              <input
+                type="checkbox"
+                className="form-check-input"
+                id="fldEnc"
+                checked={useFieldEncrypt}
+                disabled={mode !== 'ipsunified'}        // only applies to ipsunified
+                onChange={(e) => {
+                  const v = e.target.checked;
+                  setUseFieldEncrypt(v);
+                  if (v) setUseIdOmit(false);           // enforce mutual exclusivity
+                }}
+              />
+              <label className="form-check-label" htmlFor="fldEnc">
+                Field-Level Id Encrypt
+              </label>
+            </div>
+
+            <div className="form-check">
+              <input
+                type="checkbox"
+                className="form-check-input"
+                id="idOmit"
+                checked={useIdOmit}
+                disabled={mode !== 'ipsunified'}        // only applies to ipsunified
+                onChange={(e) => {
+                  const v = e.target.checked;
+                  setUseIdOmit(v);
+                  if (v) setUseFieldEncrypt(false);     // enforce mutual exclusivity
+                }}
+              />
+              <label className="form-check-label" htmlFor="idOmit">
+                Id Omit
               </label>
             </div>
           </>

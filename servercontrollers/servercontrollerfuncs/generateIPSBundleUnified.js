@@ -2,13 +2,14 @@ const { v4: uuidv4 } = require('uuid');
 const { stripMilliseconds, stripTime } = require('../../utils/timeUtils');
 //const { encryptPrimitiveField, underscoreFieldFor } = require('../../encryption/fhirFieldCrypt');
 const { encryptPrimitiveFieldJWE, underscoreFieldForJWE } = require('../../encryption/jweFieldCrypt');
+const { system } = require('nodemon/lib/config');
 //const { encryptPrimitiveFieldPW, underscoreFieldForPW } = require('../../encryption/pwFieldCrypt');
 
 
 // Helper function to check if a string contains a number
 const containsNumber = (str) => /\d/.test(str);
 
-async function generateIPSBundleUnified(ips, encryptPatientIds = true) {
+async function generateIPSBundleUnified(ips, protectMethod = "none") {
 
     const ptId = "pt1";
 
@@ -301,7 +302,7 @@ async function generateIPSBundleUnified(ips, encryptPatientIds = true) {
         ],
     };
 
-    if (encryptPatientIds) {
+    if (protectMethod === "jwe") {
         try {
             const patientEntry = ipsBundle.entry.find(e => e.resource?.resourceType === 'Patient');
             const patient = patientEntry?.resource;
@@ -370,6 +371,23 @@ async function generateIPSBundleUnified(ips, encryptPatientIds = true) {
                 ipsBundle.entry[0].resource.identifier[0].encryptionError = msg;
             }
         }
+    }
+
+    if (protectMethod === "omit") {
+        const patientEntry = ipsBundle.entry.find(e => e.resource?.resourceType === 'Patient');
+        if (patientEntry?.resource) {
+            const { gender, birthDate } = patientEntry.resource; // preserve existing values
+            patientEntry.resource = {
+                resourceType: "Patient",
+                id: ptId,
+                identifier: [{system: "omitted", value: "omitted"}],
+                name: [{ family: "omitted", given: ["omitted"] }],
+                gender,      // may be undefined if not present; that's fine
+                birthDate,   // ditto
+                address: [{ country: "omitted" }],
+            };
+        }
+        // All other resources still reference Patient/pt1 — that remains valid.
     }
 
     return ipsBundle;

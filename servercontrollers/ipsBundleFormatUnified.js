@@ -15,8 +15,23 @@ async function getIPSUnifiedBundle(req, res) {
             return res.status(404).json({ message: "IPS record not found" });
         }
 
+        const useJwe =
+            String(req.query.protect || '').trim() === '1' ||
+            (req.get('X-Field-Enc') || '').toLowerCase() === 'jwe';
+
+        const useOmit =
+            String(req.query.protect || '').trim() === '2' ||
+            (req.get('X-Field-Enc') || '').toLowerCase() === 'omit';
+
+        let protectMethod = "none";
+        if (useJwe) {
+            protectMethod = "jwe";
+        } else if (useOmit) {
+            protectMethod = "omit";
+        }
+
         // Constructing the JSON structure
-        const bundle = await generateIPSBundleUnified(ips);
+        const bundle = await generateIPSBundleUnified(ips, protectMethod);
 
         res.json(bundle);
     } catch (err) {
