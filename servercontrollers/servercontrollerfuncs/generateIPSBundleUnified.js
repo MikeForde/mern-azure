@@ -1,7 +1,8 @@
 const { v4: uuidv4 } = require('uuid');
 const { stripMilliseconds, stripTime } = require('../../utils/timeUtils');
 //const { encryptPrimitiveField, underscoreFieldFor } = require('../../encryption/fhirFieldCrypt');
-const { encryptPrimitiveFieldJWE, underscoreFieldFor } = require('../../encryption/jweFieldCrypt');
+const { encryptPrimitiveFieldJWE, underscoreFieldForJWE } = require('../../encryption/jweFieldCrypt');
+//const { encryptPrimitiveFieldPW, underscoreFieldForPW } = require('../../encryption/pwFieldCrypt');
 
 
 // Helper function to check if a string contains a number
@@ -319,7 +320,7 @@ async function generateIPSBundleUnified(ips, encryptPatientIds = true) {
                         }
                     );
                     patient.identifier[0].value = enc0.placeholder;
-                    Object.assign(patient.identifier[0], underscoreFieldFor('value', enc0.extension));
+                    Object.assign(patient.identifier[0], underscoreFieldForJWE('value', enc0.extension));
                 }
                 // Encrypt identifier[1].value if present
                 if (patient.identifier[1]?.value) {
@@ -335,9 +336,30 @@ async function generateIPSBundleUnified(ips, encryptPatientIds = true) {
                         }
                     );
                     patient.identifier[1].value = enc1.placeholder;
-                    Object.assign(patient.identifier[1], underscoreFieldFor('value', enc1.extension));
+                    Object.assign(patient.identifier[1], underscoreFieldForJWE('value', enc1.extension));
                 }
             }
+            // if (patient.identifier[0]?.value) {
+            //     const enc0 = await encryptPrimitiveFieldPW(patient.identifier[0].value, {
+            //         url: 'https://example.org/fhir/StructureDefinition/encrypted-nato-id',
+            //         password: 'patient phrase',
+            //         iter: 150000,
+            //         aadUtf8: `Patient/${ptId}#identifier[0].value`,
+            //     });
+            //     patient.identifier[0].value = enc0.placeholder;
+            //     Object.assign(patient.identifier[0], underscoreFieldForPW('value', enc0.extension));
+            // }
+
+            // if (patient.identifier[1]?.value) {
+            //     const enc1 = await encryptPrimitiveFieldPW(patient.identifier[1].value, {
+            //         url: 'https://example.org/fhir/StructureDefinition/encrypted-national-id',
+            //         password: 'patient phrase',
+            //         iter: 150000,
+            //         aadUtf8: `Patient/${ptId}#identifier[1].value`,
+            //     });
+            //     patient.identifier[1].value = enc1.placeholder;
+            //     Object.assign(patient.identifier[1], underscoreFieldForPW('value', enc1.extension));
+            // }
         } catch (err) {
             // Fail soft: leave bundle as-is if anything goes wrong
             const msg = err?.message || String(err);

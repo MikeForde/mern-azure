@@ -1,4 +1,8 @@
 // encryption/jweFieldCrypt.js
+// Ensure globalThis.crypto exists for jose under Node on Azure
+if (typeof globalThis.crypto === 'undefined') {
+  globalThis.crypto = require('crypto').webcrypto;
+}
 
 // ESM-only library; use dynamic import from CommonJS
 let jose;
@@ -17,7 +21,7 @@ function b64decodeUtf8(b64) {
 }
 
 /** Build the underscore-companion for a FHIR primitive */
-function underscoreFieldFor(elementName, extension) {
+function underscoreFieldForJWE(elementName, extension) {
   if (!elementName) throw new Error('underscoreFieldFor: elementName required');
   return { ['_' + elementName]: { extension: [extension] } };
 }
@@ -158,5 +162,5 @@ async function decryptPrimitiveExtensionJWE(extension, keyring) {
 module.exports = {
   encryptPrimitiveFieldJWE,
   decryptPrimitiveExtensionJWE,
-  underscoreFieldFor,
+  underscoreFieldForJWE,
 };
