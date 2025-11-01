@@ -141,7 +141,7 @@ function APIGETPage() {
     // 4) Suffix for GE
     const ikSuffix = useIncludeKey && useCompressionAndEncryption ? '_ik' : '';
     const ceSuffix = useCompressionAndEncryption ? '_ce' : '';
-    const pmSuffix = mode === 'ipsunified'? useFieldEncrypt ? '_jwefld' : (useIdOmit ? '_omit' : '') : '' ;
+    const pmSuffix = mode === 'ipsunified' ? useFieldEncrypt ? '_jwefld' : (useIdOmit ? '_omit' : '') : '';
     const fileName = `${yyyymmdd}-${fam}_${giv}_${last6}_${mode}${pmSuffix}${ceSuffix}${ikSuffix}.${extension}`;
 
     // 5) Create & click the download link
@@ -271,105 +271,104 @@ function APIGETPage() {
         </h3>
         {selectedPatients.length > 0 && selectedPatient && (
           <>
-            <div className="dropdown-container">
-              <DropdownButton
-                id="dropdown-record"
-                title={`Patient: ${selectedPatient.patient.given} ${selectedPatient.patient.name}`}
-                onSelect={handleRecordChange}
-                className="dropdown-button"
-              >
-                {selectedPatients.map((record) => (
-                  <Dropdown.Item
-                    key={record._id}
-                    eventKey={record._id}
-                    active={selectedPatient && selectedPatient._id === record._id}
-                  >
-                    {record.patient.given} {record.patient.name}
-                  </Dropdown.Item>
-                ))}
-              </DropdownButton>
-            </div>
-            <div className="dropdown-container">
-              <DropdownButton
-                id="dropdown-mode"
-                title={`API: ${modeText}`}
-                onSelect={handleModeChange}
-                className="dropdown-button"
-              >
-                <Dropdown.Item eventKey="ipsunified">IPS Unified JSON Bundle - /ipsunified/:id</Dropdown.Item>
-                <Dropdown.Item eventKey="ipshl72x">IPS HL7 2.3 - /ipshl72x/:id</Dropdown.Item>
-                <Dropdown.Item eventKey="ipsmongo">IPS NoSQL - /ipsmongo/:id</Dropdown.Item>
-                <Dropdown.Item eventKey="ipsbeer">IPS BEER - /ipsbeer/:id</Dropdown.Item>
-                <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER - /ipsbeer/:id/pipe</Dropdown.Item>
-                <Dropdown.Item eventKey="ipsbasic">IPS Minimal - /ipsbasic/:id</Dropdown.Item>
-                <Dropdown.Item eventKey="ips">IPS Prev JSON Bundle - /ips/:id or /ipsbyname/:name/:given</Dropdown.Item>
-                <Dropdown.Item eventKey="ipsxml">IPS Prev XML Bundle - /ipsxml/:id</Dropdown.Item>
-                <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle - /ipslegacy/:id</Dropdown.Item>
-                <Dropdown.Item eventKey="ipsplaintext">IPS Plain Text - /ipsplaintext/:id</Dropdown.Item>
-              </DropdownButton>
-            </div>
-            <div className="form-check">
-              <input
-                type="checkbox"
-                className="form-check-input"
-                id="compressionEncryption"
-                checked={useCompressionAndEncryption}
-                onChange={(e) => {
-                  const v = e.target.checked;
-                  setUseCompressionAndEncryption(v);
-                  // if (v) setUseGzipOnly(false); // mutually exclusive
-                }}
-              />
-              <label className="form-check-label" htmlFor="compressionEncryption">
-                Gzip + Encrypt (aes256 base64)
-              </label>
-            </div>
-            <div className="form-check">
-              <input
-                type="checkbox"
-                className="form-check-input"
-                id="includeKey"
-                checked={useIncludeKey}
-                onChange={(e) => setUseIncludeKey(e.target.checked)}
-              />
-              <label className="form-check-label" htmlFor="includeKey">
-                Include key in response
-              </label>
-            </div>
-            <div className="form-check">
-              <input
-                type="checkbox"
-                className="form-check-input"
-                id="fldEnc"
-                checked={useFieldEncrypt}
-                disabled={mode !== 'ipsunified'}        // only applies to ipsunified
-                onChange={(e) => {
-                  const v = e.target.checked;
-                  setUseFieldEncrypt(v);
-                  if (v) setUseIdOmit(false);           // enforce mutual exclusivity
-                }}
-              />
-              <label className="form-check-label" htmlFor="fldEnc">
-                Field-Level Id Encrypt
-              </label>
+            {/* --- Top row: patient + API dropdowns side-by-side --- */}
+            <div className="row g-2 mb-2 align-items-center">
+              <div className="col-auto">
+                <DropdownButton
+                  id="dropdown-record"
+                  title={`Patient: ${selectedPatient.patient.given} ${selectedPatient.patient.name}`}
+                  onSelect={handleRecordChange}
+                  size="sm"
+                  variant="secondary"
+                >
+                  {selectedPatients.map((record) => (
+                    <Dropdown.Item
+                      key={record._id}
+                      eventKey={record._id}
+                      active={selectedPatient && selectedPatient._id === record._id}
+                    >
+                      {record.patient.given} {record.patient.name}
+                    </Dropdown.Item>
+                  ))}
+                </DropdownButton>
+              </div>
+
+              <div className="col-auto">
+                <DropdownButton
+                  id="dropdown-mode"
+                  title={`API: ${modeText}`}
+                  onSelect={handleModeChange}
+                  size="sm"
+                  variant="secondary"
+                >
+                  <Dropdown.Item eventKey="ipsunified">IPS Unified JSON Bundle - /ipsunified/:id</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipshl72x">IPS HL7 2.3 - /ipshl72x/:id</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipsmongo">IPS NoSQL - /ipsmongo/:id</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipsbeer">IPS BEER - /ipsbeer/:id</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER - /ipsbeer/:id/pipe</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipsbasic">IPS Minimal - /ipsbasic/:id</Dropdown.Item>
+                  <Dropdown.Item eventKey="ips">IPS Prev JSON Bundle - /ips/:id</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipsxml">IPS Prev XML Bundle - /ipsxml/:id</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle - /ipslegacy/:id</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipsplaintext">IPS Plain Text - /ipsplaintext/:id</Dropdown.Item>
+                </DropdownButton>
+              </div>
             </div>
 
-            <div className="form-check">
-              <input
-                type="checkbox"
-                className="form-check-input"
-                id="idOmit"
-                checked={useIdOmit}
-                disabled={mode !== 'ipsunified'}        // only applies to ipsunified
-                onChange={(e) => {
-                  const v = e.target.checked;
-                  setUseIdOmit(v);
-                  if (v) setUseFieldEncrypt(false);     // enforce mutual exclusivity
-                }}
-              />
-              <label className="form-check-label" htmlFor="idOmit">
-                Id Omit
-              </label>
+            {/* --- Second row: compact checkbox bar --- */}
+            <div className="row g-3 mb-3 align-items-center flex-wrap small">
+              <div className="col-auto">
+                <Form.Check
+                  type="checkbox"
+                  id="compressionEncryption"
+                  label="Gzip + Encrypt (aes256 base64)"
+                  checked={useCompressionAndEncryption}
+                  onChange={(e) => {
+                    const v = e.target.checked;
+                    setUseCompressionAndEncryption(v);
+                  }}
+                />
+              </div>
+
+              <div className="col-auto">
+                <Form.Check
+                  type="checkbox"
+                  id="includeKey"
+                  label="Include key in response"
+                  checked={useIncludeKey}
+                  onChange={(e) => setUseIncludeKey(e.target.checked)}
+                />
+              </div>
+
+              <div className="col-auto">
+                <Form.Check
+                  type="checkbox"
+                  id="fldEnc"
+                  label="Field-Level Id Encrypt"
+                  disabled={mode !== 'ipsunified'}
+                  checked={useFieldEncrypt}
+                  onChange={(e) => {
+                    const v = e.target.checked;
+                    setUseFieldEncrypt(v);
+                    if (v) setUseIdOmit(false);
+                  }}
+                />
+              </div>
+
+              <div className="col-auto">
+                <Form.Check
+                  type="checkbox"
+                  id="idOmit"
+                  label="Id Omit"
+                  disabled={mode !== 'ipsunified'}
+                  checked={useIdOmit}
+                  onChange={(e) => {
+                    const v = e.target.checked;
+                    setUseIdOmit(v);
+                    if (v) setUseFieldEncrypt(false);
+                  }}
+                />
+              </div>
             </div>
           </>
         )}
