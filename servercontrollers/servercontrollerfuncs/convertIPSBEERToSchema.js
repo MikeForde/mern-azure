@@ -29,7 +29,7 @@ function parseBEER(dataPacket, delimiter) {
                 bolDelimFound = true;
                 break;
             }
-        } 
+        }
     } else {
         bolDelimFound = true;
     }
@@ -73,13 +73,24 @@ function parseBEER(dataPacket, delimiter) {
         const medications = [];
         for (let i = 0; i < count; i++) {
             const name = lines[currentIndex++];
-            const date = new Date(lines[currentIndex++].replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
+
+            // supports: "20240501,20240501" or "20230602, 20230603, 20230602"
+            const dateLine = lines[currentIndex++];
+            const dates = String(dateLine)
+                .split(',')
+                .map(s => s.trim())
+                .filter(Boolean)
+                .map(s => new Date(s.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')));
+
             const dosage = lines[currentIndex++];
-            medications.push({ name, date, dosage });
+
+            dates.forEach(date => {
+                medications.push({ name, date, dosage });
+            });
         }
         return medications;
     };
-    
+
     const parsePostMeds = (count, earliestMedTime) => {
         const medications = [];
         for (let i = 0; i < count; i++) {
@@ -87,7 +98,7 @@ function parseBEER(dataPacket, delimiter) {
             const minutesList = lines[currentIndex++].split(',').map(min => parseInt(min, 10));
             const dosage = "Stat";
             currentIndex++; // Skip route line - may handle in future but dosage always assumed to be "Stat"
-    
+
             minutesList.forEach(minutes => {
                 const date = new Date(earliestMedTime.getTime() + minutes * 60000);
                 medications.push({ name, date, dosage });
@@ -204,7 +215,7 @@ function parseBEER(dataPacket, delimiter) {
             immunizations.push({ name, system, date });
         }
         return immunizations;
-    };   
+    };
 
     // Immunization entries
     if (lines[currentIndex].startsWith('I')) {
@@ -216,7 +227,7 @@ function parseBEER(dataPacket, delimiter) {
     }
 
     // Medication entries on or after timeStamp
-    if (/^\d{12}$/.test(lines[currentIndex]) && lines[currentIndex+1] && lines[currentIndex+1].startsWith('m')) {
+    if (/^\d{12}$/.test(lines[currentIndex]) && lines[currentIndex + 1] && lines[currentIndex + 1].startsWith('m')) {
         let earliestMedTime = new Date(
             lines[currentIndex++].replace(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1-$2-$3T$4:$5:00.000Z')
         );
@@ -228,7 +239,7 @@ function parseBEER(dataPacket, delimiter) {
     }
 
     // Observation entries on or after timeStamp
-    if (/^\d{12}$/.test(lines[currentIndex]) && lines[currentIndex+1] && lines[currentIndex+1].startsWith('v')) {
+    if (/^\d{12}$/.test(lines[currentIndex]) && lines[currentIndex + 1] && lines[currentIndex + 1].startsWith('v')) {
         let earliestObservationTime = new Date(
             lines[currentIndex++].replace(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1-$2-$3T$4:$5:00.000Z')
         );
@@ -253,32 +264,32 @@ function parseBEER(dataPacket, delimiter) {
                 'O': '%',
                 'A': ''
             };
-            
+
             for (let i = 0; i < vCount; i++) {
                 const line = lines[currentIndex++];
                 const obsType = line[0];
                 const units = obsUnitsMap[obsType];
                 const obsName = obsTypeMap[obsType];
                 const entries = line.substring(1).split(/[,]+/);
-                
+
                 entries.forEach(entry => {
                     const [time, value] = entry.split('+');
                     const minutes = parseInt(time, 10);
                     const date = new Date(earliestObservationTime.getTime() + minutes * 60000);
-                    
+
                     // Need to add units to value
                     vitalSigns.push({ name: obsName, date, value: `${value} ${units}` });
                 });
             }
-            
+
             return vitalSigns;
         };
-        
+
         if (lines[currentIndex].startsWith('v')) {
             const [_, vCountStr] = lines[currentIndex++].match(/^v(\d+)$/);
             const vCount = parseInt(vCountStr, 10);
             record.observations = record.observations.concat(parseVitalSigns(vCount, earliestObservationTime));
-        }               
+        }
 
         const parseOtherObservations = (oCount) => {
             const observations = [];
