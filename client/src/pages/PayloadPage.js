@@ -92,6 +92,7 @@ export default function PayloadPage() {
           const bytes = Uint8Array.from(atob(std), c => c.charCodeAt(0));
           const text = pako.ungzip(bytes, { to: 'string' });
           const isHL72x = (s) => String(s).trimStart().startsWith('MSH');
+          const isBEER = (s) => String(s).trimStart().startsWith('H9');
           let bundle;
           if (isHL72x(text)) {
             // BEER format → convert to IPS bundle
@@ -102,6 +103,15 @@ export default function PayloadPage() {
             );
             if (cancelled) return;
             bundle = hl72xResp.data;
+          } else if (isBEER(text)) {
+            // BEER format → convert to IPS bundle
+            const beerResp = await axios.post(
+              '/convertbeer2ips',
+              text,
+              { headers: { 'Content-Type': 'text/plain' } }
+            );
+            if (cancelled) return;
+            bundle = beerResp.data;
           } else {
             // Default: treat as IPS FHIR JSON bundle
             bundle = JSON.parse(text);

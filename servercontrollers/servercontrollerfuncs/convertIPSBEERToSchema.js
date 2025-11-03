@@ -301,6 +301,8 @@ function parseBEER(dataPacket, delimiter) {
         }
     }
 
+    record.procedures = [];
+
     return record;
 }
 
