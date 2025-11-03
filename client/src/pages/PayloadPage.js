@@ -91,7 +91,21 @@ export default function PayloadPage() {
           const std = toStandardBase64(b64);
           const bytes = Uint8Array.from(atob(std), c => c.charCodeAt(0));
           const text = pako.ungzip(bytes, { to: 'string' });
-          const bundle = JSON.parse(text);
+          const isHL72x = (s) => String(s).trimStart().startsWith('MSH');
+          let bundle;
+          if (isHL72x(text)) {
+            // BEER format → convert to IPS bundle
+            const hl72xResp = await axios.post(
+              '/converthl72xtoips',
+              text,
+              { headers: { 'Content-Type': 'text/plain' } }
+            );
+            if (cancelled) return;
+            bundle = hl72xResp.data;
+          } else {
+            // Default: treat as IPS FHIR JSON bundle
+            bundle = JSON.parse(text);
+          }
           setJsonData(bundle);
 
           // plaintext conversion
