@@ -698,28 +698,32 @@ function ChangeLogPage() {
                             <ul>
                                 <li><strong>More Informative Schema Validation Error Messages</strong></li>
                                 <li>Added a prettyAjvError function to backend validator to improve error messages</li>
-                                <li>Also tightened up schema restrcitions on CodeableConcept</li>
+                                <li>Also tightened up schema restrictions on CodeableConcept</li>
                             </ul>
                         </li>
                         <li>
                             <h5>Version 0_72 - 30th Oct 2025</h5>
                             <ul>
-                                <li>
-                                    <h5>Version 0_72 - 30th Oct 2025</h5>
+                                <li><strong>Field-Level Encryption – Early Demo + Gzip-Only NFC</strong></li>
+                                <li>Using: <code>encryption/jweFieldCrypt.js</code> (JWE, PBES2 + A256GCM) for per-field protection of FHIR primitives; currently applied to <code>Patient.identifier</code>.</li>
+                                <li>Available but unused: <code>encryption/pwFieldCrypt.js</code> (password → PBKDF2-SHA256 → AES-256-GCM) as a lightweight, jose-free alternative for password-only scenarios.</li>
+                                <li><strong>New Options on API Page:</strong>
                                     <ul>
-                                        <li><strong>Field-Level Encryption – Early Demo + Gzip-Only NFC</strong></li>
-                                        <li>Using: <code>encryption/jweFieldCrypt.js</code> (JWE, PBES2 + A256GCM) for per-field protection of FHIR primitives; currently applied to <code>Patient.identifier</code>.</li>
-                                        <li>Available but unused: <code>encryption/pwFieldCrypt.js</code> (password → PBKDF2-SHA256 → AES-256-GCM) as a lightweight, jose-free alternative for password-only scenarios.</li>
-                                        <li><strong>New Options on API Page:</strong>
-                                            <ul>
-                                                <li><em>Field-Level Id Encrypt</em> – replaces patient identifiers with secure, password-protected encrypted values.</li>
-                                                <li><em>Id Omit</em> – removes identifiers entirely, leaving only gender and birth date visible.</li>
-                                            </ul>
-                                        </li>
-                                        <li>Gzip-Only NFC Write – added “Gzip Binary (as shown)” mode for writing compressed but unencrypted data to NFC tags.</li>
-                                        <li>Improved NFC Reading - now recognises both encrypted and gzip-only payload formats automatically.</li>
+                                        <li><em>Field-Level Id Encrypt</em> – replaces patient identifiers with secure, password-protected encrypted values.</li>
+                                        <li><em>Id Omit</em> – removes identifiers entirely, leaving only gender and birth date visible.</li>
                                     </ul>
                                 </li>
+                                <li>Gzip-Only NFC Write – added “Gzip Binary (as shown)” mode for writing compressed but unencrypted data to NFC tags.</li>
+                                <li>Improved NFC Reading - now recognises both encrypted and gzip-only payload formats automatically.</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <h5>Version 0_73 - 3rd Nov 2025</h5>
+                            <ul>
+                                <li><strong>HL7 2.x and BEER Added to Gzip URL</strong></li>
+                                <li>The "Write to NFC" Gzipped URL process expanded so it now works for both HL7 2.x and BEER (newline and pipe)</li>
+                                <li>Fixed bug when converting BEER 'pre' Med entries with multiple dates for same drug</li>
+                                <li>Protect and genIPSUnified separated so latter is backwards compatible with elements not requiring the former.</li>
                             </ul>
                         </li>
                     </ul>
