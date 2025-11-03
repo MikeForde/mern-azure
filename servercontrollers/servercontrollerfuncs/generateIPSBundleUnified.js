@@ -2,14 +2,14 @@ const { v4: uuidv4 } = require('uuid');
 const { stripMilliseconds, stripTime } = require('../../utils/timeUtils');
 //const { encryptPrimitiveField, underscoreFieldFor } = require('../../encryption/fhirFieldCrypt');
 const { encryptPrimitiveFieldJWE, underscoreFieldForJWE } = require('../../encryption/jweFieldCrypt');
-const { system } = require('nodemon/lib/config');
+//const { system } = require('nodemon/lib/config');
 //const { encryptPrimitiveFieldPW, underscoreFieldForPW } = require('../../encryption/pwFieldCrypt');
 
 
 // Helper function to check if a string contains a number
 const containsNumber = (str) => /\d/.test(str);
 
-async function generateIPSBundleUnified(ips, protectMethod = "none") {
+function generateIPSBundleUnified(ips) {
 
     const ptId = "pt1";
 
@@ -302,40 +302,39 @@ async function generateIPSBundleUnified(ips, protectMethod = "none") {
         ],
     };
 
+    return ipsBundle;
+}
+
+// Async post-process: apply 'jwe' or 'omit'
+async function protectIPSBundle(ipsBundle, protectMethod = "none") {
+    if (!ipsBundle || protectMethod === "none") return ipsBundle;
+
+    const patientEntry = ipsBundle.entry.find(e => e.resource?.resourceType === 'Patient');
+    if (!patientEntry?.resource) return ipsBundle;
+    const patient = patientEntry.resource;
+
+    console.log(`Applying protection method: ${protectMethod}`);
+
     if (protectMethod === "jwe") {
         try {
-            const patientEntry = ipsBundle.entry.find(e => e.resource?.resourceType === 'Patient');
-            const patient = patientEntry?.resource;
-            if (patient?.identifier && Array.isArray(patient.identifier)) {
-                // Encrypt identifier[0].value if present
+            if (patient.identifier && Array.isArray(patient.identifier)) {
                 if (patient.identifier[0]?.value) {
-                    const enc0 = await encryptPrimitiveFieldJWE(
-                        patient.identifier[0].value,
-                        {
-                            url: 'https://example.org/fhir/StructureDefinition/encrypted-nato-id',
-                            recipients: [
-                                { type: 'pbes2', password: 'patient phrase', p2c: 150000, kid: 'patient-pw' }
-                            ],
-                            enc: 'A256GCM',
-                            aadUtf8: `Patient/${ptId}#identifier[0].value`
-                        }
-                    );
+                    const enc0 = await encryptPrimitiveFieldJWE(patient.identifier[0].value, {
+                        url: 'https://example.org/fhir/StructureDefinition/encrypted-nato-id',
+                        recipients: [{ type: 'pbes2', password: 'patient phrase', p2c: 150000, kid: 'patient-pw' }],
+                        enc: 'A256GCM',
+                        aadUtf8: `Patient/${patient.id}#identifier[0].value`
+                    });
                     patient.identifier[0].value = enc0.placeholder;
                     Object.assign(patient.identifier[0], underscoreFieldForJWE('value', enc0.extension));
                 }
-                // Encrypt identifier[1].value if present
                 if (patient.identifier[1]?.value) {
-                    const enc1 = await encryptPrimitiveFieldJWE(
-                        patient.identifier[1].value,
-                        {
-                            url: 'https://example.org/fhir/StructureDefinition/encrypted-national-id',
-                            recipients: [
-                                { type: 'pbes2', password: 'patient phrase', p2c: 150000, kid: 'patient-pw' }
-                            ],
-                            enc: 'A256GCM',
-                            aadUtf8: `Patient/${ptId}#identifier[1].value`
-                        }
-                    );
+                    const enc1 = await encryptPrimitiveFieldJWE(patient.identifier[1].value, {
+                        url: 'https://example.org/fhir/StructureDefinition/encrypted-national-id',
+                        recipients: [{ type: 'pbes2', password: 'patient phrase', p2c: 150000, kid: 'patient-pw' }],
+                        enc: 'A256GCM',
+                        aadUtf8: `Patient/${patient.id}#identifier[1].value`
+                    });
                     patient.identifier[1].value = enc1.placeholder;
                     Object.assign(patient.identifier[1], underscoreFieldForJWE('value', enc1.extension));
                 }
@@ -362,24 +361,18 @@ async function generateIPSBundleUnified(ips, protectMethod = "none") {
             //     Object.assign(patient.identifier[1], underscoreFieldForPW('value', enc1.extension));
             // }
         } catch (err) {
-            // Fail soft: leave bundle as-is if anything goes wrong
             const msg = err?.message || String(err);
             console.error('Field-level ID encryption skipped:', msg);
-
-            // inject a visible hint into the patient.identifier
-            if (ipsBundle?.entry?.[0]?.resource?.identifier?.[0]) {
-                ipsBundle.entry[0].resource.identifier[0].encryptionError = msg;
-            }
+            if (patient?.identifier?.[0]) patient.identifier[0].encryptionError = msg;
         }
     }
 
     if (protectMethod === "omit") {
-        const patientEntry = ipsBundle.entry.find(e => e.resource?.resourceType === 'Patient');
         if (patientEntry?.resource) {
             const { gender, birthDate } = patientEntry.resource; // preserve existing values
             patientEntry.resource = {
                 resourceType: "Patient",
-                id: ptId,
+                id: patientEntry.resource.id,
                 identifier: [{system: "omitted", value: "omitted"}],
                 name: [{ family: "omitted", given: ["omitted"] }],
                 gender,      // may be undefined if not present; that's fine
@@ -390,7 +383,9 @@ async function generateIPSBundleUnified(ips, protectMethod = "none") {
         // All other resources still reference Patient/pt1 — that remains valid.
     }
 
+    console.log('Protection applied successfully.');
+
     return ipsBundle;
 }
 
-module.exports = { generateIPSBundleUnified };
+module.exports = { generateIPSBundleUnified, protectIPSBundle };

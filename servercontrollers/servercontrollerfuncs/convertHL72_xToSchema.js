@@ -8,7 +8,8 @@ function parseHL72_xToMongo(hl7Message) {
         allergies: [],
         conditions: [],
         observations: [],
-        immunizations: []
+        immunizations: [],
+        procedures: []
     };
 
     data.patient.practitioner = 'Unknown'; // Default to Unknown

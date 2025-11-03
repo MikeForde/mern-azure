@@ -21,6 +21,9 @@ async function convertHL72_xToIPS(req, res) {
         // Convert HL7 2.8 data to MongoDB schema format
         const ipsRecord = parseHL72_xToMongo(hl7Message);
 
+        // Console log the converted IPS record
+        console.log('Converted IPS Record:', JSON.stringify(ipsRecord, null, 2));
+
         // Generate IPS JSON bundle from MongoDB schema format
         const generateBundleFunction = pickIPSFormat(req.headers['x-ips-format']);
         const ipsBundle = generateBundleFunction(ipsRecord);

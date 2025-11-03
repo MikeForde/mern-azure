@@ -1,6 +1,6 @@
 const { resolveId } = require('../utils/resolveId');
 const { status } = require('@grpc/grpc-js');
-const { generateIPSBundleUnified } = require('./servercontrollerfuncs/generateIPSBundleUnified');
+const { generateIPSBundleUnified, protectIPSBundle } = require('./servercontrollerfuncs/generateIPSBundleUnified');
 
 
 async function getIPSUnifiedBundle(req, res) {
@@ -31,9 +31,12 @@ async function getIPSUnifiedBundle(req, res) {
         }
 
         // Constructing the JSON structure
-        const bundle = await generateIPSBundleUnified(ips, protectMethod);
+        const bundle = generateIPSBundleUnified(ips);
 
-        res.json(bundle);
+        const protectedBundle = await protectIPSBundle(bundle, protectMethod);
+
+
+        res.json(protectedBundle);
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
