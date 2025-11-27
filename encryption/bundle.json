@@ -1,0 +1,78 @@
+{
+    "resourceType": "Bundle",
+    "id": "52464bde-2cec-490d-8ee5-212639b73001",
+    "meta":
+    {
+        "profile":
+        [
+            "http://hl7.org/fhir/StructureDefinition/Bundle"
+        ]
+    },
+    "type": "collection",
+    "timestamp": "2025-11-25T10:55:28+00:00",
+    "total": 1,
+    "entry":
+    [
+        {
+            "resource":
+            {
+                "resourceType": "Patient",
+                "id": "edff99a9-178e-4852-8f51-a0477cdf85ce",
+                "meta":
+                {
+                    "lastUpdated": "2025-11-07T01:00:00Z"
+                },
+                "extension":
+                [
+                    {
+                        "url": "http://hl7.org/fhir/StructureDefinition/patient-nationality",
+                        "valueCodeableConcept":
+                        {
+                            "coding":
+                            [
+                                {
+                                    "system": "urn:oid:2.16.840.1.113883.2.4.4.16.32",
+                                    "code": "0001",
+                                    "display": "Nederlandse"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "identifier":
+                [
+                    {
+                        "system": "https://sensorium.app/naming_system/user_id",
+                        "value": "K7Z834MUS"
+                    },
+                    {
+                        "extension":
+                        [
+                            {
+                                "url": "https://sensorium.app/fhir/StructureDefinition/encrypted-bsn",
+                                "valueBase64Binary": "eyJjaXBoZXJ0ZXh0IjoiYWIzc1c3dF9CRmsiLCJoZWFkZXIiOnsiZXBrIjp7ImNydiI6IlAtNTIxIiwia3R5IjoiRUMiLCJ4IjoiQVduZ0dVdkFkWXNWYUhCU0hLNFA5RHF6TXBLakU4MC1SRlZtc3NtVGZnUk9vUXRtQzQ3T2RnVVMwMEpfcnNzLVZJX0UyTzdVNVBlZEdPTENUZ1dCc1VXWCIsInkiOiJBUGVOdW9tSkFDZlZiWTEyRTc1Ym9vUGFJWW43OElrWk81d0FRa3lvd2dOUk5pemFmTDFmeFVSRE1DUFJyOG5JUnY4S1lULXJBRWV3ODhiVTRUdlV3MWJSIn19LCJpdiI6InNxbWtsdHNoTTEwTUhxNjAiLCJwcm90ZWN0ZWQiOiJleUpoYkdjaU9pSkZRMFJJTFVWVElpd2laVzVqSWpvaVFUSTFOa2REVFNJc0luUjVjQ0k2SWtwWFJTSjkiLCJ0YWciOiJfTnVGSkMwYVh6VVVSNXJHUWh5aTVnIn0="
+                            }
+                        ],
+                        "system": "http://fhir.nl/fhir/NamingSystem/bsn",
+                        "value": "redacted"
+                    }
+                ],
+                "name":
+                [
+                    {
+                        "text": "ABC foo",
+                        "family": "ABC foo"
+                    }
+                ],
+                "gender": "unknown",
+                "address":
+                [
+                    {
+                        "use": "work",
+                        "country": "NLD"
+                    }
+                ]
+            }
+        }
+    ]
+}

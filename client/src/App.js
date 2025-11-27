@@ -19,6 +19,7 @@ import BEERGardenPage from './pages/BEERGardenPage';
 import APIDocumentationPage from './pages/APIDocumentationPage';
 import IPSchemaViewer from './pages/IPSSchemaViewerPage';
 import IPSchemaValidator from './pages/IPSSchemaValidatorPage';
+import JWEDecryptPage from './pages/JWEDecryptPage';
 import PayloadPage from './pages/PayloadPage';  
 import { PatientContext } from './PatientContext';
 import { PatientProvider } from './PatientContext';
@@ -78,6 +79,7 @@ function App() {
               <Route path="/schemavalidator" element={<IPSchemaValidator />} />
               <Route path="/cwix/payload" element={<PayloadPage />} />
               <Route path="/viewer" element={<PayloadPage />} />
+              <Route path="/jwe-decrypt" element={<JWEDecryptPage />} />
             </Routes>
           </div>
         </Router>

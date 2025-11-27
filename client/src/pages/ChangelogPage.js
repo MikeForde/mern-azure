@@ -726,6 +726,14 @@ function ChangeLogPage() {
                                 <li>Protect and genIPSUnified separated so latter is backwards compatible with elements not requiring the former.</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_74 - 27th Nov 2025</h5>
+                            <ul>
+                                <li><strong>Frontend Demo Decrypt Tool Added</strong></li>
+                                <li>For testing purposes, a page allows users to paste a Bundle and matching private JWK to fully decrypt JWE-protected fields.</li>
+                                <li>Automatically reconstructs decrypted identifiers and shows the complete updated Bundle.</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

@@ -70,7 +70,7 @@ function NavigationBar() {
               {' '} Local {' '}
             </>
           )}
-          0_73
+          0_74
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">
@@ -113,6 +113,9 @@ function NavigationBar() {
               </NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/bulkupload" onClick={() => handleNavItemSelect(false)}>
                 <FontAwesomeIcon icon={faUpload} /> Bulk Upload
+              </NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/jwe-decrypt" onClick={() => handleNavItemSelect(false)}>
+                <FontAwesomeIcon icon={faTag} /> JWE Decrypt
               </NavDropdown.Item>
             </NavDropdown>
             <NavDropdown title="Info" id="basic-nav-dropdown">
