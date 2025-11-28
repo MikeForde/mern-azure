@@ -11,6 +11,8 @@ import './Page.css';
 
 const te = new TextEncoder();
 const td = new TextDecoder();
+const ALG_OPTIONS = ['ECDH-ES']; // keep it simple for this lab
+const ENC_OPTIONS = ['A128GCM', 'A192GCM', 'A256GCM'];
 
 /**
  * Decrypt all identifier extensions with valueBase64Binary JWE.
@@ -77,15 +79,8 @@ async function decryptBundleWithJWE(bundle, jwkObj) {
  * We use Flattened JWE + EC(ECDH-ES) by default.
  * You can override the protected header via headerOverrides (JSON object).
  */
-async function encryptBundleWithJWE(bundle, jwkObj, headerOverrides) {
-    const alg = (headerOverrides && headerOverrides.alg) || jwkObj.alg || 'ECDH-ES';
-    const enc = (headerOverrides && headerOverrides.enc) || 'A256GCM';
-
-    const protectedHeader = {
-        alg,
-        enc,
-        ...(headerOverrides || {}),
-    };
+async function encryptBundleWithJWE(bundle, jwkObj, alg, enc) {
+    const protectedHeader = { alg, enc };
 
     // Use public part of the key for encryption
     const pubJwk = { ...jwkObj };
@@ -130,9 +125,12 @@ export default function JWEDecryptPage() {
     const [encryptedBundleText, setEncryptedBundleText] = useState('');
     const [plainBundleText, setPlainBundleText] = useState('');
     const [jwkText, setJwkText] = useState('');
-    const [headerOverridesText, setHeaderOverridesText] = useState(
-        '{\n  "alg": "ECDH-ES",\n  "enc": "A256GCM"\n}'
-    );
+    // const [headerOverridesText, setHeaderOverridesText] = useState(
+    //     '{\n  "alg": "ECDH-ES",\n  "enc": "A256GCM"\n}'
+    // );
+
+    const [selectedAlg, setSelectedAlg] = useState('ECDH-ES');
+    const [selectedEnc, setSelectedEnc] = useState('A256GCM');
 
     const [errorMsg, setErrorMsg] = useState('');
     const [isBusy, setIsBusy] = useState(false);
@@ -167,15 +165,10 @@ export default function JWEDecryptPage() {
             const bundle = JSON.parse(plainBundleText);
             const jwk = JSON.parse(jwkText);
 
-            let headerOverrides = undefined;
-            if (headerOverridesText.trim()) {
-                headerOverrides = JSON.parse(headerOverridesText);
-                if (typeof headerOverrides !== 'object' || Array.isArray(headerOverrides)) {
-                    throw new Error('Header overrides must be a JSON object.');
-                }
-            }
+            const alg = selectedAlg;
+            const enc = selectedEnc;
 
-            const encrypted = await encryptBundleWithJWE(bundle, jwk, headerOverrides);
+            const encrypted = await encryptBundleWithJWE(bundle, jwk, alg, enc);
             setEncryptedBundleText(JSON.stringify(encrypted, null, 2));
         } catch (err) {
             console.error(err);
@@ -184,6 +177,7 @@ export default function JWEDecryptPage() {
             setIsBusy(false);
         }
     };
+
 
     return (
         <div className="app">
@@ -221,14 +215,30 @@ export default function JWEDecryptPage() {
                             placeholder="Paste EC JWK here (P-521 / ECDH-ES etc.)"
                             className="mb-3"
                         />
-                        <h6>Protected Header Overrides (JSON, optional)</h6>
-                        <Form.Control
-                            as="textarea"
-                            rows={4}
-                            value={headerOverridesText}
-                            onChange={(e) => setHeaderOverridesText(e.target.value)}
-                            placeholder='e.g. { "alg": "ECDH-ES", "enc": "A256GCM" }'
-                        />
+                        <h6>Protected Header</h6>
+                        <div className="mb-2">
+                            <Form.Label>alg</Form.Label>
+                            <Form.Select
+                                value={selectedAlg}
+                                onChange={(e) => setSelectedAlg(e.target.value)}
+                            >
+                                {ALG_OPTIONS.map(opt => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                            </Form.Select>
+                        </div>
+                        <div>
+                            <Form.Label>enc</Form.Label>
+                            <Form.Select
+                                value={selectedEnc}
+                                onChange={(e) => setSelectedEnc(e.target.value)}
+                            >
+                                {ENC_OPTIONS.map(opt => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                            </Form.Select>
+                        </div>
+
                     </Col>
                 </Row>
 
