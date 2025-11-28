@@ -115,7 +115,10 @@ function NavigationBar() {
                 <FontAwesomeIcon icon={faUpload} /> Bulk Upload
               </NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/jwe-decrypt" onClick={() => handleNavItemSelect(false)}>
-                <FontAwesomeIcon icon={faTag} /> JWE Encrypt + Decrypt
+                <FontAwesomeIcon icon={faTag} /> JWE Single Recipient
+              </NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/jwe-multi" onClick={() => handleNavItemSelect(false)}>
+                <FontAwesomeIcon icon={faTag} /> JWE Multi-Recipient
               </NavDropdown.Item>
             </NavDropdown>
             <NavDropdown title="Info" id="basic-nav-dropdown">

@@ -727,11 +727,13 @@ function ChangeLogPage() {
                             </ul>
                         </li>
                         <li>
-                            <h5>Version 0_74 - 27th Nov 2025</h5>
+                            <h5>Version 0_74 — 27 Nov 2025</h5>
                             <ul>
-                                <li><strong>Frontend Demo Decrypt Tool Added</strong></li>
-                                <li>For testing purposes, a page allows users to paste a Bundle and matching private JWK to fully decrypt JWE-protected fields.</li>
-                                <li>Automatically reconstructs decrypted identifiers and shows the complete updated Bundle.</li>
+                                <li><strong>JWE Field Encryption & Decryption Tools</strong></li>
+                                <li>New frontend pages added to experiment with field-level protection of IPS Bundles.</li>
+                                <li>Users can now paste a Bundle + private JWK to decrypt protected identifiers, or paste a plain Bundle to test encryption settings.</li>
+                                <li>Supports switching between algorithms and parameters, with instant before/after Bundle preview.</li>
+                                <li>Added a multi-recipient JWE demo showing how the same Bundle can be encrypted for 1–5 recipients, each with their own JWK pair.</li>
                             </ul>
                         </li>
                     </ul>

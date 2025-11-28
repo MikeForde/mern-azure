@@ -20,6 +20,7 @@ import APIDocumentationPage from './pages/APIDocumentationPage';
 import IPSchemaViewer from './pages/IPSSchemaViewerPage';
 import IPSchemaValidator from './pages/IPSSchemaValidatorPage';
 import JWEDecryptPage from './pages/JWEDecryptPage';
+import JWEMultiRecipientPage from './pages/JWEMultiRecipientPage';
 import PayloadPage from './pages/PayloadPage';  
 import { PatientContext } from './PatientContext';
 import { PatientProvider } from './PatientContext';
@@ -80,6 +81,7 @@ function App() {
               <Route path="/cwix/payload" element={<PayloadPage />} />
               <Route path="/viewer" element={<PayloadPage />} />
               <Route path="/jwe-decrypt" element={<JWEDecryptPage />} />
+              <Route path="/jwe-multi" element={<JWEMultiRecipientPage />} />
             </Routes>
           </div>
         </Router>

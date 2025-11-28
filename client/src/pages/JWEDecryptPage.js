@@ -1,4 +1,4 @@
-// src/pages/JWEDecryptPage.jsx
+// Single recipient and multi-recipient JWE encrypt/decrypt lab page
 import React, { useState } from 'react';
 import { Button, Form, Row, Col, Alert, Spinner } from 'react-bootstrap';
 import {
@@ -6,12 +6,19 @@ import {
     flattenedDecrypt,
     generalDecrypt,
     FlattenedEncrypt,
+    generateKeyPair,
+    exportJWK,
 } from 'jose';
 import './Page.css';
 
 const te = new TextEncoder();
 const td = new TextDecoder();
-const ALG_OPTIONS = ['ECDH-ES']; // keep it simple for this lab
+const ALG_OPTIONS = [
+    'ECDH-ES',
+    'ECDH-ES+A128KW',
+    'ECDH-ES+A192KW',
+    'ECDH-ES+A256KW',
+];
 const ENC_OPTIONS = ['A128GCM', 'A192GCM', 'A256GCM'];
 
 /**
@@ -33,7 +40,7 @@ async function decryptBundleWithJWE(bundle, jwkObj) {
             for (const id of res.identifier) {
                 if (!Array.isArray(id.extension)) continue;
 
-                // Walk backwards so we can safely splice extensions as we decrypt them
+                // Walk backwards so can safely splice extensions as we decrypt them
                 for (let i = id.extension.length - 1; i >= 0; i--) {
                     const ext = id.extension[i];
                     if (!ext.valueBase64Binary) continue;
@@ -56,10 +63,10 @@ async function decryptBundleWithJWE(bundle, jwkObj) {
                         id.value = decryptedText;
                         id.decryptedFromExtensionUrl = ext.url;
 
-                        // 🔴 Drop the encrypted extension now that we've restored the plaintext
+                        // Drop the encrypted extension now that restored the plaintext
                         id.extension.splice(i, 1);
                     } catch {
-                        // Not a JWE we can decrypt -> ignore and leave extension as-is
+                        // Not a JWE --> can decrypt -> ignore and leave extension as-is
                     }
                 }
 
@@ -76,8 +83,7 @@ async function decryptBundleWithJWE(bundle, jwkObj) {
 
 /**
  * Encrypt identifier.value fields into field-level JWE extensions.
- * We use Flattened JWE + EC(ECDH-ES) by default.
- * You can override the protected header via headerOverrides (JSON object).
+ * Use Flattened JWE + EC(ECDH-ES) by default.
  */
 async function encryptBundleWithJWE(bundle, jwkObj, alg, enc) {
     const protectedHeader = { alg, enc };
@@ -178,6 +184,35 @@ export default function JWEDecryptPage() {
         }
     };
 
+    const handleGenerateNewJwk = async () => {
+        setErrorMsg('');
+        setIsBusy(true);
+        try {
+            // Base algorithm for key generation (strip KW suffix if present)
+            const baseAlg = selectedAlg.startsWith('ECDH-ES') ? 'ECDH-ES' : selectedAlg;
+
+            // Generate an EC keypair (P-521 to match the Dutch example)
+            const { privateKey } = await generateKeyPair(baseAlg, {
+                crv: 'P-521',
+                extractable: true,   // ⬅️ allow exportJWK() to work
+            });
+
+            // Export the *private* JWK (we'll derive the public part inside encryptBundleWithJWE)
+            const jwk = await exportJWK(privateKey);
+
+            jwk.kty = jwk.kty || 'EC';
+            jwk.use = 'enc';
+            jwk.alg = selectedAlg;                 // reflect current UI choice
+            jwk.kid = `demo-${Date.now()}`;        // simple unique-ish kid
+
+            setJwkText(JSON.stringify(jwk, null, 2));
+        } catch (err) {
+            console.error(err);
+            setErrorMsg(err.message || String(err));
+        } finally {
+            setIsBusy(false);
+        }
+    };
 
     return (
         <div className="app">
@@ -215,6 +250,15 @@ export default function JWEDecryptPage() {
                             placeholder="Paste EC JWK here (P-521 / ECDH-ES etc.)"
                             className="mb-3"
                         />
+                        <Button
+                            variant="outline-secondary"
+                            size="sm"
+                            className="mb-3"
+                            onClick={handleGenerateNewJwk}
+                            disabled={isBusy}
+                        >
+                            {isBusy ? 'Working…' : 'Generate new JWK'}
+                        </Button>
                         <h6>Protected Header</h6>
                         <div className="mb-2">
                             <Form.Label>alg</Form.Label>
