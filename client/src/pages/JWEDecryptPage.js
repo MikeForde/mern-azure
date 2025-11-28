@@ -1,171 +1,278 @@
 // src/pages/JWEDecryptPage.jsx
 import React, { useState } from 'react';
 import { Button, Form, Row, Col, Alert, Spinner } from 'react-bootstrap';
-import { importJWK, flattenedDecrypt, generalDecrypt } from 'jose';
+import {
+    importJWK,
+    flattenedDecrypt,
+    generalDecrypt,
+    FlattenedEncrypt,
+} from 'jose';
 import './Page.css';
 
-const textDecoder = new TextDecoder();
+const te = new TextEncoder();
+const td = new TextDecoder();
 
 /**
- * Try to decrypt all identifier extensions with valueBase64Binary JWE.
- * - Works with flattened JWE (no recipients)
- * - Also supports general JWE (with recipients[])
+ * Decrypt all identifier extensions with valueBase64Binary JWE.
+ * - Handles both flattened JWE (no recipients) and general JWE (recipients[])
  */
 async function decryptBundleWithJWE(bundle, jwkObj) {
-  // Import the EC private key; let jose infer or use jwkObj.alg
-  const algHint = jwkObj.alg || 'ECDH-ES';
-  const privKey = await importJWK(jwkObj, algHint);
+    const algHint = jwkObj.alg || 'ECDH-ES';
+    const privKey = await importJWK(jwkObj, algHint);
 
-  const entries = bundle.entry || [];
-  for (const entry of entries) {
-    const res = entry.resource;
-    if (!res || !Array.isArray(res.identifier)) continue;
+    const entries = bundle.entry || [];
+    for (const entry of entries) {
+        const res = entry.resource;
+        if (!res || !Array.isArray(res.identifier)) continue;
 
-    for (const id of res.identifier) {
-      if (!Array.isArray(id.extension)) continue;
+        for (const id of res.identifier) {
+            if (!Array.isArray(id.extension)) continue;
 
-      for (const ext of id.extension) {
-        if (!ext.valueBase64Binary) continue;
+            for (const id of res.identifier) {
+                if (!Array.isArray(id.extension)) continue;
 
-        try {
-          // Decode base64 → JSON JWE
-          const jweJson = atob(ext.valueBase64Binary);
-          const jwe = JSON.parse(jweJson);
+                // Walk backwards so we can safely splice extensions as we decrypt them
+                for (let i = id.extension.length - 1; i >= 0; i--) {
+                    const ext = id.extension[i];
+                    if (!ext.valueBase64Binary) continue;
 
-          let plaintext;
-          // If it's a general JWE (recipients[]), use generalDecrypt
-          if (Array.isArray(jwe.recipients)) {
-            const { plaintext: pt } = await generalDecrypt(jwe, privKey);
-            plaintext = pt;
-          } else {
-            // Otherwise assume flattened JWE
-            const { plaintext: pt } = await flattenedDecrypt(jwe, privKey);
-            plaintext = pt;
-          }
+                    try {
+                        // Decode base64 -> JSON JWE
+                        const jweJson = atob(ext.valueBase64Binary);
+                        const jwe = JSON.parse(jweJson);
 
-          const decryptedText = textDecoder.decode(plaintext);
+                        let plaintext;
+                        if (Array.isArray(jwe.recipients)) {
+                            const { plaintext: pt } = await generalDecrypt(jwe, privKey);
+                            plaintext = pt;
+                        } else {
+                            const { plaintext: pt } = await flattenedDecrypt(jwe, privKey);
+                            plaintext = pt;
+                        }
 
-          // Put decrypted value into the FHIR element
-          id.value = decryptedText;
+                        const decryptedText = td.decode(plaintext);
+                        id.value = decryptedText;
+                        id.decryptedFromExtensionUrl = ext.url;
 
-          // Optionally mark that this came from encrypted field
-          id.decryptedFromExtensionUrl = ext.url;
+                        // 🔴 Drop the encrypted extension now that we've restored the plaintext
+                        id.extension.splice(i, 1);
+                    } catch {
+                        // Not a JWE we can decrypt -> ignore and leave extension as-is
+                    }
+                }
 
-        } catch (e) {
-          // Silently skip if it's not a valid/compatible JWE
-          // console.warn('Failed to decrypt one extension:', e);
+                // If there are no extensions left, clean up the property
+                if (id.extension.length === 0) {
+                    delete id.extension;
+                }
+            }
         }
-      }
     }
-  }
 
-  return bundle;
+    return bundle;
+}
+
+/**
+ * Encrypt identifier.value fields into field-level JWE extensions.
+ * We use Flattened JWE + EC(ECDH-ES) by default.
+ * You can override the protected header via headerOverrides (JSON object).
+ */
+async function encryptBundleWithJWE(bundle, jwkObj, headerOverrides) {
+    const alg = (headerOverrides && headerOverrides.alg) || jwkObj.alg || 'ECDH-ES';
+    const enc = (headerOverrides && headerOverrides.enc) || 'A256GCM';
+
+    const protectedHeader = {
+        alg,
+        enc,
+        ...(headerOverrides || {}),
+    };
+
+    // Use public part of the key for encryption
+    const pubJwk = { ...jwkObj };
+    delete pubJwk.d;
+
+    const pubKey = await importJWK(pubJwk, alg);
+
+    const entries = bundle.entry || [];
+    for (const entry of entries) {
+        const res = entry.resource;
+        if (!res || !Array.isArray(res.identifier)) continue;
+
+        for (const id of res.identifier) {
+            if (!id.value || id.value === 'redacted') continue;
+
+            const pt = te.encode(String(id.value));
+            const fe = new FlattenedEncrypt(pt).setProtectedHeader(protectedHeader);
+            const jwe = await fe.encrypt(pubKey);
+
+            const jweJson = JSON.stringify(jwe);
+            const b64 = btoa(jweJson);
+
+            const url =
+                id.system === 'http://fhir.nl/fhir/NamingSystem/bsn'
+                    ? 'https://sensorium.app/fhir/StructureDefinition/encrypted-bsn'
+                    : 'https://example.org/fhir/StructureDefinition/encrypted-identifier';
+
+            if (!Array.isArray(id.extension)) id.extension = [];
+            id.extension.push({
+                url,
+                valueBase64Binary: b64,
+            });
+
+            id.value = 'redacted';
+        }
+    }
+
+    return bundle;
 }
 
 export default function JWEDecryptPage() {
-  const [bundleText, setBundleText] = useState('');
-  const [jwkText, setJwkText] = useState('');
-  const [outputText, setOutputText] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  const [isDecrypting, setIsDecrypting] = useState(false);
+    const [encryptedBundleText, setEncryptedBundleText] = useState('');
+    const [plainBundleText, setPlainBundleText] = useState('');
+    const [jwkText, setJwkText] = useState('');
+    const [headerOverridesText, setHeaderOverridesText] = useState(
+        '{\n  "alg": "ECDH-ES",\n  "enc": "A256GCM"\n}'
+    );
 
-  const handleDecrypt = async () => {
-    setErrorMsg('');
-    setOutputText('');
-    setIsDecrypting(true);
+    const [errorMsg, setErrorMsg] = useState('');
+    const [isBusy, setIsBusy] = useState(false);
 
-    try {
-      if (!bundleText.trim()) {
-        throw new Error('Please paste a FHIR Bundle JSON.');
-      }
-      if (!jwkText.trim()) {
-        throw new Error('Please paste a JWK (private key) JSON.');
-      }
+    const handleDecryptTopToBottom = async () => {
+        setErrorMsg('');
+        setIsBusy(true);
+        try {
+            if (!encryptedBundleText.trim()) throw new Error('Encrypted bundle is empty.');
+            if (!jwkText.trim()) throw new Error('JWK is required.');
 
-      const bundle = JSON.parse(bundleText);
-      const jwk = JSON.parse(jwkText);
+            const bundle = JSON.parse(encryptedBundleText);
+            const jwk = JSON.parse(jwkText);
 
-      const decryptedBundle = await decryptBundleWithJWE(bundle, jwk);
+            const decrypted = await decryptBundleWithJWE(bundle, jwk);
+            setPlainBundleText(JSON.stringify(decrypted, null, 2));
+        } catch (err) {
+            console.error(err);
+            setErrorMsg(err.message || String(err));
+        } finally {
+            setIsBusy(false);
+        }
+    };
 
-      setOutputText(JSON.stringify(decryptedBundle, null, 2));
-    } catch (err) {
-      console.error(err);
-      setErrorMsg(err.message || String(err));
-    } finally {
-      setIsDecrypting(false);
-    }
-  };
+    const handleEncryptBottomToTop = async () => {
+        setErrorMsg('');
+        setIsBusy(true);
+        try {
+            if (!plainBundleText.trim()) throw new Error('Plain bundle is empty.');
+            if (!jwkText.trim()) throw new Error('JWK is required.');
 
-  return (
-    <div className="app">
-      <div className="container">
-        <h3>JWE Field-Level Decrypt Demo</h3>
-        <p className="noteFont">
-          Paste a FHIR Bundle (with encrypted field-level extensions) and a matching private JWK.
-          On decrypt, the page will update identifier values in-place and show the full bundle.
-        </p>
+            const bundle = JSON.parse(plainBundleText);
+            const jwk = JSON.parse(jwkText);
 
-        {errorMsg && (
-          <Alert variant="danger" className="mb-3">
-            {errorMsg}
-          </Alert>
-        )}
+            let headerOverrides = undefined;
+            if (headerOverridesText.trim()) {
+                headerOverrides = JSON.parse(headerOverridesText);
+                if (typeof headerOverrides !== 'object' || Array.isArray(headerOverrides)) {
+                    throw new Error('Header overrides must be a JSON object.');
+                }
+            }
 
-        <Row className="mb-3">
-          <Col md={7}>
-            <h5>Bundle JSON</h5>
-            <Form.Control
-              as="textarea"
-              rows={14}
-              value={bundleText}
-              onChange={(e) => setBundleText(e.target.value)}
-              placeholder='Paste bundle.json here'
-            />
-          </Col>
-          <Col md={5}>
-            <h5>JWK (Private Key)</h5>
-            <Form.Control
-              as="textarea"
-              rows={14}
-              value={jwkText}
-              onChange={(e) => setJwkText(e.target.value)}
-              placeholder='Paste jwk.json here'
-            />
-          </Col>
-        </Row>
+            const encrypted = await encryptBundleWithJWE(bundle, jwk, headerOverrides);
+            setEncryptedBundleText(JSON.stringify(encrypted, null, 2));
+        } catch (err) {
+            console.error(err);
+            setErrorMsg(err.message || String(err));
+        } finally {
+            setIsBusy(false);
+        }
+    };
 
-        <div className="mb-3">
-          <Button
-            variant="primary"
-            onClick={handleDecrypt}
-            disabled={isDecrypting}
-          >
-            {isDecrypting ? (
-              <>
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  className="me-2"
+    return (
+        <div className="app">
+            <div className="container">
+                <h3>JWE Field-Level Lab (Encrypt & Decrypt)</h3>
+                <p className="noteFont">
+                    Paste a FHIR bundle and JWK. Use the buttons to decrypt (top → bottom) or encrypt (bottom → top).
+                    You can tweak the JWE protected header JSON to experiment with parameters like <code>alg</code> and <code>enc</code>.
+                </p>
+
+                {errorMsg && (
+                    <Alert variant="danger" className="mb-3">
+                        {errorMsg}
+                    </Alert>
+                )}
+
+                <Row className="mb-3">
+                    <Col md={8}>
+                        <h5>Encrypted Bundle JSON (output for Encrypt, input for Decrypt)</h5>
+                        <Form.Control
+                            as="textarea"
+                            rows={12}
+                            value={encryptedBundleText}
+                            onChange={(e) => setEncryptedBundleText(e.target.value)}
+                            placeholder="Encrypted bundle (with JWE valueBase64Binary) goes here"
+                        />
+                    </Col>
+                    <Col md={4}>
+                        <h5>JWK (Private for Decrypt, Public/Private for Encrypt)</h5>
+                        <Form.Control
+                            as="textarea"
+                            rows={8}
+                            value={jwkText}
+                            onChange={(e) => setJwkText(e.target.value)}
+                            placeholder="Paste EC JWK here (P-521 / ECDH-ES etc.)"
+                            className="mb-3"
+                        />
+                        <h6>Protected Header Overrides (JSON, optional)</h6>
+                        <Form.Control
+                            as="textarea"
+                            rows={4}
+                            value={headerOverridesText}
+                            onChange={(e) => setHeaderOverridesText(e.target.value)}
+                            placeholder='e.g. { "alg": "ECDH-ES", "enc": "A256GCM" }'
+                        />
+                    </Col>
+                </Row>
+
+                <div className="mb-3">
+                    <Button
+                        variant="secondary"
+                        className="me-2"
+                        onClick={handleDecryptTopToBottom}
+                        disabled={isBusy}
+                    >
+                        {isBusy ? (
+                            <>
+                                <Spinner as="span" animation="border" size="sm" className="me-2" />
+                                Working…
+                            </>
+                        ) : (
+                            'Decrypt (top → bottom)'
+                        )}
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={handleEncryptBottomToTop}
+                        disabled={isBusy}
+                    >
+                        {isBusy ? (
+                            <>
+                                <Spinner as="span" animation="border" size="sm" className="me-2" />
+                                Working…
+                            </>
+                        ) : (
+                            'Encrypt (bottom → top)'
+                        )}
+                    </Button>
+                </div>
+
+                <h5>Plain Bundle JSON (output for Decrypt, input for Encrypt)</h5>
+                <Form.Control
+                    as="textarea"
+                    rows={16}
+                    value={plainBundleText}
+                    onChange={(e) => setPlainBundleText(e.target.value)}
+                    placeholder="Plain FHIR bundle goes here"
                 />
-                Decrypting…
-              </>
-            ) : (
-              'Decrypt & Show Bundle'
-            )}
-          </Button>
+            </div>
         </div>
-
-        <h5>Decrypted Bundle (full JSON)</h5>
-        <Form.Control
-          as="textarea"
-          rows={16}
-          value={outputText}
-          readOnly
-          placeholder="Decrypted bundle will appear here"
-        />
-      </div>
-    </div>
-  );
+    );
 }
