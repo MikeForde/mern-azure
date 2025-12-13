@@ -736,6 +736,16 @@ function ChangeLogPage() {
                                 <li>Added a multi-recipient JWE demo showing how the same Bundle can be encrypted for 1–5 recipients, each with their own JWK pair.</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_75 — 13 Dec 2025</h5>
+                            <ul>
+                                <li><strong>API Calls Added to Aide Android NFC 2-Data POC</strong></li>
+                                <li>Separate Android App requires IPS Unified data split into two parts - division by whether before or after main timestamp </li>
+                                <li>Data on or before is 'historic' and meant to be Read-Only, data after is emerging and goes in Read/Write section of NFC card</li>
+                                <li>First new api call - <code>/ips/list</code> - returns list of all IPS records (just packageUUID, name and given name)</li>
+                                <li>Second new api call - <code>/ipsunifiedsplit/:id</code> - provides data in bespoke bundle containing two parts</li>
+                            </ul> 
+                        </li>
                     </ul>
                 </Col>
             </Row>

@@ -19,8 +19,9 @@ const { getORABundleByName } = require('./servercontrollers/oraBundleByName');
 const { getIPSBundleGeneric } = require('./servercontrollers/fetchips');
 const { getIPSLegacyBundle } = require('./servercontrollers/ipsBundleFormat_old');
 const { getIPSUnifiedBundle } = require('./servercontrollers/ipsBundleFormatUnified');
+const { getIPSUnifiedBundleSplit } = require('./servercontrollers/ipsBundleFormatUnifiedSplit');
 const { getIPSXMLBundle } = require('./servercontrollers/ipsXMLBundleFormat');
-const { getIPSRaw, getAllIPS } = require('./servercontrollers/ipsDatabaseFormats');
+const { getIPSRaw, getAllIPS, getAllIPSList } = require('./servercontrollers/ipsDatabaseFormats');
 const { getMongoFormatted } = require('./servercontrollers/ipsMongoDisplayFormat');
 const { getIPSBasic } = require("./servercontrollers/ipsBasicFormat");
 const { getIPSBEER } = require("./servercontrollers/ipsBEERFormat");
@@ -190,6 +191,7 @@ api.use('/ipsUniVal', ipsUniValRouter);
 
 // API GET - CRUD Read
 api.get("/ips/all", getAllIPS);
+api.get("/ips/list", getAllIPSList);
 api.get("/ipsraw/:id", getIPSRaw);
 api.get("/ipsmongo/:id", getMongoFormatted);
 api.get("/ips/:id", getIPSBundle);
@@ -199,6 +201,7 @@ api.get("/ipshl72x/:id", getIPSHL72_x);
 api.get("/ipsxml/:id", getIPSXMLBundle);
 api.get("/ipslegacy/:id", getIPSLegacyBundle);
 api.get("/ipsunified/:id", getIPSUnifiedBundle);
+api.get("/ipsunifiedsplit/:id", getIPSUnifiedBundleSplit);
 api.get("/ipsbyname/:name/:given", getIPSBundleByName);
 api.get("/ips/search/:name", getIPSSearch);
 api.get('/fetchipsora/:name/:givenName', getORABundleByName);
