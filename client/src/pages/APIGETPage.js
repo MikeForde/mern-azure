@@ -265,9 +265,6 @@ function APIGETPage() {
       <div className="container">
         <h3>
           API GET - IPS Data: {responseSize}
-          <div className="noteFont">
-            - /:id - packageUUID / internal MongoDB _id
-          </div>
         </h3>
         {selectedPatients.length > 0 && selectedPatient && (
           <>
