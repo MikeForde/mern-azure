@@ -1027,7 +1027,7 @@
           "IPS"
         ],
         "summary": "Retrieve IPS record in compact unified format by ID",
-        "description": "Retrieve IPS record in compact unified format by ID (FHIR JSON).",
+        "description": "Retrieve IPS record in compact unified format by ID (FHIR JSON). Optional protection can be applied via the protect query parameter.",
         "parameters": [
           {
             "name": "id",
@@ -1035,6 +1035,21 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "protect",
+            "in": "query",
+            "required": false,
+            "description": "Protection method to apply to identifiers. 0 = none, 1 = field-level encryption (JWE), 2 = omit identifiers.",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                0,
+                1,
+                2
+              ],
+              "default": 0
             }
           }
         ],
@@ -1044,10 +1059,96 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "description": "FHIR Bundle (IPS unified)."
                 }
               }
             }
+          },
+          "404": {
+            "description": "IPS record not found."
+          }
+        }
+      }
+    },
+    "/ipsunifiedsplit/{id}": {
+      "get": {
+        "tags": [
+          "IPS"
+        ],
+        "summary": "Retrieve IPS record split into RO and RW bundles by ID",
+        "description": "Returns two FHIR Bundles split around the IPS timestamp: RO includes Patient/Organization and resources on or before timestamp; RW includes resources after timestamp. Optional protection can be applied via the protect query parameter.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "protect",
+            "in": "query",
+            "required": false,
+            "description": "Protection method to apply to identifiers. 0 = none, 1 = field-level encryption (JWE), 2 = omit identifiers.",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                0,
+                1,
+                2
+              ],
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Split IPS payloads (RO and RW) as JSON.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "The requested packageUUID."
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "description": "Split timestamp (ISO 8601)."
+                    },
+                    "protect": {
+                      "type": "integer",
+                      "enum": [
+                        0,
+                        1,
+                        2
+                      ]
+                    },
+                    "ro": {
+                      "type": "object",
+                      "description": "Read-only FHIR Bundle."
+                    },
+                    "rw": {
+                      "type": "object",
+                      "description": "Read/write FHIR Bundle."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "timestamp",
+                    "protect",
+                    "ro",
+                    "rw"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "IPS record not found."
           }
         }
       }
@@ -1534,7 +1635,7 @@
     "schemas": {
       "IPSRecord": {
         "type": "object",
-        "description" : "Describes the internal NoSQL schema only - not the IPS FHiR one",
+        "description": "Describes the internal NoSQL schema only - not the IPS FHiR one",
         "properties": {
           "packageUUID": {
             "type": "string",
@@ -1684,7 +1785,7 @@
                 },
                 "value": {
                   "type": "string",
-                  "description" : "String - if numerical then contains value then space then units"
+                  "description": "String - if numerical then contains value then space then units"
                 },
                 "valueCode": {
                   "type": "string"
