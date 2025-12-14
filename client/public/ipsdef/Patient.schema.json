@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "/ipsdef/Patient.schema.json",
-    "title": "IPS-Unified Patient",
+    "title": "NPS Patient",
     "type": "object",
     "required": [
       "resourceType",

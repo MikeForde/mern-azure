@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "/ipsdef/Organization.schema.json",
-    "title": "IPS-Unified Organization",
+    "title": "NPS Organization",
     "type": "object",
     "required": [
       "resourceType",

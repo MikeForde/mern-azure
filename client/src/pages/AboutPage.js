@@ -23,6 +23,38 @@ function AboutPage() {
             </Row>
             <Row className="mt-4">
                 <Col>
+                    <h3>About NATO Patient Summary (NPS)</h3>
+                    <p>
+                        The NATO Patient Summary (NPS) builds directly on the International Patient Summary (IPS)
+                        specification, reusing the same core clinical concepts, data structures, and interoperability
+                        principles defined by HL7 FHIR. Its primary goal is to ensure that essential patient information
+                        can be safely and consistently exchanged in multinational, coalition, and operational
+                        healthcare environments.
+                    </p>
+                    <p>
+                        Like IPS, the NPS focuses on a concise, clinically relevant subset of a patient record,
+                        including demographics, allergies, medications, problems, procedures, and immunisations.
+                        This alignment ensures that systems capable of producing or consuming IPS data can, in
+                        many cases, also work with NPS content with minimal transformation.
+                    </p>
+                    <p>
+                        Where NPS differs from standard IPS is in its operational context and constraints.
+                        NPS places additional emphasis on deployability, offline use, data compactness, and
+                        controlled write access, reflecting military and humanitarian scenarios such as
+                        deployed medical facilities, field care, and cross-nation handover. Profiles,
+                        terminology bindings, and transport mechanisms may be more tightly constrained to
+                        ensure predictable behaviour across diverse systems and partners.
+                    </p>
+                    <p>
+                        In practice, NPS can be viewed as a defence-focused, operationally constrained
+                        application of IPS rather than a competing standard — prioritising interoperability,
+                        trust, and resilience in environments where connectivity, infrastructure, and
+                        governance models differ from civilian healthcare.
+                    </p>
+                </Col>
+            </Row>
+            <Row className="mt-4">
+                <Col>
                     <h3>Useful Links</h3>
                     <Card>
                         <Card.Body>
@@ -40,8 +72,8 @@ function AboutPage() {
                         <Card.Body>
                             <Card.Title>IPS Website</Card.Title>
                             <Card.Text>
-                            Visit the official website of the International Patient Summary (IPS) to 
-                            learn more about the standard and its implementation.
+                                Visit the official website of the International Patient Summary (IPS) to
+                                learn more about the standard and its implementation.
                             </Card.Text>
                             <Card.Link href="https://international-patient-summary.net">
                                 IPS Website

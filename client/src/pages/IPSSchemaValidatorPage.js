@@ -66,9 +66,9 @@ export default function IPSchemaValidator() {
 
   return (
     <Container className="mt-4">
-      <h4>IPS Unified JSON Validator</h4>
+      <h4>NPS JSON Validator</h4>
       <Form.Group controlId="jsonInput">
-        <Form.Label>Paste your Bundle or Resource JSON here</Form.Label>
+        <Form.Label>Paste your NPS Bundle or Resource JSON here</Form.Label>
         <Form.Control
           as="textarea"
           rows={20}

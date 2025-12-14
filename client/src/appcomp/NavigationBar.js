@@ -123,7 +123,7 @@ function NavigationBar() {
             </NavDropdown>
             <NavDropdown title="Info" id="basic-nav-dropdown">
               <NavDropdown.Item as={Link} to="/about" onClick={() => handleNavItemSelect(false)}>
-                About IPS
+                About IPS/NPS
               </NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/aboutwebapp" onClick={() => handleNavItemSelect(false)}>
                 About Web App
@@ -138,10 +138,10 @@ function NavigationBar() {
               </NavDropdown.Item>
               <NavDropdown.Divider />
               <NavDropdown.Item as={Link} to="/schemaviewer" onClick={() => handleNavItemSelect(false)}>
-                IPS Unified Schemas
+                NPS Schemas
               </NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/schemavalidator" onClick={() => handleNavItemSelect(false)}>
-                IPS Unified Schema Validator
+                NPS Schema Validator
               </NavDropdown.Item>
             </NavDropdown>
           </Nav>

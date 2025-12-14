@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "/ipsdef/Bundle.schema.json",
-    "title": "IPS-Unified Bundle",
+    "title": "NPS Bundle",
     "type": "object",
     "required": [
       "resourceType",

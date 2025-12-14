@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "/ipsdef/MedicationRequest.schema.json",
-    "title": "IPS-Unified MedicationRequest",
+    "title": "NPS MedicationRequest",
     "type": "object",
     "required": [
       "resourceType",
