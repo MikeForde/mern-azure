@@ -250,10 +250,10 @@ export default function NFCReaderPage() {
         </div>
 
         <h5>Card Info</h5>
-        <Form.Control as="textarea" rows={3} value={cardInfo} readOnly className="mb-3" />
+        <Form.Control as="textarea" rows={3} value={cardInfo} readOnly className="mb-3"/>
 
         <h5>Payload</h5>
-        <Form.Control as="textarea" rows={15} value={readData} readOnly />
+        <Form.Control as="textarea" rows={15} value={readData} readOnly className="resultTextArea"/>
       </div>
 
       <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999 }}>

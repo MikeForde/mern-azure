@@ -76,6 +76,7 @@ export default function IPSchemaValidator() {
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder='{ "resourceType": "Bundle", ... }'
+          className="resultTextArea"
         />
       </Form.Group>
       <Button className="mt-2" onClick={validate}>Validate</Button>

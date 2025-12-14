@@ -19,6 +19,16 @@
   height: calc(100vh - 350px); 
 }
 
+.resultTextArea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+               "Liberation Mono", "Courier New", monospace;
+  white-space: pre;        /* keep spacing */
+  tab-size: 2;             /* optional */
+  line-height: 1.2;        /* optional */
+  font-size:small !important;       /* optional */
+}
+
+
 .text-area textarea {
   width: 100%;
   height: 100%;

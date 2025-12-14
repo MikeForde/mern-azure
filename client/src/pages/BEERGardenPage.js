@@ -177,14 +177,14 @@ function BEERGardenPage() {
         <div className="text-area-container">
           <div className="text-area">
             <h5>{`Format: ${displayFormat} - ${mongoSize} bytes`}</h5>
-            <Form.Control as="textarea" rows={10} value={mongoData} onChange={e => setMongoData(e.target.value)} />
+            <Form.Control as="textarea" rows={10} value={mongoData} onChange={e => setMongoData(e.target.value)} className="resultTextArea"/>
             <Button className="mt-3" variant="secondary" onClick={selectedFormat === 'MongoDB' ? handleConvertToBEERFromMongo : handleConvertToBEERFromIPS}>
               Convert to BEER Format
             </Button>
           </div>
           <div className="text-area">
             <h5>BEER Format - {beerSize} bytes</h5>
-            <Form.Control as="textarea" rows={10} value={beerData} onChange={e => setBeerData(e.target.value)} />
+            <Form.Control as="textarea" rows={10} value={beerData} onChange={e => setBeerData(e.target.value)} className="resultTextArea" />
             <DropdownButton
               id="dropdown-format"
               title={`Conversion Mode: ${selectedFormat}`}

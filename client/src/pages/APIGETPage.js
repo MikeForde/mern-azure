@@ -376,7 +376,13 @@ function APIGETPage() {
           <Alert variant="danger">Data is too large to display. Please try a different mode.</Alert>
         ) : (
           <div className="text-area">
-            <Form.Control as="textarea" rows={10} value={data} readOnly />
+            <Form.Control
+              as="textarea"
+              rows={10}
+              value={data}
+              readOnly
+              className="resultTextArea"
+            />
           </div>
         )}
         <br />
