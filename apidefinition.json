@@ -1153,6 +1153,98 @@
         }
       }
     },
+    "/ipsdatasplitpoc/{id}": {
+      "get": {
+        "tags": [
+          "IPS"
+        ],
+        "summary": "Retrieve IPS record split into RO plaintext and RW gzipped unified FHIR JSON (POC)",
+        "description": "RO is a human-readable plaintext summary (optionally omitting observations/immunizations/procedures). RW is unified FHIR Bundle JSON compressed with gzip and returned as base64.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Split payloads: RO plaintext + RW gzip(base64) unified FHIR JSON.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string"
+                    },
+                    "ro": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string"
+                        },
+                        "omitObsImmProc": {
+                          "type": "boolean"
+                        },
+                        "text": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "omitObsImmProc",
+                        "text"
+                      ]
+                    },
+                    "rw": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string"
+                        },
+                        "encoding": {
+                          "type": "string"
+                        },
+                        "bytesBase64": {
+                          "type": "string"
+                        },
+                        "uncompressedBytes": {
+                          "type": "integer"
+                        },
+                        "compressedBytes": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "encoding",
+                        "bytesBase64"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "timestamp",
+                    "ro",
+                    "rw"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "IPS record not found."
+          }
+        }
+      }
+    },
     "/ipsbyname/{name}/{given}": {
       "get": {
         "tags": [

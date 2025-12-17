@@ -31,7 +31,7 @@ function formatRow(values, widths) {
   }).join('  ') + '\n';
 }
 
-function generateXMPPPlainText(ipsRecord) {
+function generateXMPPPlainText(ipsRecord, omitObsImmProc = false) {
   let output = '';
 
   output += `IPS UUID: ${ipsRecord.packageUUID}\n`;
@@ -50,14 +50,23 @@ function generateXMPPPlainText(ipsRecord) {
   if (ipsRecord.medication && ipsRecord.medication.length) {
     output += `Medications:\n`;
 
-    const fields = ['name', 'code', 'system', 'date', 'dosage'];
-    const data = ipsRecord.medication.map(med => ({
-      name: med.name || '',
-      code: med.code || '',
-      system: med.system || '',
-      date: formatTimestamp(med.date),
-      dosage: med.dosage || ''
-    }));
+    if (!omitObsImmProc) {
+      var fields = ['name', 'code', 'system', 'date', 'dosage'];
+      var data = ipsRecord.medication.map(med => ({
+        name: med.name || '',
+        code: med.code || '',
+        system: med.system || '',
+        date: formatTimestamp(med.date),
+        dosage: med.dosage || ''
+      }));
+    } else {
+      var fields = ['name', 'date', 'dosage'];
+      var data = ipsRecord.medication.map(med => ({
+        name: med.name || '',
+        date: formatTimestamp(med.date),
+        dosage: med.dosage || ''
+      }));
+    }
 
     const widths = calculateColumnWidths(data, fields);
     output += formatRow(fields.map(f => f.charAt(0).toUpperCase() + f.slice(1)), widths);
@@ -69,14 +78,22 @@ function generateXMPPPlainText(ipsRecord) {
   if (ipsRecord.allergies && ipsRecord.allergies.length) {
     output += `Allergies:\n`;
 
-    const fields = ['name', 'code', 'system', 'criticality', 'date'];
-    const data = ipsRecord.allergies.map(allergy => ({
-      name: allergy.name || '',
-      code: allergy.code || '',
-      system: allergy.system || '',
-      criticality: allergy.criticality || '',
-      date: formatTimestamp(allergy.date)
-    }));
+    if (!omitObsImmProc) {
+      var fields = ['name', 'code', 'system', 'criticality', 'date'];
+      var data = ipsRecord.allergies.map(allergy => ({
+        name: allergy.name || '',
+        code: allergy.code || '',
+        system: allergy.system || '',
+        criticality: allergy.criticality || '',
+        date: formatTimestamp(allergy.date)
+      }));
+    } else {
+      var fields = ['name', 'date'];
+      var data = ipsRecord.allergies.map(allergy => ({
+        name: allergy.name || '',
+        date: formatTimestamp(allergy.date)
+      }));
+    }
 
     const widths = calculateColumnWidths(data, fields);
     output += formatRow(fields.map(f => f.charAt(0).toUpperCase() + f.slice(1)), widths);
@@ -88,18 +105,30 @@ function generateXMPPPlainText(ipsRecord) {
   if (ipsRecord.conditions && ipsRecord.conditions.length) {
     output += `Conditions:\n`;
 
-    const fields = ['name', 'code', 'system', 'date'];
-    const data = ipsRecord.conditions.map(cond => ({
-      name: cond.name || '',
-      code: cond.code || '',
-      system: cond.system || '',
-      date: formatTimestamp(cond.date)
-    }));
+    if (!omitObsImmProc) {
+      var fields = ['name', 'code', 'system', 'date'];
+      var data = ipsRecord.conditions.map(cond => ({
+        name: cond.name || '',
+        code: cond.code || '',
+        system: cond.system || '',
+        date: formatTimestamp(cond.date)
+      }));
+    } else {
+      var fields = ['name', 'date'];
+      var data = ipsRecord.conditions.map(cond => ({
+        name: cond.name || '',
+        date: formatTimestamp(cond.date)
+      }));
+    }
 
     const widths = calculateColumnWidths(data, fields);
     output += formatRow(fields.map(f => f.charAt(0).toUpperCase() + f.slice(1)), widths);
     data.forEach(cond => output += formatRow(fields.map(f => cond[f]), widths));
     output += '\n';
+  }
+
+  if (omitObsImmProc) {
+    return output;
   }
 
   // Observations

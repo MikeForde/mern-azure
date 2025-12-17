@@ -740,10 +740,11 @@ function ChangeLogPage() {
                             <h5>Version 0_75 — 13 Dec 2025</h5>
                             <ul>
                                 <li><strong>API Calls Added to Aide Android NFC 2-Data POC</strong></li>
-                                <li>Separate Android App requires IPS Unified data split into two parts - division by whether before or after main timestamp </li>
-                                <li>Data on or before is 'historic' and meant to be Read-Only, data after is emerging and goes in Read/Write section of NFC card</li>
+                                <li>Separate Android App requires IPS Unified data split into two parts</li>
+                                <li>Data blob 1 goes in a Read-Only section and Data blob 2 goes in a Read/Write section of NFC card</li>
                                 <li>First new api call - <code>/ips/list</code> - returns list of all IPS records (just packageUUID, name and given name)</li>
-                                <li>Second new api call - <code>/ipsunifiedsplit/:id</code> - provides data in bespoke bundle containing two parts</li>
+                                <li>Second new api call - <code>/ipsunifiedsplit/:id</code> - provides data in bespoke bundle containing two parts. The division by whether before or after main timestamp. Which essentially splits the NPS data into two parts.</li>
+                                <li>Third new api call - <code>/ipsdatasplitpoc/:id</code> - provides data in bespoke bundle containing two parts. The division now is the RO section is a plain text, human-readable (Patient, Conditions, Medications and Allergies) and the RW section is the full NPS data gzipped base64 encoded.</li>
                             </ul> 
                         </li>
                     </ul>
