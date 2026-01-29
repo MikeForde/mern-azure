@@ -755,6 +755,7 @@ function ChangeLogPage() {
                                 <li>Updated IPS Schema Viewer page to display the Coverage schema with example data.</li>
                                 <li>Modified IPS Unified Bundle example to incorporate a Coverage resource linked to the Patient.</li>
                                 <li>Removed 'total' as a required field for Bundle resource.</li>
+                                <li>Improved XMPP handling and message history retrieval. Avoids duplicate messages and re-processing of IPS UUID requests.</li>
                             </ul>
                         </li>
                     </ul>

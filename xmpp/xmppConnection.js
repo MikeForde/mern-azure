@@ -2,8 +2,9 @@
 const { client, xml } = require("@xmpp/client");
 const reconnect = require("@xmpp/reconnect");
 const Connection = require("@xmpp/connection");
-const net = require( 'net');
-const { URL } = require ('url');
+const net = require('net');
+const { URL } = require('url');
+const { once } = require("events");
 
 // Import your ID resolver and IPS text formatter
 const { resolveId } = require("../utils/resolveId");
@@ -16,6 +17,9 @@ let sendQueue = [];
 
 // We'll store the JID we get from 'online'
 let myJid = null;
+
+// last seen timestamp
+let lastSeen = null;
 
 //    this will automatically retry start() on disconnects.
 function applyReconnect(entity) {
@@ -32,11 +36,12 @@ async function waitForOnline() {
 const originalOnData = Connection.prototype._onData;
 Connection.prototype._onData = function (chunk) {
   if (chunk == null) {
-    console.warn("[XMPP] Ignoring null WebSocket frame");
-    return;
+    console.warn("[XMPP] Null WebSocket frame -> treating as empty");
+    chunk = Buffer.alloc(0);
   }
   return originalOnData.call(this, chunk);
 };
+
 
 function safeEnv(varName, defaultValue) {
   const value = process.env[varName];
@@ -48,12 +53,12 @@ function safeEnv(varName, defaultValue) {
 }
 
 // Read environment variables - fallback defaults
-const XMPP_SERVICE  = safeEnv("XMPP_SERVICE",  "ws://192.168.68.115:7070/ws/");
-const XMPP_DOMAIN   = safeEnv("XMPP_DOMAIN",   "desktop-4tiift3");
+const XMPP_SERVICE = safeEnv("XMPP_SERVICE", "ws://192.168.68.115:7070/ws/");
+const XMPP_DOMAIN = safeEnv("XMPP_DOMAIN", "desktop-4tiift3");
 const XMPP_USERNAME = safeEnv("XMPP_USERNAME", "mikef");
 const XMPP_PASSWORD = safeEnv("XMPP_PASSWORD", "test");
 // e.g. "testroom@conference.desktop-4tiift3"
-const XMPP_ROOM     = safeEnv("XMPP_ROOM",     "testroom@conference.desktop-4tiift3");
+const XMPP_ROOM = safeEnv("XMPP_ROOM", "testroom@conference.desktop-4tiift3");
 
 // Default nickname to join room
 const DEFAULT_ROOM_NICK = "IPSMern";
@@ -64,9 +69,9 @@ async function canReach(hostname, port, timeout = 2000) {
     const socket = new net.Socket();
     socket.setTimeout(timeout);
     socket
-      .once('connect',  () => { socket.destroy(); resolve(true) })
-      .once('timeout',  () => { socket.destroy(); resolve(false) })
-      .once('error',    () => { socket.destroy(); resolve(false) })
+      .once('connect', () => { socket.destroy(); resolve(true) })
+      .once('timeout', () => { socket.destroy(); resolve(false) })
+      .once('error', () => { socket.destroy(); resolve(false) })
       .connect(port, hostname);
   });
 }
@@ -82,42 +87,70 @@ async function initXMPP_WebSocket() {
     return xmpp;
   }
 
-    // parse out host/port from XMPP_SERVICE URL
-    const { hostname, port: portString } = new URL(XMPP_SERVICE);
-    const port = parseInt(portString || '5222', 10);
-  
-    if (!(await canReach(hostname, port))) {
-      console.log(`✖  XMPP server ${hostname}:${port} unreachable — skipping.`);
-      return null;
-    }
+  // parse out host/port from XMPP_SERVICE URL
+  const { hostname, port: portString } = new URL(XMPP_SERVICE);
+  const port = parseInt(portString || '5222', 10);
+
+  if (!(await canReach(hostname, port))) {
+    console.log(`✖  XMPP server ${hostname}:${port} unreachable — skipping.`);
+    return null;
+  }
 
   xmpp = client({
-    service:  XMPP_SERVICE,
-    domain:   XMPP_DOMAIN,
+    service: XMPP_SERVICE,
+    domain: XMPP_DOMAIN,
     username: XMPP_USERNAME,
     password: XMPP_PASSWORD,
     transport: "websocket",
   });
 
-  applyReconnect(xmpp); 
+  const streamManagement = require("@xmpp/stream-management");
+  streamManagement(xmpp);
+
+
+  applyReconnect(xmpp);
+
+  xmpp.on("offline", () => {
+    isOnline = false;
+    console.log("[XMPP] offline");
+  });
 
   // Handle connection errors
   xmpp.on("error", (err) => {
     console.error("XMPP error:", err);
   });
 
+  // xmpp.on("stanza", (stanza) => {
+  //   if (!stanza.is("message")) return;
+  //   const body = stanza.getChildText("body");
+  //   console.log("[XMPP][IN]", stanza.attrs.id, stanza.attrs.from, stanza.attrs.type, body);
+  // });
+
   // Called once the client is online (SASL auth + resource binding complete)
-  xmpp.on("online", (address) => {
+  xmpp.on("online", async (address) => {
     isOnline = true;
     myJid = address.toString();
+
+    try {
+      await xmpp.enableStreamManagement({ resume: true });
+      console.log("[XMPP] Stream management enabled (resume=true)");
+    } catch (e) {
+      console.warn("[XMPP] Stream management not enabled:", e?.message || e);
+    }
+
     console.log("XMPP WebSocket is online as", myJid);
-    flushSendQueue();  
+    flushSendQueue();
 
     // Example: join a room
     const roomJid = `${XMPP_ROOM}/${DEFAULT_ROOM_NICK}`;
     xmpp.send(
       xml("presence", { to: roomJid },
-        xml("x", { xmlns: "http://jabber.org/protocol/muc" })
+        xml("x", { xmlns: "http://jabber.org/protocol/muc" },
+          // Ask for messages we might have missed while reconnecting
+          lastSeen
+            ? xml("history", { since: lastSeen.toISOString() })
+            : xml("history", { seconds: "60" }) // first join: last 60s
+        )
       )
     );
 
@@ -134,6 +167,11 @@ async function initXMPP_WebSocket() {
       const from = stanza.attrs.from; // e.g. "mikef@desktop-4tiift3/abcdefgh"
       const messageType = stanza.attrs.type; // "groupchat", "chat", ...
       const body = stanza.getChildText("body");
+
+      // Track when we last saw a MUC message so we can request history after reconnect
+      if (stanza.attrs.type === "groupchat" && body) {
+        lastSeen = new Date();
+      }
 
       // 1) If from is our own JID (or occupant JID in a MUC), skip
       if (from && from.startsWith(myJid)) {
@@ -171,7 +209,7 @@ async function initXMPP_WebSocket() {
     }
   });
 
-  
+
 
   // Connect (start the XMPP session)
   try {
@@ -262,5 +300,5 @@ module.exports = {
   initXMPP_WebSocket,
   sendGroupMessage,
   sendPrivateMessage,
-  getRoomOccupants, 
+  getRoomOccupants,
 };
