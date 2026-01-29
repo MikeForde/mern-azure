@@ -756,6 +756,7 @@ function ChangeLogPage() {
                                 <li>Modified IPS Unified Bundle example to incorporate a Coverage resource linked to the Patient.</li>
                                 <li>Removed 'total' as a required field for Bundle resource.</li>
                                 <li>Improved XMPP handling and message history retrieval. Avoids duplicate messages and re-processing of IPS UUID requests.</li>
+                                <li>ipsunifiedsplit now returns gzipped base64 encoded data - which the Android NFC Tool App can present or unzip.</li>
                             </ul>
                         </li>
                     </ul>

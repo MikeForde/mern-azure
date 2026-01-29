@@ -1,5 +1,6 @@
 const { resolveId } = require('../utils/resolveId');
 const { generateIPSBundleUnified, protectIPSBundle } = require('./servercontrollerfuncs/generateIPSBundleUnified');
+const { gzipEncode } = require('../compression/gzipUtils'); // <-- adjust path to your gzipUtils.js
 
 function parseIso(s) {
   const t = Date.parse(s);
@@ -31,11 +32,10 @@ function splitBundleByTimestamp(bundle, cutoffIso) {
     throw new Error(`Invalid cutoff timestamp: ${cutoffIso}`);
   }
 
-  // Find Patient + Organization entries (always included in BOTH so each bundle is self-contained)
   const patientEntry = bundle.entry.find(e => e.resource?.resourceType === "Patient");
   const orgEntry     = bundle.entry.find(e => e.resource?.resourceType === "Organization");
 
-  // Build a map: MedicationRequest -> Medication reference, and Medication id -> request time
+  // Map Medication.id -> MedicationRequest.authoredOn
   const medReqs = bundle.entry
     .filter(e => e.resource?.resourceType === "MedicationRequest")
     .map(e => e.resource);
@@ -54,28 +54,21 @@ function splitBundleByTimestamp(bundle, cutoffIso) {
   const roEntries = [];
   const rwEntries = [];
 
-  // helper to push into RO/RW based on date
   function placeEntry(entry, dateMs) {
-    // undated resources: keep in RO by default (conservative)
     const isAfter = (dateMs != null) ? (dateMs > cutoffMs) : false;
     (isAfter ? rwEntries : roEntries).push(entry);
   }
 
-  // Add patient/org to both (so the RW bundle still resolves Patient/pt1 references)
-//   if (patientEntry) { roEntries.push(patientEntry); rwEntries.push(patientEntry); }
-//   if (orgEntry)     { roEntries.push(orgEntry);     rwEntries.push(orgEntry); }
-
-if (patientEntry) { roEntries.push(patientEntry); }
-  if (orgEntry)     { roEntries.push(orgEntry);  }
+  // NOTE: you currently include Patient+Org only in RO (not RW). Keeping as-is.
+  if (patientEntry) roEntries.push(patientEntry);
+  if (orgEntry)     roEntries.push(orgEntry);
 
   for (const entry of bundle.entry) {
     const r = entry.resource;
     if (!r) continue;
 
-    // already added above
     if (r.resourceType === "Patient" || r.resourceType === "Organization") continue;
 
-    // Medication resources have no date — tie them to their MedicationRequest authoredOn
     if (r.resourceType === "Medication") {
       const ms = medTimeByMedicationId.get(r.id) ?? null;
       placeEntry(entry, ms);
@@ -107,13 +100,11 @@ async function getIPSUnifiedBundleSplit(req, res) {
     const ips = await resolveId(id);
     if (!ips) return res.status(404).json({ message: "IPS record not found" });
 
-    const useJwe =
-      String(req.query.protect || '').trim() === '1' ||
-      (req.get('X-Field-Enc') || '').toLowerCase() === 'jwe';
+    const protectQ = String(req.query.protect || '').trim();
+    const hdr = (req.get('X-Field-Enc') || '').toLowerCase();
 
-    const useOmit =
-      String(req.query.protect || '').trim() === '2' ||
-      (req.get('X-Field-Enc') || '').toLowerCase() === 'omit';
+    const useJwe  = protectQ === '1' || hdr === 'jwe';
+    const useOmit = protectQ === '2' || hdr === 'omit';
 
     let protectMethod = "none";
     if (useJwe) protectMethod = "jwe";
@@ -127,12 +118,42 @@ async function getIPSUnifiedBundleSplit(req, res) {
 
     const { roBundle, rwBundle } = splitBundleByTimestamp(protectedBundle, cutoffIso);
 
+    // gzip behavior: default ON (gzip=1). allow ?gzip=0 to return plain JSON bundles.
+    const gzipOn = String(req.query.gzip || '1').trim() !== '0';
+
+    if (!gzipOn) {
+      return res.json({
+        id: protectedBundle.id,
+        cutoff: cutoffIso,
+        protect: protectMethod,
+        encoding: "json",
+        ro: roBundle,
+        rw: rwBundle
+      });
+    }
+
+    // Payload-level gzip: JSON -> UTF-8 -> gzip -> base64
+    const roJson = JSON.stringify(roBundle);
+    const rwJson = JSON.stringify(rwBundle);
+
+    const roGz = await gzipEncode(roJson);
+    const rwGz = await gzipEncode(rwJson);
+
     res.json({
       id: protectedBundle.id,
       cutoff: cutoffIso,
       protect: protectMethod,
-      ro: roBundle,
-      rw: rwBundle
+      encoding: "gzip+base64",
+
+      // helpful metadata for your demo UI
+      roBytesJson: Buffer.byteLength(roJson, 'utf8'),
+      rwBytesJson: Buffer.byteLength(rwJson, 'utf8'),
+      roBytesGz: roGz.length,
+      rwBytesGz: rwGz.length,
+
+      // actual payloads
+      roGzB64: roGz.toString('base64'),
+      rwGzB64: rwGz.toString('base64')
     });
   } catch (err) {
     res.status(400).json({ error: err.message });
