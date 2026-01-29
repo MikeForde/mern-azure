@@ -747,6 +747,16 @@ function ChangeLogPage() {
                                 <li>Third new api call - <code>/ipsdatasplitpoc/:id</code> - provides data in bespoke bundle containing two parts. The division now is the RO section is a plain text, human-readable (Patient, Conditions, Medications and Allergies) and the RW section is the full NPS data gzipped base64 encoded.</li>
                             </ul> 
                         </li>
+                        <li>
+                            <h5>Version 0_76 — 29th Jan 2026</h5>
+                            <ul>
+                                <li><strong>Added Coverage Resource to IPS Unified Schema and Viewer</strong></li>
+                                <li>Expanded IPS Unified JSON Schema to include the Coverage resource, allowing representation of insurance information.</li>
+                                <li>Updated IPS Schema Viewer page to display the Coverage schema with example data.</li>
+                                <li>Modified IPS Unified Bundle example to incorporate a Coverage resource linked to the Patient.</li>
+                                <li>Removed 'total' as a required field for Bundle resource.</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

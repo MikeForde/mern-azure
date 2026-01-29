@@ -17,7 +17,8 @@ const schemaFiles = [
   'AllergyIntolerance.schema.json',
   'Condition.schema.json',
   'Observation.schema.json',
-  'Procedure.schema.json'
+  'Procedure.schema.json',
+  'Coverage.schema.json'
 ];
 
 const schemas = {};
