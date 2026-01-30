@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { Button, Modal, Form, OverlayTrigger, Tooltip, Row, Col, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { faFileMedical, faQrcode, faTrash, faBeer, faEdit, faFileExport, faUpload, faPaperPlane, faCommentDots, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faFileMedical, faQrcode, faTrash, faBeer, faEdit, faFileExport, faUpload, faPaperPlane, faCommentDots, faEye, faRadiation, faAmbulance, faMap, faMapMarker, faMapMarked } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { PatientContext } from '../../PatientContext';
@@ -9,6 +9,7 @@ import { useLoading } from '../../contexts/LoadingContext';
 import "./components.css";
 import { generatePDF } from './generatePDF';
 import { Toast, ToastContainer } from 'react-bootstrap';
+import { set } from "mongoose";
 
 
 const formatDate = (dateString) => {
@@ -40,6 +41,9 @@ export function IPS({ ips, remove, update }) {
   const [pmrMessage, setPmrMessage] = useState('');
   const [pmrAlertVariant, setPmrAlertVariant] = useState('success'); // "success" for success, "danger" for errors
   const [showPmrAlert, setShowPmrAlert] = useState(false);
+  const [takMessage, setTakMessage] = useState('');
+  const [takAlertVariant, setTakAlertVariant] = useState('success'); // "success" for success, "danger" for errors
+  const [showTakAlert, setShowTakAlert] = useState(false);
   const [showEditAlert, setShowEditAlert] = useState(false);
   const [editAlertMessage, setEditAlertMessage] = useState("");
 
@@ -160,6 +164,28 @@ export function IPS({ ips, remove, update }) {
       .finally(() => stopLoading());
   };
 
+  // Send to TAK
+  const handleSendTAK = () => {
+    startLoading();
+    const payload = { id: ips.packageUUID };
+    axios.post(`/api/tak/ips`, payload)
+      .then(response => {
+        setTakMessage("TAK Response: " + JSON.stringify(response.data, null, 2));
+        setTakAlertVariant("success");
+        setShowTakAlert(true);
+      })
+      .catch(error => {
+        const errorMsg = error.response && error.response.data
+          ? error.response.data
+          : error.message;
+        console.error("Error sending TAK:", errorMsg);
+        setTakMessage(errorMsg);
+        setTakAlertVariant("danger");
+        setShowTakAlert(true);
+      })
+      .finally(() => stopLoading());
+  };
+
   // XMPP logic: open modal & load occupants
   const openXMPPModal = () => {
     setShowXMPPModal(true);
@@ -243,13 +269,19 @@ export function IPS({ ips, remove, update }) {
 
         <OverlayTrigger placement="top" overlay={renderTooltip('Send PMR to MMP')}>
           <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSendPMR}>
-            <FontAwesomeIcon icon={faPaperPlane} />
+            <FontAwesomeIcon icon={faAmbulance} />
           </Button>
         </OverlayTrigger>
 
-        <OverlayTrigger placement="top" overlay={renderTooltip('Send to XMPP')}>
+        <OverlayTrigger placement="top" overlay={renderTooltip('Send to JChat/XMPP')}>
           <Button variant="outline-secondary" className="qr-button custom-button" onClick={openXMPPModal}>
             <FontAwesomeIcon icon={faCommentDots} />
+          </Button>
+        </OverlayTrigger>
+
+        <OverlayTrigger placement="top" overlay={renderTooltip('Send to TAK')}>
+          <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSendTAK}>
+            <FontAwesomeIcon icon={faMapMarked} />
           </Button>
         </OverlayTrigger>
 

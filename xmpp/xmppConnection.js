@@ -17,9 +17,48 @@ let sendQueue = [];
 
 // We'll store the JID we get from 'online'
 let myJid = null;
+let myBareJid = null;
 
 // last seen timestamp
 let lastSeen = null;
+
+let pingTimer = null;
+
+async function pingServer(timeoutMs = 5000) {
+  const id = `ping-${Date.now()}`;
+  const iq = xml(
+    "iq",
+    { type: "get", to: myBareJid || XMPP_DOMAIN, id },
+    xml("ping", { xmlns: "urn:xmpp:ping" })
+  );
+
+  // sendReceive can hang if transport is half-dead; enforce timeout
+  return Promise.race([
+    xmpp.sendReceive(iq),
+    new Promise((_, reject) => setTimeout(() => reject(new Error("ping timeout")), timeoutMs)),
+  ]);
+}
+
+function startPingLoop() {
+  stopPingLoop();
+  pingTimer = setInterval(async () => {
+    if (!xmpp || !isOnline) return;
+    try {
+      await pingServer(5000);
+      // ok
+    } catch (e) {
+      console.warn("[XMPP] ping failed -> forcing reconnect:", e.message || e);
+      // Force the session to end fast; reconnect plugin will bring it back
+      try { await xmpp.stop(); } catch {}
+      try { await xmpp.start(); } catch {}
+    }
+  }, 20000); // 20s is a decent starting point
+}
+
+function stopPingLoop() {
+  if (pingTimer) clearInterval(pingTimer);
+  pingTimer = null;
+}
 
 //    this will automatically retry start() on disconnects.
 function applyReconnect(entity) {
@@ -113,6 +152,7 @@ async function initXMPP_WebSocket() {
   xmpp.on("offline", () => {
     isOnline = false;
     console.log("[XMPP] offline");
+    stopPingLoop();
   });
 
   // Handle connection errors
@@ -130,16 +170,18 @@ async function initXMPP_WebSocket() {
   xmpp.on("online", async (address) => {
     isOnline = true;
     myJid = address.toString();
+    myBareJid = address.bare().toString();
 
-    try {
-      await xmpp.enableStreamManagement({ resume: true });
-      console.log("[XMPP] Stream management enabled (resume=true)");
-    } catch (e) {
-      console.warn("[XMPP] Stream management not enabled:", e?.message || e);
-    }
+    // try {
+    //   await xmpp.enableStreamManagement({ resume: true });
+    //   console.log("[XMPP] Stream management enabled (resume=true)");
+    // } catch (e) {
+    //   console.warn("[XMPP] Stream management not enabled:", e?.message || e);
+    // }
 
     console.log("XMPP WebSocket is online as", myJid);
     flushSendQueue();
+    startPingLoop();
 
     // Example: join a room
     const roomJid = `${XMPP_ROOM}/${DEFAULT_ROOM_NICK}`;
@@ -149,7 +191,7 @@ async function initXMPP_WebSocket() {
           // Ask for messages we might have missed while reconnecting
           lastSeen
             ? xml("history", { since: lastSeen.toISOString() })
-            : xml("history", { seconds: "60" }) // first join: last 60s
+            : xml("history", { seconds: "300" }) // first join: last 60s
         )
       )
     );

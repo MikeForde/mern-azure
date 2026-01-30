@@ -28,12 +28,13 @@ router.post('/pmr/:id', async (req, res) => {
     const patientId = `IPS-${firstNameSub}-${surnameSub}01-${year}${month}${day}Z${hour}${minute}-01`;
 
     // 2. Get an access token from IdentityServer
+    const mmpBaseUrl = 'https://mm.medis.org.uk/';
     const tokenResponse = await axios.post(
-      'https://track.medis.org.uk/identity/connect/token',
+      `${mmpBaseUrl}identity/connect/token`,
       new URLSearchParams({
         grant_type: 'client_credentials',
-        client_id: 'IPSMERN',
-        client_secret: 'e7d42f7c-d087-4789-9fc1-71e679bb8c8b',
+        client_id: 'IPS1',
+        client_secret: '009efe3d-7553-4ee6-acb4-f548790d63e9',
         scope: 'medmmapi'
       }).toString(),
       {
@@ -166,7 +167,7 @@ router.post('/pmr/:id', async (req, res) => {
 
     // 4. Post the PMR XML to the API endpoint using the access token
     const pmrResponse = await axios.post(
-      'https://track.medis.org.uk/api/api/pmrs/create-app11e',
+      `${mmpBaseUrl}api/api/pmrs/create-app11e`,
       pmrXml,
       {
         headers: {

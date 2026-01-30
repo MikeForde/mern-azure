@@ -8,9 +8,9 @@ const { gzipEncode } = require('../compression/gzipUtils');
 // POST /tak/test – Sends a COT message.
 // You can provide a custom COT message via a "cot" property in the JSON body.
 router.post('/test', (req, res) => {
-  const cotMessage = req.body.cot || `<event version="2.0" uid="TAK-Example" type="a-f-G-U-C" how="m-g" time="2023-12-19T12:34:56Z" start="2023-12-19T12:34:56Z" stale="2023-12-19T12:39:56Z">
+  const cotMessage = req.body.cot || `<event version="2.0" uid="TAK-Example" type="a-f-G-U-C" how="m-g" time="2026-12-19T12:34:56Z" start="2026-12-19T12:34:56Z" stale="2026-12-19T12:39:56Z">
     <detail>
-      <contact callsign="Example" />
+      <contact callsign="MF-ATAK-Phone-PS53" />
     </detail>
   </event>`;
 
@@ -57,13 +57,14 @@ router.post('/ips', async (req, res) => {
 
     // Construct the CoT message with the gzipped, Base64 encoded IPS data in the <remarks> element.
     const cotMessage = `<event version="2.0" uid="${uid}" type="a-f-A" time="${timeStr}" start="${timeStr}" stale="${staleTime}" how="h-g" access="Undefined">
-  <point lat="52" lon="1.5" hae="9999999" ce="9999999" le="9999999" />
+  <point lat="52" lon="-2.5" hae="9999999" ce="9999999" le="9999999" />
   <detail>
     <status readiness="true" />
     <color argb="-1" />
-    <link uid="ANDROID-464496edc9400227" production_time="${productionTime}" type="a-f-G-U-C" parent_callsign="Wibble" relation="p-p" />
+    <link uid="ANDROID-464496edc9400227" production_time="${productionTime}" type="a-f-G-U-C" parent_callsign="MF-ATAK" relation="p-p" />
     <usericon iconsetpath="6d781afb-89a6-4c07-b2b9-a89748b6a38f/General/health.png" />
-    <contact callsign="Patient" />
+    <contact callsign="IPS MERN Patient" />
+    <__group name="Cyan" role="Team Member"/>
     <ipsData encoding="gzipBase64">${base64Gzip}</ipsData>
   </detail>
 </event>`;
