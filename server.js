@@ -265,7 +265,7 @@ initXMPP_WebSocket()
 // This allows the backend to communicate with the React frontend via WebSockets
 // In particular, it allows screen updates to be triggered in the frontend when a patient currently on screen is updated
 // wrap the express app in a raw HTTP server
-const port = process.env.PORT || 5050;
+const port = process.env.PORT || 5049;
 const httpServer = http.createServer(api);
 
 // create the Socket.IO server and allow CORS from your front‑end origin

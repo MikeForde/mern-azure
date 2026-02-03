@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { Button, Modal, Form, OverlayTrigger, Tooltip, Row, Col, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { faFileMedical, faQrcode, faTrash, faBeer, faEdit, faFileExport, faUpload, faPaperPlane, faCommentDots, faEye, faRadiation, faAmbulance, faMap, faMapMarker, faMapMarked } from '@fortawesome/free-solid-svg-icons';
+import { faFileMedical, faQrcode, faTrash, faBeer, faEdit, faFileExport, faUpload, faCommentDots, faEye, faAmbulance, faMapMarked } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { PatientContext } from '../../PatientContext';
@@ -9,7 +9,7 @@ import { useLoading } from '../../contexts/LoadingContext';
 import "./components.css";
 import { generatePDF } from './generatePDF';
 import { Toast, ToastContainer } from 'react-bootstrap';
-import { set } from "mongoose";
+//import { set } from "mongoose";
 
 
 const formatDate = (dateString) => {
@@ -168,7 +168,7 @@ export function IPS({ ips, remove, update }) {
   const handleSendTAK = () => {
     startLoading();
     const payload = { id: ips.packageUUID };
-    axios.post(`/api/tak/ips`, payload)
+    axios.post(`/tak/ips`, payload)
       .then(response => {
         setTakMessage("TAK Response: " + JSON.stringify(response.data, null, 2));
         setTakAlertVariant("success");
@@ -533,6 +533,26 @@ export function IPS({ ips, remove, update }) {
           <Toast.Body>
             <pre className="mb-0 text-white" style={{ whiteSpace: "pre-wrap", maxHeight: "200px", overflowY: "auto" }}>
               {pmrMessage}
+            </pre>
+          </Toast.Body>
+        </Toast>
+      </ToastContainer>
+
+      <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999 }}>
+        <Toast
+          show={showTakAlert}
+          onClose={() => setShowTakAlert(false)}
+          bg={takAlertVariant}
+          delay={5000}
+          autohide
+        >
+          <Toast.Header>
+            <strong className="me-auto">TAK Response</strong>
+
+          </Toast.Header>
+          <Toast.Body>
+            <pre className="mb-0 text-white" style={{ whiteSpace: "pre-wrap", maxHeight: "200px", overflowY: "auto" }}>
+              {takMessage}
             </pre>
           </Toast.Body>
         </Toast>

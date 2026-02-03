@@ -67,7 +67,10 @@ router.post('/pmr/:id', async (req, res) => {
     <PatientSecondName ffSeq="3" ffirnFudn="FF1022-26">${(ipsRecord.patient.name).toUpperCase() || 'UNKNOWN'}</PatientSecondName>
     <PatientFirstNameS ffSeq="4" ffirnFudn="FF1022-3">${(ipsRecord.patient.given).toUpperCase() || 'UNKNOWN'}</PatientFirstNameS>
     <DateOfBirth ffSeq="5" ffirnFudn="FF2001-1">
-      <Day>${ipsRecord.patient.dob ? new Date(ipsRecord.patient.dob).getDate() : ''}</Day>
+      <Day>${ipsRecord.patient.dob
+        ? String(new Date(ipsRecord.patient.dob).getDate()).padStart(2, '0')
+        : ''
+      }</Day>
       <MonthNameAbbreviated>${ipsRecord.patient.dob ? new Date(ipsRecord.patient.dob).toLocaleString('en-US', { month: 'short' }).toUpperCase() : ''}</MonthNameAbbreviated>
       <Year4Digit>${ipsRecord.patient.dob ? new Date(ipsRecord.patient.dob).getFullYear() : ''}</Year4Digit>
     </DateOfBirth>
@@ -95,13 +98,13 @@ router.post('/pmr/:id', async (req, res) => {
   </PatientReady>
   <MtfTransfer setid="MTFTRANS" setSeq="8">
     <MtfOrigination ffSeq="1">
-      <UnitName ffirnFudn="FF1022-48">UK1</UnitName>
+      <UnitName ffirnFudn="FF1022-48">IV1</UnitName>
     </MtfOrigination>
     <RequestingUnitLocation ffSeq="2">
       <NationalGridSystemCoordinates ffirnFudn="FF1911-1">11111</NationalGridSystemCoordinates>
     </RequestingUnitLocation>
     <MtfDestination ffSeq="3">
-      <UnitName ffirnFudn="FF1022-48">FN1</UnitName>
+      <UnitName ffirnFudn="FF1022-48">BR1</UnitName>
     </MtfDestination>
     <DestinationUnitLocation ffSeq="4">
       <NationalGridSystemCoordinates ffirnFudn="FF1911-1">22222</NationalGridSystemCoordinates>
@@ -158,12 +161,12 @@ router.post('/pmr/:id', async (req, res) => {
 </urn:PatientMovementRequest>
     `.trim();
 
-    // console.log("PMR XML",
-    //     pmrXml
-    //         .split('\n')
-    //         .map(l => l.trim())
-    //         .join('')
-    // );
+    console.log("PMR XML",
+      pmrXml
+        .split('\n')
+        .map(l => l.trim())
+        .join('')
+    );
 
     // 4. Post the PMR XML to the API endpoint using the access token
     const pmrResponse = await axios.post(
@@ -180,7 +183,7 @@ router.post('/pmr/:id', async (req, res) => {
     // Return the PMR API response to the client
     res.status(200).send(pmrResponse.data);
   } catch (error) {
-    const errorMessage = error.response && error.response.data 
+    const errorMessage = error.response && error.response.data
       ? `Error processing PMR: ${JSON.stringify(error.response.data)}`
       : `Error processing PMR: ${error.message}`;
     console.error(errorMessage);

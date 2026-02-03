@@ -57,7 +57,7 @@ router.post('/ips', async (req, res) => {
 
     // Construct the CoT message with the gzipped, Base64 encoded IPS data in the <remarks> element.
     const cotMessage = `<event version="2.0" uid="${uid}" type="a-f-A" time="${timeStr}" start="${timeStr}" stale="${staleTime}" how="h-g" access="Undefined">
-  <point lat="52" lon="-2.5" hae="9999999" ce="9999999" le="9999999" />
+  <point lat="51.44" lon="-2.6" hae="9999999" ce="9999999" le="9999999" />
   <detail>
     <status readiness="true" />
     <color argb="-1" />
