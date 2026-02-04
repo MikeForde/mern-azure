@@ -745,7 +745,7 @@ function ChangeLogPage() {
                                 <li>First new api call - <code>/ips/list</code> - returns list of all IPS records (just packageUUID, name and given name)</li>
                                 <li>Second new api call - <code>/ipsunifiedsplit/:id</code> - provides data in bespoke bundle containing two parts. The division by whether before or after main timestamp. Which essentially splits the NPS data into two parts.</li>
                                 <li>Third new api call - <code>/ipsdatasplitpoc/:id</code> - provides data in bespoke bundle containing two parts. The division now is the RO section is a plain text, human-readable (Patient, Conditions, Medications and Allergies) and the RW section is the full NPS data gzipped base64 encoded.</li>
-                            </ul> 
+                            </ul>
                         </li>
                         <li>
                             <h5>Version 0_76 — 29th Jan 2026</h5>
@@ -759,6 +759,16 @@ function ChangeLogPage() {
                                 <li>ipsunifiedsplit now returns gzipped base64 encoded data - which the Android NFC Tool App can present or unzip.</li>
                             </ul>
                         </li>
+                        <h5>Version 0_77 — 4th Feb 2026</h5>
+                        <ul>
+                            <li><strong>Send to TAK Integration and MMP Messaging Improvements</strong></li>
+                            <li>Added <em>Send to TAK</em> button to the frontend UI, enabling direct transmission of IPS data to TAK environments.</li>
+                            <li>Improved XMPP handling for more reliable message flow and reduced edge-case failures.</li>
+                            <li>Fixed MMP message handling and changed proxy port to <code>5049</code> to avoid clashes with Atlas services.</li>
+                            <li>Updated MMP MTF NVG request logic to retrieve valid random MTFs for demo messaging scenarios.</li>
+                            <li>Frontend now allows users to explicitly choose <em>To</em> and <em>From</em> MTFs, or leave them unset to fall back to random selection.</li>
+                        </ul>
+
                     </ul>
                 </Col>
             </Row>

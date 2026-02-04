@@ -224,7 +224,7 @@ export function IPS({ ips, remove, update }) {
     setShowPMRModal(false);
   };
 
-  const handleSendPMR = () => openPMRModal(); // now opens picker UI
+  //const handleSendPMR = () => openPMRModal(); // now opens picker UI
   const handleSendPMRQuick = () => sendPMR(); // no params => random/back-compat
   const handleSendPMRWithSelection = () => sendPMR(pmrFrom, pmrTo);
 
