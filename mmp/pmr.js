@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const { resolveId } = require('../utils/resolveId'); // your function to get the IPS record
+const { XMLParser } = require('fast-xml-parser');
 
 const router = express.Router();
 
@@ -12,6 +13,12 @@ router.post('/pmr/:id', async (req, res) => {
   const day = String(now.getDate()).padStart(2, '0');
   const hour = String(now.getHours()).padStart(2, '0');
   const minute = String(now.getMinutes()).padStart(2, '0');
+
+  const readyDay = String(now.getDate()).padStart(2, '0');
+  const readyHour = String(now.getHours()).padStart(2, '0');
+  const readyMinute = String(now.getMinutes()).padStart(2, '0');
+  const readyMonth = month;      // you already have this as "JAN/FEB/..."
+  const readyYear = String(year);
 
   try {
     // 1. Retrieve the IPS record from MongoDB
@@ -29,6 +36,90 @@ router.post('/pmr/:id', async (req, res) => {
 
     // 2. Get an access token from IdentityServer
     const mmpBaseUrl = 'https://mm.medis.org.uk/';
+
+    async function fetchActiveMtfCodes() {
+      const soapBody = `
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:nvg="https://tide.act.nato.int/wsdl/2012/nvg" xmlns:nvg1="https://tide.act.nato.int/schemas/2012/10/nvg">
+  <soapenv:Header />
+  <soapenv:Body>
+    <nvg:GetNvg />
+  </soapenv:Body>
+</soapenv:Envelope>`.trim();
+
+      const resp = await axios.post(
+        `${mmpBaseUrl}webservice/NvgMtfService.asmx`,
+        soapBody,
+        {
+          headers: {
+            'Content-Type': 'application/xml',
+          },
+          // optional but sometimes helps with SOAP endpoints
+          responseType: 'text',
+          timeout: 15000,
+        }
+      );
+
+      const parser = new XMLParser({
+        ignoreAttributes: false,
+        removeNSPrefix: true, // strips s:, soapenv:, etc.
+        trimValues: true,
+      });
+
+      const obj = parser.parse(resp.data);
+
+      // Navigate to: Envelope -> Body -> GetNvgResponse -> nvg -> point[]
+      const points =
+        obj?.Envelope?.Body?.GetNvgResponse?.nvg?.point ||
+        obj?.Envelope?.Body?.GetNvgResponse?.nvg?.Point ||
+        [];
+
+      const pointsArr = Array.isArray(points) ? points : [points];
+
+      // Each point has ExtendedData -> SimpleData[] with keys, we want key="Code"
+      const codes = [];
+      for (const p of pointsArr) {
+        const ed = p?.ExtendedData;
+        if (!ed) continue;
+
+        const simpleData = ed?.SimpleData || [];
+        const sdArr = Array.isArray(simpleData) ? simpleData : [simpleData];
+
+        for (const sd of sdArr) {
+          const key = sd?.['@_key'];
+          if (key === 'Code') {
+            const code = (typeof sd === 'string' ? sd : sd?.['#text'] ?? sd) + '';
+            const cleaned = code.trim().toUpperCase();
+            if (cleaned) codes.push(cleaned);
+          }
+        }
+      }
+
+      // Unique + sanity filter
+      return [...new Set(codes)].filter(c => /^[A-Z0-9]{2,6}$/.test(c));
+    }
+
+    function pickTwoDistinct(arr) {
+      if (!arr || arr.length < 2) return null;
+      const i = Math.floor(Math.random() * arr.length);
+      let j = Math.floor(Math.random() * (arr.length - 1));
+      if (j >= i) j++;
+      return [arr[i], arr[j]];
+    }
+
+    let mtfOrig = 'IV1';
+    let mtfDest = 'BR1';
+
+    try {
+      const mtfs = await fetchActiveMtfCodes();
+      const picked = pickTwoDistinct(mtfs);
+      if (picked) {
+        [mtfOrig, mtfDest] = picked;
+      }
+    } catch (e) {
+      console.warn('Failed to fetch MTF list from NVG, falling back to IV1/BR1:', e.message);
+    }
+
+
     const tokenResponse = await axios.post(
       `${mmpBaseUrl}identity/connect/token`,
       new URLSearchParams({
@@ -88,23 +179,23 @@ router.post('/pmr/:id', async (req, res) => {
   </PatientDetails>
   <PatientReady setid="PATREAD" setSeq="7">
     <PatientReadyToMove ffSeq="1" ffirnFudn="FF2033-1">
-      <Day>31</Day>
-      <HourTime>23</HourTime>
-      <MinuteTime>59</MinuteTime>
+      <Day>${readyDay}</Day>
+      <HourTime>${readyHour}</HourTime>
+      <MinuteTime>${readyMinute}</MinuteTime>
       <TimeZone>Z</TimeZone>
-      <MonthNameAbbreviated>DEC</MonthNameAbbreviated>
-      <Year4Digit>2023</Year4Digit>
+      <MonthNameAbbreviated>${readyMonth}</MonthNameAbbreviated>
+      <Year4Digit>${readyYear}</Year4Digit>
     </PatientReadyToMove>
   </PatientReady>
   <MtfTransfer setid="MTFTRANS" setSeq="8">
     <MtfOrigination ffSeq="1">
-      <UnitName ffirnFudn="FF1022-48">IV1</UnitName>
+      <UnitName ffirnFudn="FF1022-48">${mtfOrig}</UnitName>
     </MtfOrigination>
     <RequestingUnitLocation ffSeq="2">
       <NationalGridSystemCoordinates ffirnFudn="FF1911-1">11111</NationalGridSystemCoordinates>
     </RequestingUnitLocation>
     <MtfDestination ffSeq="3">
-      <UnitName ffirnFudn="FF1022-48">BR1</UnitName>
+      <UnitName ffirnFudn="FF1022-48">${mtfDest}</UnitName>
     </MtfDestination>
     <DestinationUnitLocation ffSeq="4">
       <NationalGridSystemCoordinates ffirnFudn="FF1911-1">22222</NationalGridSystemCoordinates>
@@ -161,12 +252,12 @@ router.post('/pmr/:id', async (req, res) => {
 </urn:PatientMovementRequest>
     `.trim();
 
-    console.log("PMR XML",
-      pmrXml
-        .split('\n')
-        .map(l => l.trim())
-        .join('')
-    );
+    // console.log("PMR XML",
+    //   pmrXml
+    //     .split('\n')
+    //     .map(l => l.trim())
+    //     .join('')
+    // );
 
     // 4. Post the PMR XML to the API endpoint using the access token
     const pmrResponse = await axios.post(
