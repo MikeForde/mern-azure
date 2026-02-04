@@ -56,6 +56,15 @@ export function IPS({ ips, remove, update }) {
   const [xmppMessageStatus, setXmppMessageStatus] = useState('');
   const [xmppError, setXmppError] = useState('');
 
+  // MMP/PMR state
+  const [showPMRModal, setShowPMRModal] = useState(false);
+  const [mtfOptions, setMtfOptions] = useState([]);
+  const [loadingMtfs, setLoadingMtfs] = useState(false);
+  const [pmrFrom, setPmrFrom] = useState('');
+  const [pmrTo, setPmrTo] = useState('');
+  const [pmrUiError, setPmrUiError] = useState('');
+
+
   const handleRemove = () => setShowConfirmModal(true);
 
   const handleConfirmDelete = () => {
@@ -74,6 +83,7 @@ export function IPS({ ips, remove, update }) {
     setEditIPS({ ...ips });  // Reset the form with the current IPS data
     setShowEditModal(true);
   };
+
 
 
   const handleEditChange = (e) => {
@@ -143,27 +153,6 @@ export function IPS({ ips, remove, update }) {
     </Tooltip>
   );
 
-  // Inside your IPS component, add the new function:
-  const handleSendPMR = () => {
-    startLoading();
-    axios.post(`/api/pmr/${ips._id}`)
-      .then(response => {
-        setPmrMessage("PMR Response: " + JSON.stringify(response.data, null, 2));
-        setPmrAlertVariant("success");
-        setShowPmrAlert(true);
-      })
-      .catch(error => {
-        const errorMsg = error.response && error.response.data
-          ? error.response.data
-          : error.message;
-        console.error("Error sending PMR:", errorMsg);
-        setPmrMessage(errorMsg);
-        setPmrAlertVariant("danger");
-        setShowPmrAlert(true);
-      })
-      .finally(() => stopLoading());
-  };
-
   // Send to TAK
   const handleSendTAK = () => {
     startLoading();
@@ -202,6 +191,7 @@ export function IPS({ ips, remove, update }) {
     setSelectedOccupant('');
     setSendMode('room');
   };
+
   const handleSendXMPP = () => {
     setXmppMessageStatus(''); setXmppError('');
     const payload = { id: ips.packageUUID };
@@ -216,6 +206,52 @@ export function IPS({ ips, remove, update }) {
       .then(() => setXmppMessageStatus('Message sent!'))
       .catch(() => setXmppError('Failed to send message'));
   };
+
+  const openPMRModal = () => {
+    setShowPMRModal(true);
+    setPmrUiError('');
+    setPmrFrom('');
+    setPmrTo('');
+
+    setLoadingMtfs(true);
+    axios.get('/api/pmr/mtfs')
+      .then(res => setMtfOptions(res.data.mtfs || []))
+      .catch(() => setPmrUiError('Failed to load MTFs - is MMP reachable?'))
+      .finally(() => setLoadingMtfs(false));
+  };
+
+  const closePMRModal = () => {
+    setShowPMRModal(false);
+  };
+
+  const handleSendPMR = () => openPMRModal(); // now opens picker UI
+  const handleSendPMRQuick = () => sendPMR(); // no params => random/back-compat
+  const handleSendPMRWithSelection = () => sendPMR(pmrFrom, pmrTo);
+
+
+
+  const sendPMR = (from, to) => {
+    startLoading();
+    const qs = from && to ? `?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}` : '';
+    axios.post(`/api/pmr/${ips._id}${qs}`)
+      .then(response => {
+        setPmrMessage("PMR Response: " + JSON.stringify(response.data, null, 2));
+        setPmrAlertVariant("success");
+        setShowPmrAlert(true);
+      })
+      .catch(error => {
+        const errorMsg = error.response && error.response.data
+          ? error.response.data
+          : error.message;
+        console.error("Error sending PMR:", errorMsg);
+        setPmrMessage(errorMsg);
+        setPmrAlertVariant("danger");
+        setShowPmrAlert(true);
+      })
+      .finally(() => stopLoading());
+  };
+
+
 
 
   return (
@@ -268,7 +304,7 @@ export function IPS({ ips, remove, update }) {
         </OverlayTrigger>
 
         <OverlayTrigger placement="top" overlay={renderTooltip('Send PMR to MMP')}>
-          <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSendPMR}>
+          <Button variant="outline-secondary" className="qr-button custom-button" onClick={openPMRModal}>
             <FontAwesomeIcon icon={faAmbulance} />
           </Button>
         </OverlayTrigger>
@@ -470,7 +506,7 @@ export function IPS({ ips, remove, update }) {
             )}
 
             {ips.procedures && ips.procedures.length > 0 && (
-              <>                    
+              <>
                 <h4>Procedures:</h4>
                 <div className="table-responsive">
                   <table className="table table-striped">
@@ -480,7 +516,7 @@ export function IPS({ ips, remove, update }) {
                         <th>Date</th>
                         <th>System</th>
                         <th>Code</th>
-                      </tr> 
+                      </tr>
                     </thead>
                     <tbody>
                       {ips.procedures.map((procedure, index) => (
@@ -1198,6 +1234,60 @@ export function IPS({ ips, remove, update }) {
           >Send</Button>
         </Modal.Footer>
       </Modal>
+
+      <Modal show={showPMRModal} onHide={closePMRModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Send PMR to MMP</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {loadingMtfs && <Spinner animation="border" />}
+          {pmrUiError && <div className="text-danger">{pmrUiError}</div>}
+
+          {!loadingMtfs && !pmrUiError && (
+            <Form>
+              <Form.Group className="mb-3" controlId="pmrFrom">
+                <Form.Label>From MTF</Form.Label>
+                <Form.Control as="select" value={pmrFrom} onChange={e => setPmrFrom(e.target.value)}>
+                  <option value="">-- choose --</option>
+                  {mtfOptions.map(code => (
+                    <option key={code} value={code}>{code}</option>
+                  ))}
+                </Form.Control>
+              </Form.Group>
+
+              <Form.Group className="mb-3" controlId="pmrTo">
+                <Form.Label>To MTF</Form.Label>
+                <Form.Control as="select" value={pmrTo} onChange={e => setPmrTo(e.target.value)}>
+                  <option value="">-- choose --</option>
+                  {mtfOptions.map(code => (
+                    <option key={code} value={code}>{code}</option>
+                  ))}
+                </Form.Control>
+              </Form.Group>
+
+              {pmrFrom && pmrTo && pmrFrom === pmrTo && (
+                <div className="text-danger">From and To must be different.</div>
+              )}
+            </Form>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={closePMRModal}>Cancel</Button>
+
+          <Button variant="outline-secondary" onClick={handleSendPMRQuick}>
+            Random
+          </Button>
+
+          <Button
+            variant="primary"
+            disabled={!pmrFrom || !pmrTo || pmrFrom === pmrTo}
+            onClick={() => { closePMRModal(); handleSendPMRWithSelection(); }}
+          >
+            Send
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
     </div>
   );
 }
