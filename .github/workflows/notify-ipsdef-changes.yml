@@ -36,22 +36,22 @@ jobs:
         if: steps.changed-files.outputs.count > 0 || github.event_name == 'workflow_dispatch'
         uses: actions/github-script@v7
         env:
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           NOTIFICATION_EMAILS: ${{ vars.NOTIFICATION_EMAILS }}
-          SENDER_EMAIL: ${{ vars.SENDER_EMAIL }}
           CHANGED_FILES: ${{ steps.changed-files.outputs.files }}
         with:
           script: |
-            const https = require('https');
+            const nodemailer = require('nodemailer');
             
             // Parse comma-separated email list
             const emailList = process.env.NOTIFICATION_EMAILS
               .split(',')
               .map(email => email.trim())
               .filter(email => email.length > 0)
-              .map(email => ({ email }));
+              .join(',');
             
-            if (emailList.length === 0) {
+            if (!emailList) {
               throw new Error('No valid email addresses found in NOTIFICATION_EMAILS variable');
             }
             
@@ -60,67 +60,36 @@ jobs:
               ? changedFiles.map(f => `  • ${f}`).join('\n')
               : '  (No files changed - manual test trigger)';
             
-            const emailData = {
-              personalizations: [{
-                to: emailList,
-                subject: 'IPS MERN Website has been updated'
-              }],
-              from: {
-                email: process.env.SENDER_EMAIL,
-                name: 'IPS Website Notifier'
-              },
-              content: [{
-                type: 'text/plain',
-                value: `IPS MERN Website has been updated
-
-                The following files in client/publix/ipsdef/ have been modified:
-
-                ${fileList}
-
-                Commit: ${context.sha.substring(0, 7)}
-
-                View Changes: https://ipsmern-dep.azurewebsites.net/schemaviewer
-                `
-              }]
-            };
-            
-            const postData = JSON.stringify(emailData);
-            
-            const options = {
-              hostname: 'api.sendgrid.com',
-              port: 443,
-              path: '/v3/mail/send',
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${process.env.SENDGRID_API_KEY}`,
-                'Content-Type': 'application/json',
-                'Content-Length': Buffer.byteLength(postData)
+            // Create transporter
+            const transporter = nodemailer.createTransport({
+              host: 'smtp.gmail.com',
+              port: 587,
+              secure: false, // true for 465, false for other ports
+              auth: {
+                user: process.env.GMAIL_ADDRESS,
+                pass: process.env.GMAIL_APP_PASSWORD
               }
+            });
+            
+            // Email content
+            const mailOptions = {
+              from: `"IPS Website Notifier" <${process.env.GMAIL_ADDRESS}>`,
+              to: emailList,
+              subject: 'IPS MERN Website has been updated',
+              text: `IPS MERN Website has been updated
+
+              The following files in client/publix/ipsdef/ have been modified:
+
+              ${fileList}
+
+              Commit: ${context.sha.substring(0, 7)}
+
+              View Changes: https://ipsmern-dep.azurewebsites.net/schemaviewer
+              `
             };
             
-            await new Promise((resolve, reject) => {
-              const req = https.request(options, (res) => {
-                console.log(`Status: ${res.statusCode}`);
-                console.log(`Sending to: ${emailList.map(e => e.email).join(', ')}`);
-                
-                res.on('data', (d) => {
-                  process.stdout.write(d);
-                });
-                
-                res.on('end', () => {
-                  if (res.statusCode >= 200 && res.statusCode < 300) {
-                    console.log('\nEmail sent successfully!');
-                    resolve();
-                  } else {
-                    reject(new Error(`Failed to send email: ${res.statusCode}`));
-                  }
-                });
-              });
-              
-              req.on('error', (e) => {
-                reject(e);
-              });
-              
-              req.write(postData);
-              req.end();
-            });
+            // Send email
+            console.log(`Sending to: ${emailList}`);
+            const info = await transporter.sendMail(mailOptions);
+            console.log('Email sent successfully!');
+            console.log('Message ID:', info.messageId);
