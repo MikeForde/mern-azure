@@ -76,8 +76,6 @@ jobs:
                 ${fileList}
 
                 Commit: ${context.sha.substring(0, 7)}
-                Author: ${context.payload.head_commit.author.name}
-                Message: ${context.payload.head_commit.message}
 
                 View changes: ${context.payload.head_commit.url}
                 `
