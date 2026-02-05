@@ -17,7 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2  # Need previous commit to compare
+          fetch-depth: 2
       
       - name: Get changed files
         id: changed-files
@@ -32,64 +32,68 @@ jobs:
           FILE_COUNT=$(echo "$CHANGED_FILES" | grep -c '^' || echo "0")
           echo "count=$FILE_COUNT" >> $GITHUB_OUTPUT
       
-      - name: Send email notification
+      - name: Send email notification via Gmail
         if: steps.changed-files.outputs.count > 0 || github.event_name == 'workflow_dispatch'
-        uses: actions/github-script@v7
         env:
           GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           NOTIFICATION_EMAILS: ${{ vars.NOTIFICATION_EMAILS }}
           CHANGED_FILES: ${{ steps.changed-files.outputs.files }}
-        with:
-          script: |
-            const nodemailer = require('nodemailer');
-            
-            // Parse comma-separated email list
-            const emailList = process.env.NOTIFICATION_EMAILS
-              .split(',')
-              .map(email => email.trim())
-              .filter(email => email.length > 0)
-              .join(',');
-            
-            if (!emailList) {
-              throw new Error('No valid email addresses found in NOTIFICATION_EMAILS variable');
-            }
-            
-            const changedFiles = process.env.CHANGED_FILES.trim().split('\n').filter(f => f);
-            const fileList = changedFiles.length > 0 
-              ? changedFiles.map(f => `  • ${f}`).join('\n')
-              : '  (No files changed - manual test trigger)';
-            
-            // Create transporter
-            const transporter = nodemailer.createTransport({
-              host: 'smtp.gmail.com',
-              port: 587,
-              secure: false, // true for 465, false for other ports
-              auth: {
-                user: process.env.GMAIL_ADDRESS,
-                pass: process.env.GMAIL_APP_PASSWORD
-              }
-            });
-            
-            // Email content
-            const mailOptions = {
-              from: `"IPS Website Notifier" <${process.env.GMAIL_ADDRESS}>`,
-              to: emailList,
-              subject: 'IPS MERN Website has been updated',
-              text: `IPS MERN Website has been updated
+        run: |
+          # Parse email list
+          TO_EMAILS="${NOTIFICATION_EMAILS}"
+          
+          # Get changed files
+          if [ -n "$CHANGED_FILES" ] && [ "$CHANGED_FILES" != "" ]; then
+            FILE_LIST=$(echo "$CHANGED_FILES" | sed 's/^/  • /')
+          else
+            FILE_LIST="  (No files changed - manual test trigger)"
+          fi
+          
+          # Get commit hash
+          COMMIT_HASH="${{ github.sha }}"
+          SHORT_HASH="${COMMIT_HASH:0:7}"
+          
+          # Create email body
+          EMAIL_BODY="IPS MERN Website has been updated
 
-              The following files in client/publix/ipsdef/ have been modified:
+          The following files in client/publix/ipsdef/ have been modified:
 
-              ${fileList}
+          $FILE_LIST
 
-              Commit: ${context.sha.substring(0, 7)}
+          Commit: $SHORT_HASH
 
-              View Changes: https://ipsmern-dep.azurewebsites.net/schemaviewer
-              `
-            };
-            
-            // Send email
-            console.log(`Sending to: ${emailList}`);
-            const info = await transporter.sendMail(mailOptions);
-            console.log('Email sent successfully!');
-            console.log('Message ID:', info.messageId);
+          View Changes: https://ipsmern-dep.azurewebsites.net/schemaviewer"
+          
+          # Install and use msmtp for sending via Gmail SMTP
+          sudo apt-get update
+          sudo apt-get install -y msmtp msmtp-mta
+          
+          # Configure msmtp
+          cat > ~/.msmtprc << EOF
+          defaults
+          auth           on
+          tls            on
+          tls_trust_file /etc/ssl/certs/ca-certificates.crt
+          logfile        ~/.msmtp.log
+          
+          account        gmail
+          host           smtp.gmail.com
+          port           587
+          from           ${GMAIL_ADDRESS}
+          user           ${GMAIL_ADDRESS}
+          password       ${GMAIL_APP_PASSWORD}
+          
+          account default : gmail
+          EOF
+          
+          chmod 600 ~/.msmtprc
+          
+          # Send email
+          echo "To: ${TO_EMAILS}
+          From: IPS Website Notifier <${GMAIL_ADDRESS}>
+          Subject: IPS MERN Website has been updated
+
+          ${EMAIL_BODY}" | msmtp -t
+          
+          echo "Email sent successfully to: ${TO_EMAILS}"
