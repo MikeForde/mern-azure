@@ -55,8 +55,10 @@ jobs:
               throw new Error('No valid email addresses found in NOTIFICATION_EMAILS variable');
             }
             
-            const changedFiles = process.env.CHANGED_FILES.trim().split('\n');
-            const fileList = changedFiles.map(f => `  • ${f}`).join('\n');
+            const changedFiles = process.env.CHANGED_FILES.trim().split('\n').filter(f => f);
+            const fileList = changedFiles.length > 0 
+              ? changedFiles.map(f => `  • ${f}`).join('\n')
+              : '  (No files changed - manual test trigger)';
             
             const emailData = {
               personalizations: [{
@@ -77,7 +79,7 @@ jobs:
 
                 Commit: ${context.sha.substring(0, 7)}
 
-                View changes: ${context.payload.head_commit.url}
+                View Changes: https://ipsmern-dep.azurewebsites.net/schemaviewer
                 `
               }]
             };
