@@ -1,0 +1,126 @@
+name: Notify IPS Definition Changes
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'client/publix/ipsdef/**'
+  
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Need previous commit to compare
+      
+      - name: Get changed files
+        id: changed-files
+        run: |
+          # Get list of changed files in the target directory
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD -- client/publix/ipsdef/)
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Count number of changed files
+          FILE_COUNT=$(echo "$CHANGED_FILES" | grep -c '^' || echo "0")
+          echo "count=$FILE_COUNT" >> $GITHUB_OUTPUT
+      
+      - name: Send email notification
+        if: steps.changed-files.outputs.count > 0 || github.event_name == 'workflow_dispatch'
+        uses: actions/github-script@v7
+        env:
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          NOTIFICATION_EMAILS: ${{ vars.NOTIFICATION_EMAILS }}
+          SENDER_EMAIL: ${{ vars.SENDER_EMAIL }}
+          CHANGED_FILES: ${{ steps.changed-files.outputs.files }}
+        with:
+          script: |
+            const https = require('https');
+            
+            // Parse comma-separated email list
+            const emailList = process.env.NOTIFICATION_EMAILS
+              .split(',')
+              .map(email => email.trim())
+              .filter(email => email.length > 0)
+              .map(email => ({ email }));
+            
+            if (emailList.length === 0) {
+              throw new Error('No valid email addresses found in NOTIFICATION_EMAILS variable');
+            }
+            
+            const changedFiles = process.env.CHANGED_FILES.trim().split('\n');
+            const fileList = changedFiles.map(f => `  • ${f}`).join('\n');
+            
+            const emailData = {
+              personalizations: [{
+                to: emailList,
+                subject: 'IPS MERN Website has been updated'
+              }],
+              from: {
+                email: process.env.SENDER_EMAIL,
+                name: 'IPS Website Notifier'
+              },
+              content: [{
+                type: 'text/plain',
+                value: `IPS MERN Website has been updated
+
+                The following files in client/publix/ipsdef/ have been modified:
+
+                ${fileList}
+
+                Commit: ${context.sha.substring(0, 7)}
+                Author: ${context.payload.head_commit.author.name}
+                Message: ${context.payload.head_commit.message}
+
+                View changes: ${context.payload.head_commit.url}
+                `
+              }]
+            };
+            
+            const postData = JSON.stringify(emailData);
+            
+            const options = {
+              hostname: 'api.sendgrid.com',
+              port: 443,
+              path: '/v3/mail/send',
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${process.env.SENDGRID_API_KEY}`,
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+              }
+            };
+            
+            await new Promise((resolve, reject) => {
+              const req = https.request(options, (res) => {
+                console.log(`Status: ${res.statusCode}`);
+                console.log(`Sending to: ${emailList.map(e => e.email).join(', ')}`);
+                
+                res.on('data', (d) => {
+                  process.stdout.write(d);
+                });
+                
+                res.on('end', () => {
+                  if (res.statusCode >= 200 && res.statusCode < 300) {
+                    console.log('\nEmail sent successfully!');
+                    resolve();
+                  } else {
+                    reject(new Error(`Failed to send email: ${res.statusCode}`));
+                  }
+                });
+              });
+              
+              req.on('error', (e) => {
+                reject(e);
+              });
+              
+              req.write(postData);
+              req.end();
+            });
