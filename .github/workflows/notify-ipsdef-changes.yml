@@ -1,0 +1,99 @@
+name: Notify IPS Definition Changes
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'client/publix/ipsdef/**'
+  
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Get changed files
+        id: changed-files
+        run: |
+          # Get list of changed files in the target directory
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD -- client/publix/ipsdef/)
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Count number of changed files
+          FILE_COUNT=$(echo "$CHANGED_FILES" | grep -c '^' || echo "0")
+          echo "count=$FILE_COUNT" >> $GITHUB_OUTPUT
+      
+      - name: Send email notification via Gmail
+        if: steps.changed-files.outputs.count > 0 || github.event_name == 'workflow_dispatch'
+        env:
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          NOTIFICATION_EMAILS: ${{ vars.NOTIFICATION_EMAILS }}
+          CHANGED_FILES: ${{ steps.changed-files.outputs.files }}
+        run: |
+          # Parse email list
+          TO_EMAILS="${NOTIFICATION_EMAILS}"
+          
+          # Get changed files
+          if [ -n "$CHANGED_FILES" ] && [ "$CHANGED_FILES" != "" ]; then
+            FILE_LIST=$(echo "$CHANGED_FILES" | sed 's/^/  • /')
+          else
+            FILE_LIST="  (No files changed - manual test trigger)"
+          fi
+          
+          # Get commit hash
+          COMMIT_HASH="${{ github.sha }}"
+          SHORT_HASH="${COMMIT_HASH:0:7}"
+          
+          # Create email body
+          EMAIL_BODY="IPS MERN Website has been updated
+
+          The following files in client/publix/ipsdef/ have been modified:
+
+          $FILE_LIST
+
+          Commit: $SHORT_HASH
+
+          View Changes: https://ipsmern-dep.azurewebsites.net/schemaviewer"
+          
+          # Install and use msmtp for sending via Gmail SMTP
+          sudo apt-get update
+          sudo apt-get install -y msmtp msmtp-mta
+          
+          # Configure msmtp
+          cat > ~/.msmtprc << EOF
+          defaults
+          auth           on
+          tls            on
+          tls_trust_file /etc/ssl/certs/ca-certificates.crt
+          logfile        ~/.msmtp.log
+          
+          account        gmail
+          host           smtp.gmail.com
+          port           587
+          from           ${GMAIL_ADDRESS}
+          user           ${GMAIL_ADDRESS}
+          password       ${GMAIL_APP_PASSWORD}
+          
+          account default : gmail
+          EOF
+          
+          chmod 600 ~/.msmtprc
+          
+          # Send email
+          echo "To: ${TO_EMAILS}
+          From: IPS Website Notifier <${GMAIL_ADDRESS}>
+          Subject: IPS MERN Website has been updated
+
+          ${EMAIL_BODY}" | msmtp -t
+          
+          echo "Email sent successfully to: ${TO_EMAILS}"
