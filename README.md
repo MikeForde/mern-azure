@@ -1,19 +1,44 @@
 # IPS MERN Project
 
-This project is a MERN (MongoDB, Express, React, Node.js) stack application designed to manage and manipulate IPS (International Patient Summary) records. It includes features to convert between MongoDB, BEER, and IPS JSON formats, and supports various CRUD operations on IPS data. It also offers **raw binary data encryption** (using IV + MAC + compressed ciphertext) for secure and efficient data handling.
+IPS MERN is a full-stack MERN (MongoDB, Express, React, Node.js) application for **creating, transforming, securing, and exchanging International Patient Summary (IPS) data** across multiple clinical and operational formats.
+
+The platform acts as both:
+- a **clinical data management system** for IPS records, and
+- a **format-translation and interchange hub** supporting modern and legacy healthcare standards.
+
+IPS MERN supports bidirectional conversion between:
+- MongoDB-native IPS records  
+- IPS JSON (FHIR-aligned)
+- BEER (Basic Emergency Exchange Record)
+- HL7 v2.x
+- CDA (XML-based)
+- Unified and legacy compact schemas
+
+Beyond traditional REST APIs, the system is designed for **field and constrained-network use cases**, supporting:
+- QR code payload generation
+- NFC card workflows
+- gzip compression
+- AES-256 encryption
+- raw binary encrypted payloads (IV + MAC + compressed ciphertext)
+
+The project is actively used to explore **interoperability between civilian healthcare systems and operational environments**, including offline exchange, tactical networks, and cross-domain data sharing.
 
 ## Table of Contents
 
 - [Overview](#overview)
-- [Features](#features)
+- [Core Capabilities](#core-capabilities)
+- [Data Formats & Interoperability](#data-formats--interoperability)
+- [Security & Transport Options](#security--transport-options)
+- [System Architecture](#system-architecture)
 - [Setup](#setup)
 - [API Documentation](#api-documentation)
   - [POST Endpoints](#post-endpoints)
   - [GET Endpoints](#get-endpoints)
   - [PUT Endpoints](#put-endpoints)
   - [DELETE Endpoints](#delete-endpoints)
-- [Gzip Support](#gzip-support)
-- [AES-256 Support](#aes-256-encryption-support)
+- [Compression Support (gzip)](#gzip-support)
+- [Encryption Support (AES-256)](#aes-256-encryption-support)
+- [Raw Binary Payloads](#raw-binary-format-iv--mac--gzipped-data)
 - [Client-Side Pages](#client-side-pages)
 - [Technologies Used](#technologies-used)
 - [Contributing](#contributing)
@@ -21,18 +46,293 @@ This project is a MERN (MongoDB, Express, React, Node.js) stack application desi
 
 ## Overview
 
-This application allows healthcare providers to create, update, delete, and convert patient records stored in MongoDB. The records can be transformed into different formats, including BEER (Basic Emergency Exchange Record) and IPS JSON, to facilitate data sharing and interoperability. Additionally, the application supports **both JSON-based and raw binary** encryption flows, giving users the flexibility to optimize performance and security.
+IPS MERN is designed as an **interoperability and exchange layer** for International Patient Summary (IPS) data rather than a single-format clinical database.
 
-## Features
+At its core, the system stores IPS records in a MongoDB-friendly representation, while providing deterministic, reversible transformations into multiple healthcare and operational formats. This allows the same clinical data to be:
 
-- **CRUD Operations**: Create, Read, Update, and Delete IPS records.
-- **Format Conversion**: Convert IPS records between MongoDB, BEER, and IPS JSON formats.
-- **API Endpoints**: Comprehensive set of endpoints to manage IPS records.
-- **Responsive Frontend**: User-friendly interface for managing and converting records.
-- **Search and Filter**: Find records by various attributes.
-- **Advanced Encryption Options**:
-  - JSON-based AES-256 encryption with HMAC verification.
-  - **Raw Binary** support using a 16-byte IV, 32-byte HMAC, and gzipped ciphertext for optimal security and space efficiency.
+- edited and curated in a modern web interface,
+- exchanged with external clinical systems,
+- embedded into constrained transport mechanisms (QR, NFC),
+- and securely transmitted across low-bandwidth or disconnected environments.
+
+The backend exposes a comprehensive REST API that supports CRUD operations, format conversion, compression, and encryption. The frontend provides tooling for clinicians, developers, and integrators to inspect, transform, export, and exchange IPS data without needing to manually manipulate schemas or payload formats.
+
+IPS MERN is intentionally **format-agnostic and transport-agnostic**:
+- formats (FHIR IPS, BEER, HL7 2.x, CDA, unified schemas) are treated as interchangeable views of the same underlying clinical facts;
+- transport mechanisms (JSON over HTTP, gzip-compressed payloads, encrypted binary streams, QR codes, NFC cards) are treated as interchangeable delivery channels.
+
+This design makes the platform suitable for both conventional healthcare IT environments and more constrained or operational contexts where connectivity, bandwidth, or system compatibility cannot be assumed.
+
+## Core Capabilities
+
+### IPS Record Management
+- Create, read, update, and delete IPS records stored in MongoDB.
+- Support for record access by internal ID, UUID, and patient demographics.
+- Separation between storage format and presentation / exchange formats.
+
+### Multi-Format Conversion
+- Bidirectional conversion between:
+  - MongoDB IPS representation
+  - IPS JSON (FHIR-aligned bundles)
+  - BEER (Basic Emergency Exchange Record)
+  - HL7 v2.x
+  - CDA (XML)
+  - Unified and legacy compact schemas
+- Deterministic transformations to ensure repeatable, auditable results.
+- Ability to generate multiple output formats from a single source record.
+
+### Secure Data Transport
+- AES-256 encryption for both request and response payloads.
+- Support for:
+  - JSON-wrapped encrypted payloads (hex or base64 encoded)
+  - Raw binary encrypted streams using IV + MAC + gzipped ciphertext
+- Optional gzip compression for bandwidth efficiency.
+- Designed to support offline, store-and-forward, and constrained-network scenarios.
+
+### Interchange & Distribution
+- REST API endpoints for integration with external systems.
+- QR code generation for rapid, camera-based data transfer.
+- NFC-friendly payload generation for smart cards and physical tokens.
+- Bulk ingestion workflows for structured external data sources.
+
+### Inspection & Tooling
+- Frontend tooling to:
+  - view and compare different format representations of the same record,
+  - download converted payloads,
+  - test encryption and compression options,
+  - exercise API endpoints interactively.
+- Designed to support both clinical users and technical integrators.
+
+### Extensible Architecture
+- New formats, transports, and security options can be added without changing the core data model.
+- Clear separation between:
+  - data storage,
+  - format transformation,
+  - transport encoding,
+  - and client presentation.
+
+## Data Formats & Interoperability
+
+IPS MERN treats data formats as **interchangeable representations of the same clinical intent**, rather than as competing standards. Each supported format exists to solve a different interoperability problem, and the platform is designed to bridge between them in a predictable and auditable way.
+
+### FHIR IPS (JSON)
+FHIR-aligned IPS JSON is used as the **canonical exchange format** within the system.
+
+- Human-readable and machine-processable.
+- Well-suited to modern REST APIs and web-based systems.
+- Compatible with validation, schema inspection, and fine-grained field access.
+- Acts as a stable pivot format for conversion to and from other representations.
+
+FHIR IPS is typically used when:
+- integrating with modern healthcare platforms,
+- exposing structured APIs,
+- or generating QR / NFC payloads where schema clarity matters.
+
+### BEER (Basic Emergency Exchange Record)
+BEER is a **compact, line-oriented format** optimised for rapid exchange and minimal parsing requirements.
+
+- Designed for constrained environments and emergency use.
+- Extremely compact compared to JSON or XML.
+- Resilient to partial transmission and tolerant of simple transport mechanisms.
+- Well suited to QR codes, NFC storage, and low-bandwidth links.
+
+Within IPS MERN, BEER is treated as a **loss-aware but operationally efficient view** of the IPS dataset, allowing critical information to be exchanged even when full fidelity formats are impractical.
+
+### HL7 v2.x
+HL7 v2.x remains widely deployed in legacy and transitional healthcare systems.
+
+- Message-oriented and delimiter-based.
+- Often required for integration with existing hospital and laboratory systems.
+- Less expressive than FHIR, but operationally ubiquitous.
+
+IPS MERN supports HL7 v2.x primarily as an **interoperability bridge**, allowing IPS data to be injected into or extracted from environments that cannot consume FHIR directly.
+
+### CDA (Clinical Document Architecture)
+CDA provides a **document-centric XML representation** of clinical data.
+
+- Common in document-based exchange workflows.
+- Often used for archival, regulatory, or cross-organisational sharing.
+- Structured but less granular than FHIR.
+
+CDA support enables IPS MERN to ingest and export IPS content from document-based systems, while still allowing the underlying data to be transformed into more operationally flexible formats.
+
+### Unified and Legacy Schemas
+In addition to formal standards, IPS MERN supports:
+- compact unified schemas for efficient downstream processing,
+- legacy formats required for backwards compatibility.
+
+These schemas are treated as **derived views**, not primary data sources, ensuring the underlying clinical meaning remains consistent across representations.
+
+## Security & Transport Options
+
+IPS MERN deliberately supports **multiple security and transport models**, reflecting the reality that IPS data must travel across environments with very different constraints, threat models, and tooling.
+
+Rather than enforcing a single approach, the platform allows the same data to be secured and transported in different ways depending on context.
+
+### JSON-Based Encrypted Transport
+JSON-wrapped encryption is provided for compatibility with conventional web systems.
+
+- AES-256 encryption with explicit IV handling.
+- Encrypted payloads carried as structured JSON.
+- Hex or Base64 encoding supported for interoperability.
+- Easy to inspect, log (at boundaries), and integrate with HTTP-based tooling.
+
+This approach is well suited to:
+- browser-based clients,
+- API gateways,
+- debugging and development environments,
+- and systems where payload transparency and tooling support are important.
+
+### Raw Binary Encrypted Transport
+For constrained or operational environments, IPS MERN supports **raw binary encrypted payloads**.
+
+A single binary stream contains:
+- a fixed-length IV,
+- a cryptographic MAC for integrity,
+- and gzipped, AES-encrypted data.
+
+This model:
+- minimises overhead,
+- avoids JSON framing costs,
+- reduces payload size,
+- and aligns well with QR, NFC, file-based, or store-and-forward transports.
+
+Binary payloads are particularly useful where:
+- bandwidth is limited,
+- message size must be tightly controlled,
+- or the transport medium is not JSON-aware.
+
+### Compression as a First-Class Concern
+Gzip compression is supported independently of encryption and format.
+
+- Can be applied to plaintext or encrypted data.
+- Significantly reduces payload size for verbose formats.
+- Especially valuable for QR codes, NFC storage, and low-throughput links.
+
+### Design Rationale
+Supporting both JSON and raw binary transports is intentional:
+
+- JSON provides **clarity, accessibility, and ecosystem compatibility**.
+- Raw binary provides **efficiency, robustness, and transport neutrality**.
+
+By separating:
+- data content,
+- format representation,
+- encryption,
+- and transport encoding,
+
+IPS MERN allows the same clinical information to move safely and efficiently across environments that would otherwise be incompatible.
+
+## System Architecture
+
+IPS MERN is structured as a **layered, transformation-centric architecture**, where data storage, format representation, security, and transport are deliberately separated.
+
+Rather than treating IPS data as a single schema tied to a single protocol, the system is built around the idea that **the same clinical facts must safely exist in multiple representations at different points in their lifecycle**.
+
+### High-Level Architecture
+
+At a conceptual level, the platform consists of five primary layers:
+
+1. **Storage Layer**
+2. **Transformation Layer**
+3. **Security & Encoding Layer**
+4. **Transport Layer**
+5. **Client & Integration Layer**
+
+Each layer can evolve independently, allowing new formats, transports, or security mechanisms to be added without destabilising the system.
+
+---
+
+### 1. Storage Layer
+
+The storage layer uses MongoDB as the system of record.
+
+- Stores IPS data in a MongoDB-friendly representation.
+- Optimised for querying, partial updates, and indexing.
+- Decoupled from any single exchange or presentation format.
+- Acts as the authoritative source for all derived representations.
+
+This ensures that transformations are **repeatable and reversible**, and that no exchange format becomes the “truth” by accident.
+
+---
+
+### 2. Transformation Layer
+
+The transformation layer is responsible for converting IPS data between formats.
+
+- Converts between MongoDB representation, FHIR IPS, BEER, HL7 v2.x, CDA, and unified schemas.
+- Designed to be deterministic and auditable.
+- Handles structural reshaping, field mapping, and normalisation.
+- Supports both lossy and loss-aware transformations where required.
+
+By isolating transformation logic, the system avoids format-specific coupling throughout the rest of the codebase.
+
+---
+
+### 3. Security & Encoding Layer
+
+Security and encoding are applied **after** transformation, not baked into the data model.
+
+This layer provides:
+- AES-256 encryption
+- HMAC / MAC integrity protection
+- Gzip compression
+- JSON or raw binary encoding
+
+By keeping this layer separate:
+- the same IPS data can be encrypted differently depending on context,
+- payload size can be optimised without affecting content,
+- and security mechanisms can evolve independently of formats.
+
+---
+
+### 4. Transport Layer
+
+The transport layer governs how data is actually delivered.
+
+Supported transports include:
+- JSON over HTTP(S)
+- Gzip-compressed HTTP payloads
+- Raw binary streams (`application/octet-stream`)
+- QR code payloads
+- NFC-compatible binary blobs
+
+Each transport consumes the output of the security and encoding layer, ensuring consistent behaviour regardless of delivery mechanism.
+
+---
+
+### 5. Client & Integration Layer
+
+The client layer includes both human-facing and system-to-system interfaces.
+
+- React frontend for inspection, editing, and conversion.
+- REST APIs for programmatic access.
+- Tooling for testing encryption, compression, and format output.
+- Integration points for external systems and services.
+
+This layer is intentionally thin, delegating all format, security, and transport logic to lower layers.
+
+---
+
+### Architectural Principles
+
+IPS MERN is guided by a small number of explicit principles:
+
+- **Separation of concerns**  
+  Storage, transformation, security, and transport are isolated.
+
+- **Format neutrality**  
+  No single exchange format is privileged as “the truth”.
+
+- **Transport independence**  
+  Data can move via APIs, files, QR codes, or NFC without redesign.
+
+- **Operational realism**  
+  The system assumes constrained, offline, or hostile environments exist.
+
+- **Extensibility over completeness**  
+  New formats and transports can be added incrementally.
+
 
 ## Setup
 
@@ -232,14 +532,18 @@ his API also supports sending and receiving raw binary data via application/octe
 
 ## Client-Side Pages
 
-| Page                 | Description                                                                                           |
-|----------------------|-------------------------------------------------------------------------------------------------------|
-| **Default Page**     | Add, edit, and search for current records. You can also search for records from the navigation bar.   |
-| **API Page**         | View the various API GET endpoints, see their output, and download the output.                        |
-| **QR Page**          | Produce various forms of QR codes and download them. Formats include IPS JSON, BEER, and others.      |
-| **DMICP Page**       | Bulk upload IPS records produced in the SmartDoc format.                                              |
-| **External API Pages** | GET and POST between the External IPS WebApps and the IPS MERN WebApp.                                 |                                                                      |
-| **About Pages**      | Information about IPS, the WebApp, the ChangeLog, and the API Documentation page.                     |
+| Page                   | Description                                                                                           |
+|------------------------|-------------------------------------------------------------------------------------------------------|
+| **Records (Default)**. | Create, edit, search, and manage IPS records stored in MongoDB.                                       |
+| **Record Viewer**      | Inspect a single IPS record in multiple representations (expanded, compact, unified, legacy).         |
+| **API Explorer**       | Interactive interface for exercising API endpoints and downloading responses.                         |
+| **Format Conversion**. | Convert IPS records between FHIR IPS, BEER, HL7 v2.x, CDA, and unified schemas.                       |
+| **QR Tools**           | Generate QR codes for IPS payloads in multiple formats.                                               |
+| **Encrypt & Compress** | Apply gzip compression and AES-256 encryption to generated payloads.                                  |
+| **DMICP / Bulk Upload**| Bulk ingestion of IPS records produced from structured external sources.                              |
+| **External Systems**   | Fetch from and push IPS data to external IPS-compatible services.                                     |
+| **NPS Schema pages**   | NPS Schema definition browser and validator.                                                          |
+| **About & Docs**       | Project information, ChangeLog, and API documentation.                                                |
 
 ### Detailed Descriptions
 
