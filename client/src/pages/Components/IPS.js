@@ -164,11 +164,20 @@ export function IPS({ ips, remove, update }) {
         setShowTakAlert(true);
       })
       .catch(error => {
-        const errorMsg = error.response && error.response.data
-          ? error.response.data
-          : error.message;
-        console.error("Error sending TAK:", errorMsg);
-        setTakMessage(errorMsg);
+        const data = error.response?.data;
+
+        // Always show a string in the UI
+        const msg =
+          typeof data === "string"
+            ? data
+            : data?.error
+              ? data.error
+              : data
+                ? JSON.stringify(data, null, 2)
+                : error.message;
+
+        console.error("Error sending TAK:", msg);
+        setTakMessage(msg);
         setTakAlertVariant("danger");
         setShowTakAlert(true);
       })
