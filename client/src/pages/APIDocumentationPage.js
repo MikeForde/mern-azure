@@ -15,17 +15,17 @@ function APIDocumentationPage() {
     { method: 'POST', endpoint: '/convertmongo2beer', description: 'Convert MongoDB format to BEER format.', request: 'MongoDB - JSON', response: 'BEER - Plain Text' },
     { method: 'POST', endpoint: '/convertmongo2hl7', description: 'Convert MongoDB format to HL7 2.3 format.', request: 'MongoDB - JSON', response: 'HL7 2.3 - Plain Text' },
     { method: 'POST', endpoint: '/convertbeer2mongo', description: 'Convert BEER format to MongoDB format.', request: 'BEER - Plain Text', response: 'MongoDB - JSON' },
-    { method: 'POST', endpoint: '/convertbeer2ips', description: 'Convert BEER format to IPS JSON format.', request: 'BEER - Plain Text', response: '*Unified IPS format - JSON' },
+    { method: 'POST', endpoint: '/convertbeer2ips', description: 'Convert BEER format to IPS JSON format.', request: 'BEER - Plain Text', response: '*NPS format - JSON' },
     { method: 'POST', endpoint: '/convertips2beer', description: 'Convert IPS JSON format to BEER format.', request: 'IPS Bundle - JSON', response: 'BEER - Plain Text' },
     { method: 'POST', endpoint: '/convertips2plaintext', description: 'Convert IPS JSON format to Human Readable format.', request: 'IPS Bundle - JSON', response: 'Human Readable - Plain Text' },
-    { method: 'POST', endpoint: '/convertcdatoips', description: 'Convert CDA XML format to IPS JSON format.', request: 'CDA - XML', response: '*Unified IPS format - JSON' },
+    { method: 'POST', endpoint: '/convertcdatoips', description: 'Convert CDA XML format to IPS JSON format.', request: 'CDA - XML', response: '*NPS format - JSON' },
     { method: 'POST', endpoint: '/convertcdatobeer', description: 'Convert CDA XML format to BEER format.', request: 'CDA - XML', response: 'BEER - Plain Text' },
     { method: 'POST', endpoint: '/convertcdatomongo', description: 'Convert CDA XML format to MongoDB format.', request: 'CDA - XML', response: 'MongoDB - JSON' },
     { method: 'POST', endpoint: '/converthl72xtomongo', description: 'Convert HL7 2.x format to MongoDB format.', request: 'HL7 2.x - Plain Text', response: 'MongoDB - JSON' },
-    { method: 'POST', endpoint: '/converthl72xtoips', description: 'Convert HL7 2.x format to IPS JSON format.', request: 'HL7 2.x - Plain Text', response: '*Unified IPS format - JSON' },
+    { method: 'POST', endpoint: '/converthl72xtoips', description: 'Convert HL7 2.x format to IPS JSON format.', request: 'HL7 2.x - Plain Text', response: '*NPSformat - JSON' },
     { method: 'POST', endpoint: '/convertxml', description: 'Generic convert XML format to JSON format.', request: 'XML', response: 'JSON' },
     { method: 'POST', endpoint: '/convertfhirxml', description: 'Convert FHIR XML format to FHIR JSON format.', request: 'FHIR XML', response: 'FHIR JSON' },
-    { method: 'POST', endpoint: '/ipsUniVal', description: 'Validates IPS Unified JSON format against schema', request: 'FHIR JSON', response: 'Validation report as JSON' },
+    { method: 'POST', endpoint: '/npsVal', description: 'Validates NPS JSON format against schema', request: 'FHIR JSON', response: 'Validation report as JSON' },
     { method: 'GET', endpoint: '/ips/all', description: 'Retrieve all IPS records.', request: 'None.', response: 'Array of JSON objects representing IPS records.' },
     { method: 'GET', endpoint: '/ipsraw/:id', description: 'Retrieve raw IPS record by ID.', request: 'IPS record ID as URL parameter.', response: 'JSON object of the raw IPS record.' },
     { method: 'GET', endpoint: '/ipsmongo/:id', description: 'Retrieve IPS record in MongoDB format by ID.', request: 'IPS record ID as URL parameter.', response: 'MongoDB - JSON' },
@@ -36,10 +36,10 @@ function APIDocumentationPage() {
     { method: 'GET', endpoint: '/ipshl72x/:id', description: 'Retrieve IPS record in HL7 2.3 format by ID.', request: 'IPS record ID as URL parameter.', response: 'HL7 2.3 - Plain Text' },
     { method: 'GET', endpoint: '/ipsxml/:id', description: 'Retrieve IPS record in expanded FHiR XML format by ID.', request: 'IPS record ID as URL parameter.', response: 'IPS Bundle - FHiR XML' },
     { method: 'GET', endpoint: '/ipslegacy/:id', description: 'Retrieve IPS record in legacy format by ID.', request: 'IPS record ID as URL parameter.', response: 'Legacy format of the IPS record - FHiR JSON' },
-    { method: 'GET', endpoint: '/ipsunified/:id', description: 'Retrieve IPS record in compact unified format by ID.', request: 'IPS record ID as URL parameter.', response: 'Unified IPS format - FHiR JSON' },
-    { method: 'GET', endpoint: '/ipsunifiedsplit/:id', description: 'Retrieve IPS record in split unified format by ID.', request: 'IPS record ID as URL parameter.', response: 'Bespoke JSON bundle of two Unified IPS format - FHiR JSON - for Android NFC TOOL POC' },
-    { method: 'GET', endpoint: '/ipsdatasplitpoc/:id', description: 'Retrieve IPS record in data split POC format by ID.', request: 'IPS record ID as URL parameter.', response: 'Bespoke JSON bundle with RO as plain text and RW as gzipped base64 Unified IPS format - FHiR JSON - for Android NFC TOOL POC' },
-    { method: 'GET', endpoint: '/ipsbyname/:name/:given', description: 'Retrieve expanded IPS FHiR by patient name and given name. Case insensitive.', request: 'Patient name and given name as URL parameters.', response: '*Unified IPS format - FHiR JSON' },
+    { method: 'GET', endpoint: '/nps/:id', description: 'Retrieve NPS record in compact unified format by ID.', request: 'IPS record ID as URL parameter.', response: 'NPS format - FHiR JSON' },
+    { method: 'GET', endpoint: '/npsnfc/:id', description: 'Retrieve NPS record in split unified format by ID.', request: 'IPS record ID as URL parameter.', response: 'Bespoke JSON bundle of two NPS format - FHiR JSON - for Android NFC TOOL POC' },
+    { method: 'GET', endpoint: '/ipsdatasplitpoc/:id', description: 'Retrieve NPS record in data split POC format by ID.', request: 'IPS record ID as URL parameter.', response: 'Bespoke JSON bundle with RO as plain text and RW as gzipped base64 Unified IPS format - FHiR JSON - for Android NFC TOOL POC' },
+    { method: 'GET', endpoint: '/ipsbyname/:name/:given', description: 'Retrieve expanded IPS FHiR by patient name and given name. Case insensitive.', request: 'Patient name and given name as URL parameters.', response: '*NPS format - FHiR JSON' },
     { method: 'GET', endpoint: '/ips/search/:name', description: 'Search IPS records by patient name.', request: 'Patient name as URL parameter.', response: 'Array of JSON objects representing IPS records.' },
     { method: 'GET', endpoint: '/fetchipsora/:name/:givenName', description: 'Fetch IPS data from ORA by patient name and given name.', request: 'Patient name and given name as URL parameters.', response: 'JSON object from ORA system.' },
     { method: 'PUT', endpoint: '/ips/:id', description: 'Update an IPS record by ID.', request: 'Partial JSON object representing the updated IPS record.', response: 'MongoDB object of the updated IPS record - JSON' },
@@ -217,7 +217,7 @@ function APIDocumentationPage() {
         </tbody>
       </Table>
 
-      <h3 className="mt-5">*IPS Unified Format</h3>
+      <h3 className="mt-5">*NPS Format</h3>
       <p>
         The more expanded composition FHiR JSON format can be obtained instead for the marked API calls by using the optional header <code>x-ips-format: inter</code>. Likewise, the legacy format with <code>x-ips-format: legacy</code> is retained for comparison.
       </p>

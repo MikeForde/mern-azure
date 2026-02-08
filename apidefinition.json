@@ -11,7 +11,7 @@
       "description": "Production Server"
     },
     {
-      "url": "http://localhost:5050",
+      "url": "http://localhost:5049",
       "description": "Local Server"
     }
   ],
@@ -608,15 +608,15 @@
         }
       }
     },
-    "/ipsUniVal": {
+    "/npsVal": {
       "post": {
         "tags": [
-          "IPS"
+          "NPS"
         ],
-        "summary": "Validates a IPS Unified format record.",
-        "description": "Validates a IPS Unified format record.",
+        "summary": "Validates an NPS format record.",
+        "description": "Validates an NPS format record.",
         "requestBody": {
-          "description": "MongoDb JSON object representing the IPS Unified format record.",
+          "description": "MongoDb JSON object representing the NPS format record.",
           "required": true,
           "content": {
             "application/json": {
@@ -1021,13 +1021,13 @@
         }
       }
     },
-    "/ipsunified/{id}": {
+    "/nps/{id}": {
       "get": {
         "tags": [
-          "IPS"
+          "NPS"
         ],
-        "summary": "Retrieve IPS record in compact unified format by ID",
-        "description": "Retrieve IPS record in compact unified format by ID (FHIR JSON). Optional protection can be applied via the protect query parameter.",
+        "summary": "Retrieve IPS record in NPS format by ID",
+        "description": "Retrieve IPS record in NPS format by ID (FHIR JSON). Optional protection can be applied via the protect query parameter.",
         "parameters": [
           {
             "name": "id",
@@ -1055,29 +1055,29 @@
         ],
         "responses": {
           "200": {
-            "description": "Unified IPS record in FHIR JSON format.",
+            "description": "NPS record in FHIR JSON format.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "description": "FHIR Bundle (IPS unified)."
+                  "description": "FHIR Bundle (NPS)."
                 }
               }
             }
           },
           "404": {
-            "description": "IPS record not found."
+            "description": "NPS record not found."
           }
         }
       }
     },
-    "/ipsunifiedsplit/{id}": {
+    "/npsnfc/{id}": {
       "get": {
         "tags": [
-          "IPS"
+          "NPS"
         ],
-        "summary": "Retrieve IPS record split into RO and RW bundles by ID",
-        "description": "Returns two FHIR Bundles split around the IPS timestamp: RO includes Patient/Organization and resources on or before timestamp; RW includes resources after timestamp. Optional protection can be applied via the protect query parameter.",
+        "summary": "Retrieve NPS record split into RO and RW bundles by ID",
+        "description": "Returns two FHIR Bundles split around the NPS timestamp: RO includes Patient/Organization and resources on or before timestamp; RW includes resources after timestamp. Optional protection can be applied via the protect query parameter.",
         "parameters": [
           {
             "name": "id",
@@ -1148,7 +1148,7 @@
             }
           },
           "404": {
-            "description": "IPS record not found."
+            "description": "NPS record not found."
           }
         }
       }
@@ -1156,9 +1156,9 @@
     "/ipsdatasplitpoc/{id}": {
       "get": {
         "tags": [
-          "IPS"
+          "NPS"
         ],
-        "summary": "Retrieve IPS record split into RO plaintext and RW gzipped unified FHIR JSON (POC)",
+        "summary": "Retrieve NPS record split into RO plaintext and RW gzipped unified FHIR JSON (POC)",
         "description": "RO is a human-readable plaintext summary (optionally omitting observations/immunizations/procedures). RW is unified FHIR Bundle JSON compressed with gzip and returned as base64.",
         "parameters": [
           {
@@ -1240,7 +1240,7 @@
             }
           },
           "404": {
-            "description": "IPS record not found."
+            "description": "NPS record not found."
           }
         }
       }
@@ -1914,7 +1914,31 @@
                 }
               }
             }
-          }
+          },
+          "procedures": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "date": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "system": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                }
+              }
+            }
+          }     
         },
         "required": [
           "packageUUID",

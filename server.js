@@ -189,6 +189,7 @@ api.post('/test', (req, res) => {
 
 // Schema validation endpoint
 api.use('/ipsUniVal', ipsUniValRouter);
+api.use('/npsVal', ipsUniValRouter);
 
 // API GET - CRUD Read
 api.get("/ips/all", getAllIPS);
@@ -202,7 +203,9 @@ api.get("/ipshl72x/:id", getIPSHL72_x);
 api.get("/ipsxml/:id", getIPSXMLBundle);
 api.get("/ipslegacy/:id", getIPSLegacyBundle);
 api.get("/ipsunified/:id", getIPSUnifiedBundle);
+api.get("/nps/:id", getIPSUnifiedBundle);
 api.get("/ipsunifiedsplit/:id", getIPSUnifiedBundleSplit);
+api.get("/npsnfc/:id", getIPSUnifiedBundleSplit);
 api.get("/ipsdatasplitpoc/:id", getIPSDataSplitPOC);
 api.get("/ipsbyname/:name/:given", getIPSBundleByName);
 api.get("/ips/search/:name", getIPSSearch);
