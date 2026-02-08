@@ -11,7 +11,7 @@ function APIGETPage() {
   const { startLoading, stopLoading } = useLoading();
   const [data, setData] = useState('');
   const [mode, setMode] = useState('ipsunified');
-  const [modeText, setModeText] = useState('NPS JSON Bundle - /ipsunified/:id');
+  const [modeText, setModeText] = useState('NPS JSON Bundle - /nps/:id');
   const [showNotification, setShowNotification] = useState(false);
   const [responseSize, setResponseSize] = useState(0);
   const [useCompressionAndEncryption, setUseCompressionAndEncryption] = useState(false);
@@ -171,7 +171,7 @@ function APIGETPage() {
         setModeText('NPS Legacy JSON Bundle - /ipslegacy/:id');
         break;
       case 'ipsunified':
-        setModeText('NPS JSON Bundle - /ipsunified/:id');
+        setModeText('NPS JSON Bundle - /nps/:id');
         break;
       case 'ipsmongo':
         setModeText('IPS NoSQL - /ipsmongo/:id');
@@ -298,7 +298,7 @@ function APIGETPage() {
                   size="sm"
                   variant="secondary"
                 >
-                  <Dropdown.Item eventKey="ipsunified">NPS JSON Bundle - /ipsunified/:id</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipsunified">NPS JSON Bundle - /nps/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipshl72x">IPS HL7 2.3 - /ipshl72x/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipsmongo">IPS NoSQL - /ipsmongo/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipsbeer">IPS BEER - /ipsbeer/:id</Dropdown.Item>
