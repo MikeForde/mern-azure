@@ -171,7 +171,7 @@ function QRPage() {
           <div className="dropdown-container">
             <DropdownButton id="dropdown-mode" title={`Mode: ${mode}`} onSelect={handleModeChange} className="dropdown-button">
               <Dropdown.Item eventKey="ipsurl">IPS URL</Dropdown.Item>
-              <Dropdown.Item eventKey="ipsunified">IPS Unified JSON Bundle</Dropdown.Item>
+              <Dropdown.Item eventKey="nps">NPS JSON Bundle</Dropdown.Item>
               <Dropdown.Item eventKey="ips">IPS JSON Bundle</Dropdown.Item>
               <Dropdown.Item eventKey="ipsbasic">IPS Minimal</Dropdown.Item>
               <Dropdown.Item eventKey="ipsmongo">IPS MongoDB</Dropdown.Item>
@@ -207,7 +207,12 @@ function QRPage() {
           </div>
         </>}
         {showNotification ? (
-          <Alert variant="danger">Data is too large to display. Please try a different mode.</Alert>
+          <Alert variant="danger">
+            Data is too large to display 
+            {useCompressionAndEncryption
+              ? ", even with compression, please try a different mode."
+              : ". Please try a different mode, or enable compression and encryption."}
+          </Alert>
         ) : (
           <div className="qr-container">
             <QRCode id="qr-canvas" value={qrData} size={qrSize} />
