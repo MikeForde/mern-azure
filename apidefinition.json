@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "version": "0_60",
+    "version": "0_77",
     "title": "IPS MERN API",
     "description": "OpenAPI 3.0 specification for the IPS MERN API."
   },
