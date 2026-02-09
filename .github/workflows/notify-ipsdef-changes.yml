@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'client/publix/ipsdef/**'
+      - 'client/public/ipsdef/**'
   
   workflow_dispatch:
 
@@ -23,7 +23,7 @@ jobs:
         id: changed-files
         run: |
           # Get list of changed files in the target directory
-          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD -- client/publix/ipsdef/)
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD -- client/public/ipsdef/)
           echo "files<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -57,7 +57,7 @@ jobs:
           # Create email body
           EMAIL_BODY="IPS MERN Website has been updated
 
-          The following files in client/publix/ipsdef/ have been modified:
+          The following files in client/public/ipsdef/ have been modified:
 
           $FILE_LIST
 
