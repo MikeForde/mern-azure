@@ -125,7 +125,8 @@ export default function IPSchemaViewer() {
           'Condition.schema.json',
           'Observation.schema.json',
           'Procedure.schema.json',
-          'Coverage.schema.json'
+          'Coverage.schema.json',
+          'Extension.schema.json'
         ];
 
         const fetched = await Promise.all(

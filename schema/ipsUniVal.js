@@ -10,6 +10,7 @@ const router = express.Router();
 const schemaDir = path.join(__dirname, '..', 'client', 'build', 'ipsdef');
 const schemaFiles = [
   'Bundle.schema.json',
+  'Extension.schema.json',
   'Patient.schema.json',
   'Organization.schema.json',
   'MedicationRequest.schema.json',

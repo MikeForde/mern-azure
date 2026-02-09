@@ -81,7 +81,7 @@
       },
       "Coding": {
         "type": "object",
-        "required": ["display"],
+        "required": ["system", "code", "display"],
         "properties": {
           "system": {
             "type": ["string", "null"]
