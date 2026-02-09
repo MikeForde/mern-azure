@@ -1,140 +1,272 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "/ipsdef/Patient.schema.json",
-    "title": "NPS Patient",
-    "type": "object",
-    "required": [
-      "resourceType",
-      "id",
-      "identifier",
-      "name",
-      "birthDate",
-      "address"
-    ],
-    "properties": {
-      "resourceType": {
-        "const": "Patient"
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/ipsdef/Patient.schema.json",
+  "title": "NPS Patient",
+  "type": "object",
+  "required": [
+    "resourceType",
+    "id",
+    "identifier",
+    "name",
+    "birthDate",
+    "address"
+  ],
+  "properties": {
+    "resourceType": {
+      "const": "Patient"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$",
+      "description": "simple ids preferred",
+      "examples": [
+        "pt1"
+      ]
+    },
+    "identifier": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/Identifier"
       },
-      "id": {
-        "type": "string",
-        "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$",
-        "description": "simple ids preferred",
-        "examples": ["pt1"]
+      "description": "For now suggest NATO_Id and National_Id but these are not official terms"
+    },
+    "extension": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "$ref": "#/definitions/Extension"
       },
-      "identifier": {
-        "type": "array",
-        "minItems": 1,
-        "items": {
-          "$ref": "#/definitions/Identifier"
+      "description": "Primarily included for optional religion field, but can be used for other extensions as well"
+    },
+    "name": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/HumanName"
+      }
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female",
+        "other",
+        "unknown"
+      ]
+    },
+    "birthDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "address": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/Address"
+      }
+    }
+  },
+  "definitions": {
+    "Identifier": {
+      "type": "object",
+      "required": [
+        "system",
+        "value"
+      ],
+      "properties": {
+        "system": {
+          "type": "string"
         },
-        "description": "For now suggest NATO_Id and National_Id but these are not official terms"
-      },
-      "extension": {
-        "type": "array",
-        "minItems": 0,
-        "items": {
-          "$ref": "#/definitions/Extension"
-        },
-        "description": "Primarily included for optional religion field, but can be used for other extensions as well"
-      },
-      "name": {
-        "type": "array",
-        "minItems": 1,
-        "items": {
-          "$ref": "#/definitions/HumanName"
-        }
-      },
-      "gender": {
-        "type": "string",
-        "enum": ["male", "female", "other", "unknown"]
-      },
-      "birthDate": {
-        "type": "string",
-        "format": "date"
-      },
-      "address": {
-        "type": "array",
-        "minItems": 1,
-        "items": {
-          "$ref": "#/definitions/Address"
+        "value": {
+          "type": "string"
         }
       }
     },
-    "definitions": {
-      "Identifier": {
-        "type": "object",
-        "required": ["system", "value"],
-        "properties": {
-          "system": {
-            "type": "string"
+    "Extension": {
+      "type": "object",
+      "required": [
+        "url"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "FHIR 'uri' identifying the extension (often canonical URL, but can be relative in some implementations)"
+        },
+        "extension": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/Extension"
           },
-          "value": {
-            "type": "string"
-          }
+          "description": "Nested extensions (used when there is no value[x] at this level)"
+        },
+        "valueCodeableConcept": {
+          "$ref": "#/definitions/CodeableConcept"
+        },
+        "valueString": {
+          "type": "string"
+        },
+        "valueBoolean": {
+          "type": "boolean"
+        },
+        "valueDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "valueUri": {
+          "type": "string"
         }
       },
-      "Extension": {
-        "type": "object",
-        "required": ["url", "valueCodeableConcept"],
-        "properties": {
-          "url": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL identifying the extension"
-          },
-          "valueCodeableConcept": {
-            "type": "object",
-            "required": ["coding"],
-            "properties": {
-              "coding": {
-                "type": "array",
-                "minItems": 1,
-                "items": {
-                  "type": "object",
-                  "required": ["display"],
-                  "properties": {
-                    "system": {
-                      "type": "string",
-                      "format": "uri"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "display": {
-                      "type": "string"
-                    }
-                  }
-                }
+      "oneOf": [
+        {
+          "description": "Complex extension: url + nested extension[] (no value[x])",
+          "required": [
+            "extension"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "valueCodeableConcept"
+                ]
+              },
+              {
+                "required": [
+                  "valueString"
+                ]
+              },
+              {
+                "required": [
+                  "valueBoolean"
+                ]
+              },
+              {
+                "required": [
+                  "valueDate"
+                ]
+              },
+              {
+                "required": [
+                  "valueUri"
+                ]
               }
-            }
+            ]
           }
-        }
-      },
-      "HumanName": {
-        "type": "object",
-        "required": ["family", "given"],
-        "properties": {
-          "family": {
-            "type": "string"
+        },
+        {
+          "description": "Simple extension: url + exactly one value[x] (no nested extension[])",
+          "not": {
+            "required": [
+              "extension"
+            ]
           },
-          "given": {
-            "type": "array",
-            "minItems": 1,
-            "items": {
-              "type": "string"
+          "oneOf": [
+            {
+              "required": [
+                "valueCodeableConcept"
+              ]
+            },
+            {
+              "required": [
+                "valueString"
+              ]
+            },
+            {
+              "required": [
+                "valueBoolean"
+              ]
+            },
+            {
+              "required": [
+                "valueDate"
+              ]
+            },
+            {
+              "required": [
+                "valueUri"
+              ]
             }
-          }
+          ]
         }
-      },
-      "Address": {
-        "type": "object",
-        "required": ["country"],
-        "properties": {
-          "country": {
+      ]
+    },
+    "HumanName": {
+      "type": "object",
+      "required": [
+        "family",
+        "given"
+      ],
+      "properties": {
+        "family": {
+          "type": "string"
+        },
+        "given": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "Address": {
+      "type": "object",
+      "required": [
+        "country"
+      ],
+      "properties": {
+        "country": {
+          "type": "string"
+        }
+      }
+    },
+    "Coding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "display": {
+          "type": "string"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "code"
+          ]
+        },
+        {
+          "required": [
+            "display"
+          ]
+        }
+      ]
+    },
+    "CodeableConcept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coding"
+      ],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/Coding"
+          }
+        },
+        "text": {
+          "type": "string"
         }
       }
     }
   }
-  
+}

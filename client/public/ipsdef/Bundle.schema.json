@@ -40,6 +40,11 @@
           "type": "object",
           "required": ["resource"],
           "properties": {
+            "fullUrl": {
+              "type": "string",
+              "format": "uri",
+              "examples": ["urn:uuid:381238c4-1f92-43a4-8734-4eb05de12bf0"]
+            },
             "resource": {
               "oneOf": [
                 { "$ref": "/ipsdef/Patient.schema.json" },
