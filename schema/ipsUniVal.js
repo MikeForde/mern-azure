@@ -22,12 +22,55 @@ const schemaFiles = [
   'Coverage.schema.json'
 ];
 
+const FHIR_SCHEMA_KEY = "fhirR4";
+
+// Load single-file FHIR R4 schema (draft-06)
+const fhirSchemaPath = path.join(__dirname, 'fhir.schema.json');
+const fhirSchemaRaw = fs.readFileSync(fhirSchemaPath, 'utf8');
+const fhirSchema = JSON.parse(fhirSchemaRaw);
+
+convertSchemaIdKeyword(fhirSchema);
+
+if (!fhirSchema.$id && typeof fhirSchema.id === 'string') {
+  fhirSchema.$id = fhirSchema.id;
+}
+
+// Remove unsupported OpenAPI-style discriminator
+if (fhirSchema && typeof fhirSchema === 'object') {
+  delete fhirSchema.discriminator;
+}
+
+
 const schemas = {};
 schemaFiles.forEach(file => {
   const name = file.replace('.schema.json', '');
   const raw = fs.readFileSync(path.join(schemaDir, file), 'utf8');
   schemas[name] = JSON.parse(raw);
 });
+
+function fhirDefRef(resourceType) {
+  return `${FHIR_SCHEMA_KEY}#/definitions/${resourceType}`;
+}
+
+
+function convertSchemaIdKeyword(node) {
+  if (Array.isArray(node)) {
+    node.forEach(convertSchemaIdKeyword);
+    return;
+  }
+  if (!node || typeof node !== "object") return;
+
+  // If this object uses draft-06 "id" as a schema identifier, convert it.
+  // Heuristic: it's a string that looks like an absolute URI.
+  if (typeof node.id === "string" && /^https?:\/\//i.test(node.id)) {
+    if (typeof node.$id !== "string") node.$id = node.id;
+    delete node.id;
+  }
+
+  // Recurse
+  for (const v of Object.values(node)) convertSchemaIdKeyword(v);
+}
+
 
 function prettyAjvError(e, prefix = '') {
   let message = e.message;
@@ -51,6 +94,15 @@ function prettyAjvError(e, prefix = '') {
 // POST /ipsUniVal
 router.post('/', (req, res) => {
   const ajv = new Ajv({ allErrors: true, strict: false });
+
+  // FHIR Ajv (draft-06 schema)
+  const ajvFhir = new Ajv({ allErrors: true, strict: false, schemaId: 'auto', validateSchema: false  });
+  addFormats(ajvFhir);
+
+  // Ajv prefers $id; draft-06 commonly uses "id". Add both to be safe.
+  ajvFhir.addSchema(fhirSchema, FHIR_SCHEMA_KEY);
+
+
   ajv.addKeyword({
     keyword: 'medReqForEachMed',
     type: 'array',
@@ -99,7 +151,9 @@ router.post('/', (req, res) => {
     });
   }
 
-  const errors = [];
+  const errorsNps = [];
+  const errorsFhir = [];
+
 
   if (topType === 'Bundle') {
     // 1) Envelope validation
@@ -108,30 +162,68 @@ router.post('/', (req, res) => {
     delete envelopeSchema.$id;
     envelopeSchema.properties.entry.items.properties.resource = { type: 'object' };
     if (!ajv.validate(envelopeSchema, obj)) {
-      (ajv.errors || []).forEach(e => errors.push(prettyAjvError(e)));
+      (ajv.errors || []).forEach(e => errorsNps.push(prettyAjvError(e)));
     }
     // 2) Validate each entry.resource
     obj.entry?.forEach((en, idx) => {
       const resObj = en.resource;
       const schemaName = resObj?.resourceType;
       if (!schemaName || !schemas[schemaName]) {
-        errors.push({
+        errorsNps.push({
           path: `/entry/${idx}/resource/${schemaName}`,
           message: `Unknown or missing resourceType`
         });
       } else if (!ajv.validate(schemaName, resObj)) {
         (ajv.errors || []).forEach(e =>
-          errors.push(prettyAjvError(e, `/entry/${idx}/resource/${schemaName}`))
+          errorsNps.push(prettyAjvError(e, `/entry/${idx}/resource/${schemaName}`))
         );
       }
     });
+
+    // --- FHIR validation (structural) ---
+    // const bundleRef = fhirDefRef('Bundle');
+    // if (!ajvFhir.validate(bundleRef, obj)) {
+    //   (ajvFhir.errors || []).forEach(e => errorsFhir.push(prettyAjvError(e)));
+    // }
+
+    obj.entry?.forEach((en, idx) => {
+      const resObj = en.resource;
+      const rt = resObj?.resourceType;
+      if (!rt) {
+        errorsFhir.push({ path: `/entry/${idx}/resource`, message: 'Missing resourceType' });
+        return;
+      }
+
+      const ref = fhirDefRef(rt);
+      if (!ajvFhir.validate(ref, resObj)) {
+        (ajvFhir.errors || []).forEach(e =>
+          errorsFhir.push(prettyAjvError(e, `/entry/${idx}/resource/${rt}`))
+        );
+      }
+    });
+
   } else {
     // Single resource validation
     ajv.validate(topType, obj);
-    (ajv.errors || []).forEach(e => errors.push(prettyAjvError(e)));
+    (ajv.errors || []).forEach(e => errorsNps.push(prettyAjvError(e)));
+
+    // --- FHIR validation (structural) ---
+    const ref = fhirDefRef(topType);
+    if (!ajvFhir.validate(ref, obj)) {
+      (ajvFhir.errors || []).forEach(e => errorsFhir.push(prettyAjvError(e)));
+    }
   }
 
-  res.json({ valid: errors.length === 0, errors });
+  res.json({
+    valid: errorsNps.length === 0 && errorsFhir.length === 0,
+    errors: [...errorsNps, ...errorsFhir],
+
+    validNps: errorsNps.length === 0,
+    errorsNps,
+    validFhirR4: errorsFhir.length === 0,
+    errorsFhirR4: errorsFhir
+  });
+
 });
 
 module.exports = router;
