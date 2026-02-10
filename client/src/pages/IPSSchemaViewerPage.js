@@ -81,23 +81,54 @@ export default function IPSchemaViewer() {
       ]
     },
     Procedure: {
-        resourceType: 'Procedure',
-        id: 'proc1',
-        status: 'completed',
-        code: {
-          coding: [
-            { system: 'http://snomed.info/sct', code: '40847009', display: 'Blood pressure measurement' }
-          ]
-        },
-        subject: { reference: 'Patient/pt1' },
-        performedDateTime: '2025-05-16T09:00:00Z'
+      resourceType: 'Procedure',
+      id: 'proc1',
+      status: 'completed',
+      code: {
+        coding: [
+          { system: 'http://snomed.info/sct', code: '40847009', display: 'Blood pressure measurement' }
+        ]
       },
+      subject: { reference: 'Patient/pt1' },
+      performedDateTime: '2025-05-16T09:00:00Z'
+    },
     Coverage: {
-        resourceType: 'Coverage',
-        id: 'cov1',
-        beneficiary: { reference: 'Patient/pt1' },
-        payor: { display: 'Example Insurance Co.' }
+      resourceType: 'Coverage',
+      id: 'cov1',
+      beneficiary: { reference: 'Patient/pt1' },
+      payor: { display: 'Example Insurance Co.' }
+    },
+    Extension: [
+      {
+        name: "Religion (valueCodeableConcept)",
+        value: {
+          url: "http://hl7.org/fhir/StructureDefinition/patient-religion",
+          valueCodeableConcept: {
+            coding: [
+              { system: "http://terminology.hl7.org/CodeSystem/v3-ReligiousAffiliation", code: "CHR", display: "Christian" }
+            ],
+            text: "Christian"
+          }
+        }
+      },
+      {
+        name: "Nationality (nested extension)",
+        value: {
+          url: "http://hl7.org/fhir/StructureDefinition/patient-nationality",
+          extension: [
+            {
+              url: "code",
+              valueCodeableConcept: {
+                coding: [
+                  { system: "urn:iso:std:iso:3166", code: "GB", display: "United Kingdom" }
+                ]
+              }
+            }
+          ]
+        }
       }
+    ]
+
   };
 
   // Construct full Bundle example
@@ -106,11 +137,12 @@ export default function IPSchemaViewer() {
     id: 'example-bundle',
     timestamp: '2025-05-16T10:00:00Z',
     type: 'collection',
-    total: Object.keys(exampleData).length - 1,
+    total: Object.values(exampleData).filter(x => x?.resourceType && x.resourceType !== 'Bundle').length,
     entry: Object.values(exampleData)
-      .filter(res => res.resourceType !== 'Bundle')
+      .filter(x => x?.resourceType && x.resourceType !== 'Bundle')
       .map(res => ({ resource: res }))
   };
+
 
   useEffect(() => {
     async function loadSchemas() {
