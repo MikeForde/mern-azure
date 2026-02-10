@@ -8,8 +8,7 @@
     "id",
     "identifier",
     "name",
-    "birthDate",
-    "address"
+    "birthDate"
   ],
   "properties": {
     "resourceType": {

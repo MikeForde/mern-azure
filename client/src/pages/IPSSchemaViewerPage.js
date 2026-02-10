@@ -11,6 +11,45 @@ export default function IPSchemaViewer() {
   const [showExample, setShowExample] = useState({});
   const [showRawExample, setShowRawExample] = useState({});
 
+  // Extension example
+  // Shared example: Extension[] (valid against Extension.schema.json)
+const extensionExamples = [
+  // Religion (simple extension: url + valueCodeableConcept)
+  {
+    url: "http://hl7.org/fhir/StructureDefinition/patient-religion",
+    valueCodeableConcept: {
+      coding: [
+        {
+          system: "http://terminology.hl7.org/CodeSystem/v3-ReligiousAffiliation",
+          code: "CHR",
+          display: "Christian"
+        }
+      ],
+      text: "Christian"
+    }
+  },
+
+  // Nationality (complex extension: url + nested extension[]; no value[x] at top level)
+  {
+    url: "http://hl7.org/fhir/StructureDefinition/patient-nationality",
+    extension: [
+      {
+        url: "code",
+        valueCodeableConcept: {
+          coding: [
+            {
+              system: "urn:iso:std:iso:3166",
+              code: "GBR",
+              display: "United Kingdom"
+            }
+          ]
+        }
+      }
+    ]
+  }
+];
+
+
   // Example data for each resource
   const exampleData = {
     Patient: {
@@ -23,12 +62,13 @@ export default function IPSchemaViewer() {
       name: [{ family: 'Doe', given: ['John'] }],
       gender: 'male',
       birthDate: '1980-01-01',
-      address: [{ country: 'Wonderland' }]
+      address: [{ country: 'WLD' }],
+      extension: extensionExamples[0]
     },
     Organization: {
       resourceType: 'Organization',
       id: 'org1',
-      name: 'Example Org'
+      name: 'ORG'
     },
     Medication: {
       resourceType: 'Medication',
@@ -98,37 +138,7 @@ export default function IPSchemaViewer() {
       beneficiary: { reference: 'Patient/pt1' },
       payor: { display: 'Example Insurance Co.' }
     },
-    Extension: [
-      {
-        name: "Religion (valueCodeableConcept)",
-        value: {
-          url: "http://hl7.org/fhir/StructureDefinition/patient-religion",
-          valueCodeableConcept: {
-            coding: [
-              { system: "http://terminology.hl7.org/CodeSystem/v3-ReligiousAffiliation", code: "CHR", display: "Christian" }
-            ],
-            text: "Christian"
-          }
-        }
-      },
-      {
-        name: "Nationality (nested extension)",
-        value: {
-          url: "http://hl7.org/fhir/StructureDefinition/patient-nationality",
-          extension: [
-            {
-              url: "code",
-              valueCodeableConcept: {
-                coding: [
-                  { system: "urn:iso:std:iso:3166", code: "GB", display: "United Kingdom" }
-                ]
-              }
-            }
-          ]
-        }
-      }
-    ]
-
+    Extension: extensionExamples
   };
 
   // Construct full Bundle example
