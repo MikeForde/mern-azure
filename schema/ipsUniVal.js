@@ -83,6 +83,10 @@ function prettyAjvError(e, prefix = '') {
     message = `Must be one of: ${e.params.allowedValues.join(', ')}`;
   } else if (e.keyword === 'type' && e.params?.type) {
     message = `Invalid type: expected ${e.params.type}`;
+  } else if (e.keyword === 'bundleRefsResolve') {
+    const idx = e.params?.entryIdx;
+    const ref = e.params?.ref;
+    message = `Unresolved reference${idx !== undefined ? ` in entry[${idx}]` : ''}${ref ? `: "${ref}"` : ''}. ${e.message}`;
   }
 
   return {
@@ -96,7 +100,7 @@ router.post('/', (req, res) => {
   const ajv = new Ajv({ allErrors: true, strict: false });
 
   // FHIR Ajv (draft-06 schema)
-  const ajvFhir = new Ajv({ allErrors: true, strict: false, schemaId: 'auto', validateSchema: false  });
+  const ajvFhir = new Ajv({ allErrors: true, strict: false, schemaId: 'auto', validateSchema: false });
   addFormats(ajvFhir);
 
   // Ajv prefers $id; draft-06 commonly uses "id". Add both to be safe.
@@ -133,6 +137,122 @@ router.post('/', (req, res) => {
     errors: true
   });
 
+  ajv.addKeyword({
+    keyword: 'bundleRefsResolve',
+    type: 'array', // entry array
+    errors: true,
+    validate: function bundleRefsResolve(schema, entries) {
+      // Build index: byTypeId and byId
+      const byTypeId = new Map(); // "Patient/pt1" -> true
+      const byId = new Map();     // "pt1" -> Set(["Patient", "Medication", ...])
+
+      (entries || []).forEach(en => {
+        const r = en && en.resource;
+        const rt = r && r.resourceType;
+        const id = r && r.id;
+        if (!rt || !id) return;
+
+        byTypeId.set(`${rt}/${id}`, true);
+
+        if (!byId.has(id)) byId.set(id, new Set());
+        byId.get(id).add(rt);
+      });
+
+      function isSkippableReference(ref) {
+        if (!ref || typeof ref !== 'string') return true;
+        // external/contained/logical refs - skip
+        if (ref.startsWith('#')) return true;
+        if (/^https?:\/\//i.test(ref)) return true;
+        if (/^urn:(uuid|oid):/i.test(ref)) return true;
+        return false;
+      }
+
+      function parseReference(ref) {
+        // returns { type, id } where either may be null
+        // allow "Resource/id", "Resource/id/_history/1", "id"
+        const trimmed = ref.trim();
+        if (!trimmed) return { type: null, id: null };
+
+        const parts = trimmed.split('/').filter(Boolean);
+        if (parts.length >= 2) {
+          return { type: parts[0], id: parts[1] };
+        }
+        // id-only
+        return { type: null, id: trimmed };
+      }
+
+      function walk(obj, visitor) {
+        if (Array.isArray(obj)) {
+          obj.forEach(v => walk(v, visitor));
+          return;
+        }
+        if (!obj || typeof obj !== 'object') return;
+
+        visitor(obj);
+
+        for (const v of Object.values(obj)) walk(v, visitor);
+      }
+
+      const errs = [];
+
+      (entries || []).forEach((en, entryIdx) => {
+        const resObj = en && en.resource;
+        if (!resObj || typeof resObj !== 'object') return;
+
+        walk(resObj, (node) => {
+          // Detect FHIR Reference-ish object
+          if (!node || typeof node !== 'object') return;
+          if (typeof node.reference !== 'string') return;
+
+          const refStr = node.reference;
+          if (isSkippableReference(refStr)) return;
+
+          const { type, id } = parseReference(refStr);
+          if (!id) return;
+
+          if (type) {
+            // strict typed
+            if (!byTypeId.has(`${type}/${id}`)) {
+              errs.push({
+                entryIdx,
+                ref: refStr,
+                message: `Reference not found in bundle: ${type}/${id}`
+              });
+            }
+          } else {
+            // id-only: resolve if unique
+            const types = byId.get(id);
+            if (!types) {
+              errs.push({
+                entryIdx,
+                ref: refStr,
+                message: `Reference id not found in bundle: ${id}`
+              });
+            } else if (types.size > 1) {
+              errs.push({
+                entryIdx,
+                ref: refStr,
+                message: `Ambiguous reference id "${id}" matches multiple resourceTypes: ${Array.from(types).join(', ')}`
+              });
+            }
+          }
+        });
+      });
+
+      if (errs.length) {
+        bundleRefsResolve.errors = errs.map(e => ({
+          keyword: 'bundleRefsResolve',
+          message: e.message,
+          params: { entryIdx: e.entryIdx, ref: e.ref }
+        }));
+        return false;
+      }
+
+      return true;
+    }
+  });
+
+
   addFormats(ajv);
   // Register schemas under their resourceType name
   Object.entries(schemas).forEach(([name, schema]) => ajv.addSchema(schema, name));
@@ -161,6 +281,10 @@ router.post('/', (req, res) => {
     const envelopeSchema = JSON.parse(JSON.stringify(bundleSchema));
     delete envelopeSchema.$id;
     envelopeSchema.properties.entry.items.properties.resource = { type: 'object' };
+
+    // Add cross-resource reference check (format agnostic)
+    envelopeSchema.properties.entry.bundleRefsResolve = true;
+
     if (!ajv.validate(envelopeSchema, obj)) {
       (ajv.errors || []).forEach(e => errorsNps.push(prettyAjvError(e)));
     }
