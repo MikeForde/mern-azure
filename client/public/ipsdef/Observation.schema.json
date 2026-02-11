@@ -84,10 +84,10 @@
         "required": ["system", "code", "display"],
         "properties": {
           "system": {
-            "type": ["string", "null"]
+            "type": "string"
           },
           "code": {
-            "type": ["string", "null"]
+            "type": "string"
           },
           "display": {
             "type": "string"

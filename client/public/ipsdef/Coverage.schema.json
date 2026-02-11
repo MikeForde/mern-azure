@@ -25,7 +25,7 @@
         "default": "active"
       },
       "subscriberId": {
-        "type": ["string", "null"]
+        "type": ["string"]
       },                                    
       "beneficiary": {
         "type": "object",

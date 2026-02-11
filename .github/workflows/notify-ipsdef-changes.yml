@@ -31,6 +31,20 @@ jobs:
           # Count number of changed files
           FILE_COUNT=$(echo "$CHANGED_FILES" | grep -c '^' || echo "0")
           echo "count=$FILE_COUNT" >> $GITHUB_OUTPUT
+
+      - name: Get commit message
+        id: commit
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            # Subject + body of the HEAD commit
+            MSG="$(git log -1 --pretty=%B)"
+          else
+            MSG="(Manual workflow_dispatch trigger — no commit message)"
+          fi
+
+          echo "message<<EOF" >> $GITHUB_OUTPUT
+          echo "$MSG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
       
       - name: Send email notification via Gmail
         if: steps.changed-files.outputs.count > 0 || github.event_name == 'workflow_dispatch'
@@ -39,6 +53,7 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           NOTIFICATION_EMAILS: ${{ vars.NOTIFICATION_EMAILS }}
           CHANGED_FILES: ${{ steps.changed-files.outputs.files }}
+          COMMIT_MESSAGE: ${{ steps.commit.outputs.message }}
         run: |
           # Parse email list
           TO_EMAILS="${NOTIFICATION_EMAILS}"
@@ -53,6 +68,13 @@ jobs:
           # Get commit hash
           COMMIT_HASH="${{ github.sha }}"
           SHORT_HASH="${COMMIT_HASH:0:7}"
+
+          # Commit message formatting (indent each line)
+          if [ -n "$COMMIT_MESSAGE" ] && [ "$COMMIT_MESSAGE" != "" ]; then
+            COMMIT_MSG_FMT=$(echo "$COMMIT_MESSAGE" | sed 's/^/  /')
+          else
+            COMMIT_MSG_FMT="  (No commit message available)"
+          fi
           
           # Create email body
           EMAIL_BODY="IPS MERN Website has been updated
@@ -62,6 +84,9 @@ jobs:
           $FILE_LIST
 
           Commit: $SHORT_HASH
+
+          Commit message:
+          $COMMIT_MSG_FMT
 
           View Changes: https://ipsmern-dep.azurewebsites.net/schemaviewer"
           

@@ -63,7 +63,7 @@
               "$ref": "#/definitions/Coding"
             }
           },
-          "text": { "type": ["string", "null"] }
+          "text": { "type": "string" }
         },
         "additionalProperties": false
       },
@@ -72,10 +72,10 @@
         "required": ["system", "code", "display"],
         "properties": {
           "system": {
-            "type": ["string", "null"]
+            "type": "string"
           },
           "code": {
-            "type": ["string", "null"]
+            "type": "string"
           },
           "display": {
             "type": "string"
