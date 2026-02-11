@@ -9,6 +9,30 @@ const { encryptPrimitiveFieldJWE, underscoreFieldForJWE } = require('../../encry
 // Helper function to check if a string contains a number
 const containsNumber = (str) => /\d/.test(str);
 
+// Remove null/undefined fields recursively (and optionally empty arrays/objects)
+function pruneNulls(value) {
+  if (value === null || value === undefined) return undefined;
+
+  if (Array.isArray(value)) {
+    const arr = value
+      .map(pruneNulls)
+      .filter(v => v !== undefined);
+    return arr.length ? arr : undefined;
+  }
+
+  if (typeof value === "object") {
+    const out = {};
+    for (const [k, v] of Object.entries(value)) {
+      const pruned = pruneNulls(v);
+      if (pruned !== undefined) out[k] = pruned;
+    }
+    return Object.keys(out).length ? out : undefined;
+  }
+
+  return value; // primitives
+}
+
+
 function generateIPSBundleUnified(ips) {
 
     const ptId = "pt1";
@@ -302,7 +326,7 @@ function generateIPSBundleUnified(ips) {
         ],
     };
 
-    return ipsBundle;
+    return pruneNulls(ipsBundle);
 }
 
 // Async post-process: apply 'jwe' or 'omit'

@@ -3,6 +3,28 @@ const { v4: uuidv4 } = require('uuid');
 // Helper function to check if a string contains a number
 const containsNumber = (str) => /\d/.test(str);
 
+function pruneNulls(value) {
+  if (value === null || value === undefined) return undefined;
+
+  if (Array.isArray(value)) {
+    const arr = value
+      .map(pruneNulls)
+      .filter(v => v !== undefined);
+    return arr.length ? arr : undefined;
+  }
+
+  if (typeof value === "object") {
+    const out = {};
+    for (const [k, v] of Object.entries(value)) {
+      const pruned = pruneNulls(v);
+      if (pruned !== undefined) out[k] = pruned;
+    }
+    return Object.keys(out).length ? out : undefined;
+  }
+
+  return value; // primitives
+}
+
 function generateIPSBundle(ipsRecord) {
     // Generate UUIDs
     const compositionUUID = uuidv4();
@@ -451,7 +473,7 @@ function generateIPSBundle(ipsRecord) {
         ]
     };
 
-    return ipsBundle;
+    return pruneNulls(ipsBundle);
 }
 
 module.exports = { generateIPSBundle };
