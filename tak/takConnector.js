@@ -7,12 +7,12 @@ const path = require('path');
 // const clientKeyPath = path.join(__dirname, '..', 'certs', 'takserver-user-5-key.pem');
 // const clientCertPath = path.join(__dirname, '..', 'certs', 'takserver-user-5-cert.pem');
 // const caCertPath = path.join(__dirname, '..', 'certs', 'truststore-intermediate.pem');
-// const clientKeyPath = path.join(__dirname, '..', 'certs', 'wintak01-key.pem');
-// const clientCertPath = path.join(__dirname, '..', 'certs', 'wintak01-cert.pem');
-// const caCertPath = path.join(__dirname, '..', 'certs', 'caCert.pem');
-const clientKeyPath = path.join(__dirname, '..', 'certs', 'user03-key.pem');
-const clientCertPath = path.join(__dirname, '..', 'certs', 'user03.pem');
-const caCertPath = path.join(__dirname, '..', 'certs', 'truststore-EXTAKINTCA.pem');
+const clientKeyPath = path.join(__dirname, '..', 'certs', 'wintak01-key.pem');
+const clientCertPath = path.join(__dirname, '..', 'certs', 'wintak01-cert.pem');
+const caCertPath = path.join(__dirname, '..', 'certs', 'caCert.pem');
+// const clientKeyPath = path.join(__dirname, '..', 'certs', 'user03-key.pem');
+// const clientCertPath = path.join(__dirname, '..', 'certs', 'user03.pem');
+// const caCertPath = path.join(__dirname, '..', 'certs', 'truststore-EXTAKINTCA.pem');
 
 function sendCotMessage(cotMessage, callback) {
   let clientKey, clientCert, caCert;
@@ -28,10 +28,30 @@ function sendCotMessage(cotMessage, callback) {
     return callback(new Error(errMsg));
   }
 
+  /*
+-------------------------------------------------------------
+Docker TAK Server (Intel NUC) – Networking Reminder
+-------------------------------------------------------------
+
+1) Attach IPS container to the TAK network:
+   docker network connect takserver <ips_container_name>
+
+   (e.g. docker network connect takserver eloquent_panini)
+
+2) Use the Docker DNS name as host:
+   host: 'takserver',
+   port: 8089
+
+3) Test connectivity from IPS container: getent hosts takserver
+
+-------------------------------------------------------------
+*/
+
   const options = {
     //host: 'medvc.medis.org.uk',
     //host: '192.168.68.119',
-    host: 'tak.ex.medis.org.uk',
+    //host: 'tak.ex.medis.org.uk',/
+    host: 'takserver',
     port: 8089,
     key: clientKey,
     cert: clientCert,
