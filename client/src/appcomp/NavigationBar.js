@@ -70,7 +70,7 @@ function NavigationBar() {
               {' '} Local {' '}
             </>
           )}
-          0_78
+          0_79
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">
@@ -81,9 +81,26 @@ function NavigationBar() {
             <Nav.Link as={Link} to="/viewer" onClick={() => handleNavItemSelect(true)}>
               <FontAwesomeIcon icon={faEye} /> View
             </Nav.Link>
-            <Nav.Link as={Link} to="/qr" onClick={() => handleNavItemSelect(true)}>
+            <NavDropdown  title={<span><FontAwesomeIcon icon={faQrcode} /> QRs</span>} id="basic-nav-dropdown">
+                    <NavDropdown.Item as={Link} to="/qr" onClick={() => handleNavItemSelect(true)}>
+                      <FontAwesomeIcon icon={faQrcode} /> QR
+                    </NavDropdown.Item>
+                    <NavDropdown.Item as={Link} to="/animatedqr" onClick={() => handleNavItemSelect(true)}>
+                      <FontAwesomeIcon icon={faQrcode} /> Animated QR
+                    </NavDropdown.Item>
+                    <NavDropdown.Item as={Link} to="/animatedqr2" onClick={() => handleNavItemSelect(true)}>
+                      <FontAwesomeIcon icon={faQrcode} /> Animated QR 2
+                    </NavDropdown.Item>
+            </NavDropdown>
+            {/* <Nav.Link as={Link} to="/qr" onClick={() => handleNavItemSelect(true)}>
               <FontAwesomeIcon icon={faQrcode} /> QR
             </Nav.Link>
+            <Nav.Link as={Link} to="/animatedqr" onClick={() => handleNavItemSelect(true)}>
+              <FontAwesomeIcon icon={faQrcode} /> Animated QR
+            </Nav.Link>
+            <Nav.Link as={Link} to="/animatedqr2" onClick={() => handleNavItemSelect(true)}>
+              <FontAwesomeIcon icon={faQrcode} /> Animated QR 2
+            </Nav.Link> */}
             <Nav.Link as={Link} to="/nfc-reader" onClick={() => handleNavItemSelect(false)}>
               <FontAwesomeIcon icon={faTag} /> NFC
             </Nav.Link>

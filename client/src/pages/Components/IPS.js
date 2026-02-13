@@ -282,8 +282,8 @@ export function IPS({ ips, remove, update }) {
           </Link>
         </OverlayTrigger>
 
-        <OverlayTrigger placement="top" overlay={renderTooltip('View QR Code Page')}>
-          <Link to="/qr">
+        <OverlayTrigger placement="top" overlay={renderTooltip('View Animated QR Code Page')}>
+          <Link to="/animatedqr2">
             <Button variant="outline-secondary" className="qr-button custom-button" onClick={handleSelection}>
               <FontAwesomeIcon icon={faQrcode} />
             </Button>
