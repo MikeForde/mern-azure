@@ -51,7 +51,8 @@ Docker TAK Server (Intel NUC) – Networking Reminder
     //host: 'medvc.medis.org.uk',
     //host: '192.168.68.119',
     //host: 'tak.ex.medis.org.uk',/
-    host: 'takserver',
+    //host: 'takserver',
+    host: process.env.TAK_HOST,
     port: 8089,
     key: clientKey,
     cert: clientCert,
