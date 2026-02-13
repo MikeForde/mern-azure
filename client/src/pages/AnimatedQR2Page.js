@@ -6,7 +6,7 @@ import './Page.css';
 import { PatientContext } from '../PatientContext';
 import { useLoading } from '../contexts/LoadingContext';
 
-const ANIMATED_QR_TARGET_FPS = 10;
+const ANIMATED_QR_TARGET_FPS = 20;
 const ANIMATED_QR_METADATA_LENGTH = 4; // header is 4 chars
 const OFFSET_DIVISOR = 4; // Android uses ANIMATED_QR_METADATA_LENGTH for spacing
 
