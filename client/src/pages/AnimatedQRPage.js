@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext, useMemo, useRef } from 'react';
 import QRCode from 'qrcode.react';
 import axios from 'axios';
-import { Button, Alert, DropdownButton, Dropdown } from 'react-bootstrap';
+import { Button, Alert, DropdownButton, Dropdown, Form } from 'react-bootstrap';
 import './Page.css';
 import { PatientContext } from '../PatientContext';
 import { useLoading } from '../contexts/LoadingContext';
+import pako from 'pako';
 
 // Kotlin constants mirrored
 const QR_PACKET_METADATA_SIZE = 4;
@@ -16,6 +17,22 @@ const EC_LEVELS = {
   Q: { label: 'Q', maxByteContent: 88 },
   H: { label: 'H (most robust)', maxByteContent: 68 },
 };
+
+// --- gzip helpers (frontend payload gzip + base64) ---
+function uint8ToBase64(u8) {
+  // Avoid call-stack issues by chunking
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let i = 0; i < u8.length; i += chunkSize) {
+    binary += String.fromCharCode(...u8.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
+}
+
+function gzipToBase64(str) {
+  const gz = pako.gzip(str); // Uint8Array
+  return uint8ToBase64(gz);
+}
 
 // --- UTF-8 safe chunking, equivalent to your Kotlin approach ---
 function calculateAnimatedQrChunks(input, maxByteContent) {
@@ -66,6 +83,7 @@ function AnimatedQRPage() {
 
   const [useCompressionAndEncryption, setUseCompressionAndEncryption] = useState(false);
   const [useIncludeKey, setUseIncludeKey] = useState(false);
+  const [useGzipOnly, setUseGzipOnly] = useState(false);
 
   // Animation / chunking controls
   const [ecLevel, setEcLevel] = useState('M');
@@ -97,11 +115,16 @@ function AnimatedQRPage() {
       endpoint = `/${mode}/${selectedPatient._id}`;
     }
 
+    // URL mode
     if (mode === 'ipsurl') {
       const baseUrl = window.location.origin;
       const url = `${baseUrl}/ips/${selectedPatient.packageUUID}`;
-      setPayload(url);
-      setResponseSize(new TextEncoder().encode(url).length);
+
+      // Apply gzip-only to URL too (optional, but consistent)
+      const finalPayload = useGzipOnly ? gzipToBase64(url) : url;
+
+      setPayload(finalPayload);
+      setResponseSize(new TextEncoder().encode(finalPayload).length);
       sessionIdRef.current = randomSessionId();
       stopLoading();
       return;
@@ -112,17 +135,23 @@ function AnimatedQRPage() {
       headers['Accept-Extra'] = useIncludeKey ? 'insomzip, base64, includeKey' : 'insomzip, base64';
       headers['Accept-Encryption'] = 'aes256';
     }
+    // IMPORTANT: do NOT set insomzip for gzip-only; gzip-only is done client-side for QR
 
     axios.get(endpoint, { headers })
       .then(response => {
         let responseData;
 
         if (useCompressionAndEncryption) {
-          responseData = JSON.stringify(response.data);
+          // encrypted responses come back as JSON structure; keep as compact JSON string
+          responseData = (typeof response.data === 'string') ? response.data : JSON.stringify(response.data);
         } else if (mode === 'ipsminimal' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim' || mode === 'ipshl72x') {
           responseData = response.data;
         } else {
           responseData = JSON.stringify(response.data);
+        }
+
+        if (useGzipOnly && !useCompressionAndEncryption) {
+          responseData = gzipToBase64(responseData);
         }
 
         const size = new TextEncoder().encode(responseData).length;
@@ -136,7 +165,7 @@ function AnimatedQRPage() {
         setResponseSize(0);
       })
       .finally(() => stopLoading());
-  }, [selectedPatient, mode, useCompressionAndEncryption, useIncludeKey, stopLoading]);
+  }, [selectedPatient, mode, useCompressionAndEncryption, useIncludeKey, useGzipOnly, stopLoading, startLoading]);
 
   // If compression is off, force includeKey off (matches UI intent)
   useEffect(() => {
@@ -147,9 +176,7 @@ function AnimatedQRPage() {
   const frames = useMemo(() => {
     if (!payload) return [];
 
-    // For URL mode, just one frame (still wrapped for consistency)
     const maxByteContent = EC_LEVELS[ecLevel]?.maxByteContent ?? EC_LEVELS.M.maxByteContent;
-
     const chunks = calculateAnimatedQrChunks(payload, maxByteContent);
 
     // If chunking produced nothing but payload exists, fall back to single frame
@@ -158,18 +185,17 @@ function AnimatedQRPage() {
     const n = safeChunks.length;
     const s = sessionIdRef.current;
 
-    // Minimal metadata for future reassembly:
-    // s = session, i = index, n = total, m = mime type, p = payload chunk
-    // NOTE: mime is a placeholder until you decide your exact types
     const mime =
       mode === 'ipsurl'
-        ? 'text/uri-list'
-        : 'application/x.ips.v1-0';
+        ? (useGzipOnly ? 'application/x.ips.url.gzip.b64.v1-0' : 'text/uri-list')
+        : (useCompressionAndEncryption
+          ? 'application/x.ips.gzip.aes256.b64.v1-0'
+          : (useGzipOnly ? 'application/x.ips.gzip.b64.v1-0' : 'application/x.ips.v1-0'));
 
     return safeChunks.map((chunk, i) =>
       JSON.stringify({ s, i, n, m: mime, p: chunk })
     );
-  }, [payload, ecLevel, mode]);
+  }, [payload, ecLevel, mode, useGzipOnly, useCompressionAndEncryption]);
 
   // Animation index
   const [frameIndex, setFrameIndex] = useState(0);
@@ -232,14 +258,19 @@ function AnimatedQRPage() {
 
     const flags = [];
     if (mode !== 'ipsurl') {
+      if (useGzipOnly) flags.push('gz');
       if (useCompressionAndEncryption) flags.push('ce');
       if (useIncludeKey && useCompressionAndEncryption) flags.push('ik');
+    } else {
+      if (useGzipOnly) flags.push('gz');
     }
     flags.push(`ec${ecLevel.toLowerCase()}`);
     flags.push(`f${fps}`);
 
     const flagPart = flags.length ? `_${flags.join('_')}` : '';
-    const idxPart = frames.length > 1 ? `_frame${String(frameIndex + 1).padStart(3, '0')}of${String(frames.length).padStart(3, '0')}` : '';
+    const idxPart = frames.length > 1
+      ? `_frame${String(frameIndex + 1).padStart(3, '0')}of${String(frames.length).padStart(3, '0')}`
+      : '';
 
     const fileName = `${yyyymmdd}-${fam}_${giv}_${last6}_${mode}${flagPart}${idxPart}.png`;
 
@@ -258,119 +289,149 @@ function AnimatedQRPage() {
     <div className="app">
       <div className="container">
         <h3>
-          Generate Animated QR Code
-          {mode !== 'ipsurl' && (
-            <span className="response-size"> - {responseSize} bytes</span>
-          )}
+          Generate Animated QR Code{mode !== 'ipsurl' ? ` - ${responseSize} bytes` : ''}
         </h3>
 
-        {selectedPatients.length > 0 && selectedPatient && <>
-          <div className="dropdown-container">
-            <DropdownButton
-              id="dropdown-record"
-              title={`Patient: ${selectedPatient.patient.given} ${selectedPatient.patient.name}`}
-              onSelect={handleRecordChange}
-              className="dropdown-button"
-            >
-              {selectedPatients.map(record => (
-                <Dropdown.Item
-                  key={record._id}
-                  eventKey={record._id}
-                  active={selectedPatient && selectedPatient._id === record._id}
+        {selectedPatients.length > 0 && selectedPatient && (
+          <>
+            {/* --- Top row: patient + mode dropdowns side-by-side --- */}
+            <div className="row g-2 mb-2 align-items-center">
+              <div className="col-auto">
+                <DropdownButton
+                  id="dropdown-record"
+                  title={`Patient: ${selectedPatient.patient.given} ${selectedPatient.patient.name}`}
+                  onSelect={handleRecordChange}
+                  size="sm"
+                  variant="secondary"
                 >
-                  {record.patient.given} {record.patient.name}
-                </Dropdown.Item>
-              ))}
-            </DropdownButton>
-          </div>
+                  {selectedPatients.map(record => (
+                    <Dropdown.Item
+                      key={record._id}
+                      eventKey={record._id}
+                      active={selectedPatient && selectedPatient._id === record._id}
+                    >
+                      {record.patient.given} {record.patient.name}
+                    </Dropdown.Item>
+                  ))}
+                </DropdownButton>
+              </div>
 
-          <div className="dropdown-container">
-            <DropdownButton
-              id="dropdown-mode"
-              title={`Mode: ${mode}`}
-              onSelect={handleModeChange}
-              className="dropdown-button"
-            >
-              <Dropdown.Item eventKey="ipsurl">IPS URL</Dropdown.Item>
-              <Dropdown.Item eventKey="nps">NPS JSON Bundle</Dropdown.Item>
-              <Dropdown.Item eventKey="ips">IPS JSON Bundle</Dropdown.Item>
-              <Dropdown.Item eventKey="ipsbasic">IPS Minimal</Dropdown.Item>
-              <Dropdown.Item eventKey="ipsmongo">IPS MongoDB</Dropdown.Item>
-              <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle</Dropdown.Item>
-              <Dropdown.Item eventKey="ipsbeer">IPS BEER (newline)</Dropdown.Item>
-              <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER with Delimiter (pipe |)</Dropdown.Item>
-              <Dropdown.Item eventKey="ipshl72x">IPS HL7 v2.3</Dropdown.Item>
-            </DropdownButton>
-          </div>
+              <div className="col-auto">
+                <DropdownButton
+                  id="dropdown-mode"
+                  title={`Mode: ${mode}`}
+                  onSelect={handleModeChange}
+                  size="sm"
+                  variant="secondary"
+                >
+                  <Dropdown.Item eventKey="ipsurl">IPS URL</Dropdown.Item>
+                  <Dropdown.Item eventKey="nps">NPS JSON Bundle</Dropdown.Item>
+                  <Dropdown.Item eventKey="ips">IPS JSON Bundle</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipsbasic">IPS Minimal</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipsmongo">IPS MongoDB</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipslegacy">IPS Legacy JSON Bundle</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipsbeer">IPS BEER (newline)</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipsbeerwithdelim">IPS BEER with Delimiter (pipe |)</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipshl72x">IPS HL7 v2.3</Dropdown.Item>
+                </DropdownButton>
+              </div>
+            </div>
 
-          <div className="form-check">
-            <input
-              type="checkbox"
-              className="form-check-input"
-              id="compressionEncryption"
-              checked={useCompressionAndEncryption}
-              onChange={(e) => setUseCompressionAndEncryption(e.target.checked)}
-            />
-            <label className="form-check-label" htmlFor="compressionEncryption">
-              Compress (gzip) and Encrypt (aes256 base 64)
-            </label>
-          </div>
+            {/* --- Second row: compact checkbox bar --- */}
+            <div className="row g-3 mb-2 align-items-center flex-wrap small">
+              <div className="col-auto">
+                <Form.Check
+                  type="checkbox"
+                  id="gzipOnly"
+                  label="Compress only (gzip base64)"
+                  checked={useGzipOnly}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setUseGzipOnly(checked);
+                    if (checked) {
+                      setUseCompressionAndEncryption(false);
+                      setUseIncludeKey(false);
+                    }
+                  }}
+                />
+              </div>
 
-          <div className="form-check">
-            <input
-              type="checkbox"
-              className="form-check-input"
-              id="includeKey"
-              checked={useIncludeKey}
-              disabled={!useCompressionAndEncryption}
-              onChange={(e) => setUseIncludeKey(e.target.checked)}
-            />
-            <label className="form-check-label" htmlFor="includeKey">
-              Include key in response
-            </label>
-          </div>
+              <div className="col-auto">
+                <Form.Check
+                  type="checkbox"
+                  id="compressionEncryption"
+                  label="Gzip + Encrypt (aes256 base64)"
+                  checked={useCompressionAndEncryption}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setUseCompressionAndEncryption(checked);
+                    if (checked) {
+                      setUseGzipOnly(false);
+                    } else {
+                      setUseIncludeKey(false);
+                    }
+                  }}
+                />
+              </div>
 
-          {/* Chunking / animation controls */}
-          <div className="dropdown-container" style={{ marginTop: 10 }}>
-            <DropdownButton
-              id="dropdown-ec"
-              title={`EC Level: ${ecLevel} - ${EC_LEVELS[ecLevel].label}`}
-              onSelect={(lvl) => setEcLevel(lvl)}
-              className="dropdown-button"
-            >
-              {Object.keys(EC_LEVELS).map((lvl) => (
-                <Dropdown.Item key={lvl} eventKey={lvl} active={ecLevel === lvl}>
-                  {lvl} - {EC_LEVELS[lvl].label}
-                </Dropdown.Item>
-              ))}
-            </DropdownButton>
-          </div>
+              <div className="col-auto">
+                <Form.Check
+                  type="checkbox"
+                  id="includeKey"
+                  label="Include key in response"
+                  checked={useIncludeKey}
+                  disabled={!useCompressionAndEncryption}
+                  onChange={(e) => setUseIncludeKey(e.target.checked)}
+                />
+              </div>
+            </div>
 
-          <div className="form-check" style={{ marginTop: 10 }}>
-            <label className="form-check-label" htmlFor="fpsRange" style={{ display: 'block' }}>
-              Frame rate: {fps} fps
-            </label>
-            <input
-              id="fpsRange"
-              type="range"
-              min="1"
-              max="20"
-              value={fps}
-              onChange={(e) => setFps(parseInt(e.target.value, 10))}
-              style={{ width: '100%' }}
-            />
-          </div>
+            {/* --- Third row: EC dropdown + play/pause + fps slider compact --- */}
+            <div className="row g-2 mb-3 align-items-center flex-wrap small">
+              <div className="col-auto">
+                <DropdownButton
+                  id="dropdown-ec"
+                  title={`EC: ${ecLevel}`}
+                  onSelect={(lvl) => setEcLevel(lvl)}
+                  size="sm"
+                  variant="secondary"
+                >
+                  {Object.keys(EC_LEVELS).map((lvl) => (
+                    <Dropdown.Item key={lvl} eventKey={lvl} active={ecLevel === lvl}>
+                      {lvl} - {EC_LEVELS[lvl].label}
+                    </Dropdown.Item>
+                  ))}
+                </DropdownButton>
+              </div>
 
-          <div className="button-container" style={{ marginTop: 10 }}>
-            <Button
-              variant={isPlaying ? 'secondary' : 'primary'}
-              onClick={() => setIsPlaying((p) => !p)}
-              disabled={frames.length <= 1}
-            >
-              {isPlaying ? 'Pause' : 'Play'}
-            </Button>
-          </div>
-        </>}
+              <div className="col-auto">
+                <Button
+                  size="sm"
+                  variant={isPlaying ? 'secondary' : 'primary'}
+                  onClick={() => setIsPlaying((p) => !p)}
+                  disabled={frames.length <= 1}
+                >
+                  {isPlaying ? 'Pause' : 'Play'}
+                </Button>
+              </div>
+
+              <div className="col-auto" style={{ minWidth: 220 }}>
+                <div style={{ fontSize: 12, opacity: 0.8 }}>
+                  FPS: <strong>{fps}</strong>
+                </div>
+                <input
+                  id="fpsRange"
+                  type="range"
+                  min="1"
+                  max="20"
+                  value={fps}
+                  onChange={(e) => setFps(parseInt(e.target.value, 10))}
+                  style={{ width: '100%' }}
+                />
+              </div>
+            </div>
+          </>
+        )}
 
         {showTooBigWarning && (
           <Alert variant="warning" style={{ marginTop: 10 }}>

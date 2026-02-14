@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import QRPage from './pages/QRPage';
 import AnimatedQRPage from './pages/AnimatedQRPage';
 import AnimatedQR2Page from './pages/AnimatedQR2Page';
+import AnimatedQRReaderPage from './pages/AnimatedQRReaderPage';
 import DataUploadPage from './pages/DataUploadPage';
 import AboutPage from './pages/AboutPage';
 import NavigationBar from './appcomp/NavigationBar';
@@ -68,6 +69,7 @@ function App() {
               <Route path="/qr/:id?" element={<QRPage />} />
               <Route path="/animatedqr/:id?" element={<AnimatedQRPage />} />
               <Route path="/animatedqr2/:id?" element={<AnimatedQR2Page />} />
+              <Route path="/animatedqrreader" element={<AnimatedQRReaderPage />} />
               <Route path="/bulkupload" element={<DataUploadPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/changelog" element={<ChangeLogPage />} />
