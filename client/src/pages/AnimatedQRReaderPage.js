@@ -23,9 +23,10 @@ function countMissing(chunkMap, total) {
 function AnimatedQRReaderPage() {
     const videoRef = useRef(null);
     const controlsRef = useRef(null);
+    const totalRef = useRef(null);
 
     const [progress, setProgress] = useState(0);
-    const [chunks, setChunks] = useState({});
+    const chunksRef = useRef({});
     const [totalChunks, setTotalChunks] = useState(null);
     const [decodedPayload, setDecodedPayload] = useState(null);
     const [error, setError] = useState(null);
@@ -126,31 +127,33 @@ function AnimatedQRReaderPage() {
         );
 
         // Lock totalChunks on first valid packet (avoid session mixing)
-        setTotalChunks(prev => (prev == null ? total : prev));
+        if (totalRef.current == null) {
+            totalRef.current = total;
+            setTotalChunks(total); // only for UI display
+        } else if (totalRef.current !== total) {
+            return; // ignore packets from a different session
+        }
 
-        setChunks(prev => {
-            // If we already fixed totalChunks and this packet has a different total, ignore it
-            if (totalChunks != null && totalChunks !== total) return prev;
+        const existingTotal = totalChunks;
+        if (existingTotal != null && existingTotal !== total) return;
 
-            const updated = { ...prev };
+        // update the ref store
+        const updated = chunksRef.current;
 
-            if (updated[firstIndex] == null) updated[firstIndex] = firstPayload;
-            if (updated[secondIndex] == null) updated[secondIndex] = secondPayload;
+        if (updated[firstIndex] == null) updated[firstIndex] = firstPayload;
+        if (updated[secondIndex] == null) updated[secondIndex] = secondPayload;
 
-            const received = Object.keys(updated).length;
-            setReceivedCount(received);
+        const received = Object.keys(updated).length;
+        setReceivedCount(received);
 
-            const missing = countMissing(updated, total);
-            setMissingCount(missing);
+        const missing = countMissing(updated, total);
+        setMissingCount(missing);
 
-            setProgress(Math.floor((received / total) * 100));
+        setProgress(Math.floor((received / total) * 100));
 
-            if (received === total) {
-                completeMessage(updated, total);
-            }
-
-            return updated;
-        });
+        if (received === total) {
+            completeMessage(updated, total);
+        }
     }
 
     function completeMessage(chunkMap, total) {
@@ -190,7 +193,7 @@ function AnimatedQRReaderPage() {
 
     function reset() {
         completedRef.current = false;
-        setChunks({});
+        chunksRef.current = {};
         setTotalChunks(null);
         setProgress(0);
         setDecodedPayload(null);
