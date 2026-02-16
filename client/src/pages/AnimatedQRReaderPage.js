@@ -300,6 +300,7 @@ function AnimatedQRReaderPage() {
 
               // Tell middleware the JSON fields are base64 and the underlying plaintext was gzipped before encryption
               'Content-Encoding': 'gzip, base64',
+              'X-Force-Decode': 'true',
             },
             body: JSON.stringify(encObj),
           });
