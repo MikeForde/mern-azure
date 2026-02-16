@@ -188,6 +188,6 @@ After applying these settings:
 # 📝 Notes
 
 -   Settings reset after unplugging camera or reboot.
--   To make persistent, consider creating a udev rule or startup script.
+-   To toggle on and off, consider using a script - see qr-camera_toggle.sh
 -   Add more lighting if image still appears soft --- lighting \>
     exposure tweaks.
