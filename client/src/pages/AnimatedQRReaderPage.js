@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { Button, ProgressBar, Alert } from 'react-bootstrap';
 import './AnimatedQRReaderPage.css';
+import pako from 'pako';
 
 function base64ToBytes(b64) {
   const bin = atob(b64);
@@ -17,6 +18,14 @@ function countMissing(chunkMap, total) {
     if (chunkMap[i] == null) missing++;
   }
   return missing;
+}
+
+function bytesToUtf8(bytes) {
+  return new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+}
+
+function looksGzipped(bytes) {
+  return bytes?.length >= 3 && bytes[0] === 0x1f && bytes[1] === 0x8b && bytes[2] === 0x08;
 }
 
 function AnimatedQRReaderPage() {
@@ -36,6 +45,23 @@ function AnimatedQRReaderPage() {
   const [receivedCount, setReceivedCount] = useState(0);
   const [missingCount, setMissingCount] = useState(null);
   const [lastSeenAt, setLastSeenAt] = useState(null);
+  const [scanSession, setScanSession] = useState(0);
+
+  const stopScanner = useCallback(() => {
+    // stop ZXing loop
+    if (controlsRef.current) {
+      try { controlsRef.current.stop(); } catch { }
+      controlsRef.current = null;
+    }
+
+    // stop camera tracks
+    const videoEl = videoRef.current;
+    const stream = videoEl?.srcObject;
+    if (stream && typeof stream.getTracks === 'function') {
+      stream.getTracks().forEach((t) => t.stop());
+    }
+    if (videoEl) videoEl.srcObject = null;
+  }, []);
 
   const completeMessage = useCallback((chunkMap, total) => {
     if (completedRef.current) return;
@@ -56,8 +82,19 @@ function AnimatedQRReaderPage() {
       if (typeof envelope.data !== 'string') throw new Error('Envelope missing "data" string');
       if (typeof envelope.mimeType !== 'string') throw new Error('Envelope missing "mimeType" string');
 
-      const bytes = base64ToBytes(envelope.data);
-      const utf8 = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+      let bytes = base64ToBytes(envelope.data);
+
+      const mime = envelope.mimeType || '';
+      const isGzipMime = mime.includes('gzip');
+      if (isGzipMime || looksGzipped(bytes)) {
+        try {
+          bytes = pako.ungzip(bytes);
+        } catch (e) {
+          throw new Error(`Gzip decompress failed: ${e?.message || e}`);
+        }
+      }
+
+      const utf8 = bytesToUtf8(bytes);
 
       setDecodedPayload({
         mimeType: envelope.mimeType,
@@ -68,7 +105,8 @@ function AnimatedQRReaderPage() {
       setError(`Failed to decode message: ${e?.message || String(e)}`);
       completedRef.current = false;
     }
-  }, []);
+    stopScanner();
+  }, [stopScanner]);
 
   const handlePacket = useCallback((packet) => {
     if (completedRef.current) return;
@@ -117,20 +155,35 @@ function AnimatedQRReaderPage() {
   }, [completeMessage]);
 
   useEffect(() => {
+    if (!lastSeenAt) return;
+    const t = setTimeout(() => setLastSeenAt(null), 1200);
+    return () => clearTimeout(t);
+  }, [lastSeenAt]);
+
+  useEffect(() => {
+    // Don’t try to start camera if the video isn’t rendered
+    if (decodedPayload) return;
+
     let isMounted = true;
     const reader = new BrowserMultiFormatReader();
 
     // Capture current video node for cleanup correctness
-    const videoEl = videoRef.current;
+    //const videoEl = videoRef.current;
+    let videoEl = null;
 
     (async () => {
       try {
+        // Wait one frame so refs/DOM are definitely settled after remount (Safari fix)
+        await new Promise(requestAnimationFrame);
+        videoEl = videoRef.current;
+        if (!videoEl) throw new Error('Video element not ready');
+
         const constraints = {
           audio: false,
           video: {
             facingMode: { ideal: 'environment' },
-            width: { ideal: 640 },
-            height: { ideal: 480 },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
           },
         };
 
@@ -140,7 +193,12 @@ function AnimatedQRReaderPage() {
           (result) => {
             if (!isMounted) return;
             if (completedRef.current) return;
-            if (result) handlePacket(result.getText());
+            if (!result) return;
+            try {
+              handlePacket(result.getText());
+            } catch (e) {
+              console.warn('handlePacket failed:', e);
+            }
           }
         );
 
@@ -172,9 +230,10 @@ function AnimatedQRReaderPage() {
       }
       if (videoEl) videoEl.srcObject = null;
     };
-  }, [handlePacket]);
+  }, [handlePacket, scanSession, decodedPayload]);
 
   const reset = useCallback(() => {
+    stopScanner();
     completedRef.current = false;
     totalRef.current = null;
     chunksRef.current = {};
@@ -188,7 +247,8 @@ function AnimatedQRReaderPage() {
     setReceivedCount(0);
     setMissingCount(null);
     setLastSeenAt(null);
-  }, []);
+    setScanSession((s) => s + 1);
+  }, [stopScanner]);
 
   return (
     <div className="container">
@@ -197,7 +257,13 @@ function AnimatedQRReaderPage() {
       {!decodedPayload && (
         <>
           <div className="aqr-reader">
-            <video ref={videoRef} className="aqr-video" muted playsInline />
+            <video
+              key={scanSession}
+              ref={videoRef}
+              className="aqr-video"
+              muted
+              playsInline
+            />
             <div className="aqr-overlay">
               <div className="aqr-window aqr-left" />
               <div className="aqr-window aqr-right" />

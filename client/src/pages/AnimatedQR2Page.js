@@ -7,7 +7,7 @@ import { PatientContext } from '../PatientContext';
 import { useLoading } from '../contexts/LoadingContext';
 import pako from 'pako';
 
-const ANIMATED_QR_TARGET_FPS = 20;
+const ANIMATED_QR_TARGET_FPS = 10;
 const ANIMATED_QR_METADATA_LENGTH = 4; // header is 4 chars
 const OFFSET_DIVISOR = 4; // Android uses ANIMATED_QR_METADATA_LENGTH for spacing
 
@@ -200,7 +200,7 @@ function AnimatedQR2Page() {
     // IMPORTANT: wrap in the envelope expected by the Android importer
     const mimeType =
       mode === 'ipsurl'
-        ? (useGzipOnly ? 'application/x.ips.url.gzip.b64.v1-0' : 'text/uri-list')
+        ? (useGzipOnly ? 'application/x.ips.gzip.v1-0' : 'text/uri-list')
         : (useCompressionAndEncryption
           ? 'application/x.ips.gzip.aes256.b64.v1-0'
           : (useGzipOnly ? 'application/x.ips.gzip.b64.v1-0' : 'application/x.ips.v1-0'));
