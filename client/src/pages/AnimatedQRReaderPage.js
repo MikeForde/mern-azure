@@ -75,12 +75,6 @@ function AnimatedQRReaderPage() {
     }, 180);
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (hitTimerLeftRef.current) clearTimeout(hitTimerLeftRef.current);
-      if (hitTimerRightRef.current) clearTimeout(hitTimerRightRef.current);
-    };
-  }, []);
 
 
 
@@ -173,25 +167,49 @@ function AnimatedQRReaderPage() {
 
 
 
-  const stopScanner = useCallback(() => {
-    // stop ZXing loop
+      const stopScanner = useCallback(() => {
+    // Stop ROI loop
     if (controlsRef.current) {
-      try { controlsRef.current.stop(); } catch { }
+      try { controlsRef.current.stop(); } catch {}
       controlsRef.current = null;
     }
 
-    // stop camera tracks
+    // Clear hit timers
+    if (hitTimerLeftRef.current) {
+      clearTimeout(hitTimerLeftRef.current);
+      hitTimerLeftRef.current = null;
+    }
+
+    if (hitTimerRightRef.current) {
+      clearTimeout(hitTimerRightRef.current);
+      hitTimerRightRef.current = null;
+    }
+
     const videoEl = videoRef.current;
+
+    // Pause video (important on Android)
+    try { videoEl?.pause?.(); } catch {}
+
     const stream = videoEl?.srcObject;
     if (stream && typeof stream.getTracks === 'function') {
-      stream.getTracks().forEach((t) => t.stop());
+      stream.getTracks().forEach((t) => {
+        try { t.stop(); } catch {}
+      });
     }
-    if (videoEl) videoEl.srcObject = null;
+
+    if (videoEl) {
+      videoEl.srcObject = null;
+      try { videoEl.load?.(); } catch {}
+    }
   }, []);
+
+
 
   const completeMessage = useCallback((chunkMap, total) => {
     if (completedRef.current) return;
     completedRef.current = true;
+
+    stopScanner();
 
     try {
       // Ensure we truly have all chunks
