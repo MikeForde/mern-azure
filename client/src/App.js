@@ -3,7 +3,6 @@ import React, { useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import QRPage from './pages/QRPage';
-import AnimatedQRPage from './pages/AnimatedQRPage';
 import AnimatedQR2Page from './pages/AnimatedQR2Page';
 import AnimatedQRReaderPage from './pages/AnimatedQRReaderPage';
 import DataUploadPage from './pages/DataUploadPage';
@@ -67,7 +66,6 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/qr/:id?" element={<QRPage />} />
-              <Route path="/animatedqr/:id?" element={<AnimatedQRPage />} />
               <Route path="/animatedqr2/:id?" element={<AnimatedQR2Page />} />
               <Route path="/animatedqrreader" element={<AnimatedQRReaderPage />} />
               <Route path="/bulkupload" element={<DataUploadPage />} />

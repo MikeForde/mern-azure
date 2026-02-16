@@ -782,16 +782,22 @@ function ChangeLogPage() {
                         <li>
                             <h5>Version 0_79 — 13th Feb 2026</h5>
                             <ul>
-                                <li><strong>Animated Dual QR Export (High-Capacity Transfer Mode)</strong></li>
-                                <li>Introduced a new animated QR export page that generates two synchronised QR codes side-by-side, enabling high-capacity data transfer beyond the limits of a single static QR.</li>
-                                <li>Implemented packetised transfer using indexed chunk metadata, matching the Android Mercury fountain-style decoder logic.</li>
-                                <li>Added Base64-wrapped QR message envelope format (<code>data, mimeType</code>) for compatibility with Mercury animated QR import.</li>
-                                <li>Supports IPS JSON bundle export using MIME type <code>application/x.ips.v1-0</code>, enabling successful import into compatible Android applications.</li>
-                                <li>Added configurable frame rate and error correction level support for animated QR generation.</li>
-                                <li>Improved large-record handling by splitting payloads into indexed packet pairs per animation frame.</li>
+                                <li><strong>Animated Dual QR Support (High-Capacity Transfer Mode)</strong></li>
+                                <li>Introduced full animated dual-QR generation and reading support, enabling reliable high-capacity data transfer beyond the limits of a single static QR.</li>
+                                <li>Implemented indexed packetised transfer format (4-character header + dual chunk pairing) aligned with Android Mercury fountain-style decoding logic.</li>
+                                <li>Added animated QR reader page with region-of-interest scanning, dual-window targeting, and real-time visual hit feedback.</li>
+                                <li>Supports MIME-wrapped envelope format (<code>data, mimeType</code>) for interoperability with Mercury animated QR import.</li>
+                                <li>Compatible with:
+                                    <ul>
+                                        <li><code>application/x.ips.v1-0</code></li>
+                                        <li><code>application/x.ips.gzip.v1-0</code></li>
+                                        <li><code>application/x.ips.gzip.aes256.v1-0</code></li>
+                                    </ul>
+                                </li>
+                                <li>Added configurable frame rate and QR error correction level controls for generation tuning.</li>
+                                <li>Improved large-record handling via UTF-8-safe chunking and adaptive animation pacing.</li>
                             </ul>
                         </li>
-
                     </ul>
                 </Col>
             </Row>

@@ -643,7 +643,7 @@ function AnimatedQRReaderPage() {
           <div style={{ marginTop: 10, fontSize: 12, opacity: 0.85 }}>
             <div>
               <strong>Status:</strong>{" "}
-              {lastSeenAt ? "Scanning (seeing QRs)" : "Scanning (no QRs seen yet)"}
+              {lastSeenAt ? "Scanning (seeing QRs)" : "Scanning (no QRs seen)"}
             </div>
             <div>
               <strong>Last packet:</strong> {lastPacketInfo || "(none yet)"}

@@ -83,14 +83,12 @@ function NavigationBar() {
             </Nav.Link>
             <NavDropdown  title={<span><FontAwesomeIcon icon={faQrcode} /> QRs</span>} id="basic-nav-dropdown">
                     <NavDropdown.Item as={Link} to="/qr" onClick={() => handleNavItemSelect(true)}>
-                      <FontAwesomeIcon icon={faQrcode} /> QR
-                    </NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/animatedqr" onClick={() => handleNavItemSelect(true)}>
-                      <FontAwesomeIcon icon={faQrcode} /> Animated QR
+                      <FontAwesomeIcon icon={faQrcode} /> Static QR
                     </NavDropdown.Item>
                     <NavDropdown.Item as={Link} to="/animatedqr2" onClick={() => handleNavItemSelect(true)}>
-                      <FontAwesomeIcon icon={faQrcode} /> Animated QR 2
+                      <FontAwesomeIcon icon={faQrcode} /> Animated QR
                     </NavDropdown.Item>
+                    <NavDropdown.Divider />
                     <NavDropdown.Item as={Link} to="/animatedqrreader" onClick={() => handleNavItemSelect(true)}>
                       <FontAwesomeIcon icon={faQrcode} /> Animated QR Reader
                     </NavDropdown.Item>
