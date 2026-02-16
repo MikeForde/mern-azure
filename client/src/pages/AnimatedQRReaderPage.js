@@ -3,6 +3,8 @@ import { BrowserMultiFormatReader } from '@zxing/browser';
 import { Button, ProgressBar, Alert } from 'react-bootstrap';
 import './AnimatedQRReaderPage.css';
 import pako from 'pako';
+import { useLoading } from '../contexts/LoadingContext';
+
 
 function base64ToBytes(b64) {
   const bin = atob(b64);
@@ -29,6 +31,7 @@ function looksGzipped(bytes) {
 }
 
 function AnimatedQRReaderPage() {
+  const { stopLoading } = useLoading();
   const videoRef = useRef(null);
   const controlsRef = useRef(null);
 
@@ -56,6 +59,16 @@ function AnimatedQRReaderPage() {
 
   const hitTimerLeftRef = useRef(null);
   const hitTimerRightRef = useRef(null);
+
+  useEffect(() => {
+    // If we navigated here after another page set the global spinner,
+    // clear it so the QR reader doesn't inherit a stale loading state.
+    stopLoading();
+    return () => {
+      stopLoading();
+    };
+  }, [stopLoading]);
+
 
   const flashHit = useCallback((side) => {
     const el = side === 'left' ? leftBoxRef.current : rightBoxRef.current;
