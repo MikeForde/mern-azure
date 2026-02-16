@@ -191,13 +191,20 @@ function AnimatedQR2Page() {
       .finally(() => stopLoading());
   }, [selectedPatient, mode, useCompressionAndEncryption, useIncludeKey, useGzipOnly, stopLoading]);
 
-  // Build chunks and compute offset
+    // --- helpers ---
+  function looksBase64(str) {
+    if (typeof str !== 'string') return false;
+    const s = str.trim();
+    if (!s || s.length % 4 !== 0) return false;
+    // allow base64 + base64url
+    return /^[A-Za-z0-9+/=_-]+$/.test(s);
+  }
+
   const chunks = useMemo(() => {
     if (!payload) return [];
 
     const maxByteContent = EC_LEVELS[ecLevel]?.maxByteContent ?? EC_LEVELS.L.maxByteContent;
 
-    // IMPORTANT: wrap in the envelope expected by the Android importer
     const mimeType =
       mode === 'ipsurl'
         ? (useGzipOnly ? 'application/x.ips.gzip.v1-0' : 'text/uri-list')
@@ -205,13 +212,25 @@ function AnimatedQR2Page() {
           ? 'application/x.ips.gzip.aes256.v1-0'
           : (useGzipOnly ? 'application/x.ips.gzip.v1-0' : 'application/x.ips.v1-0'));
 
-    const wrapped = JSON.stringify({
-      data: base64EncodeUtf8(payload),
-      mimeType
-    });
+    // IMPORTANT:
+    // - Plain: payload is JSON/text -> base64(utf8(payload))
+    // - Gzip-only: payload is already base64(gzipBytes) -> use as-is
+    // - Gzip+Encrypt: payload is typically JSON like {"encryptedData":...,"iv":...,"mac":...}
+    //               -> base64(utf8(payload)) unless the server already returned base64
+    let data;
+    if (useGzipOnly) {
+      data = payload; // already base64(gzip bytes)
+    } else if (useCompressionAndEncryption) {
+      const p = String(payload).trim();
+      data = looksBase64(p) ? p : base64EncodeUtf8(p);
+    } else {
+      data = base64EncodeUtf8(payload);
+    }
 
+    const wrapped = JSON.stringify({ data, mimeType });
     return calculateAnimatedQrChunks(wrapped, maxByteContent);
   }, [payload, ecLevel, mode, useGzipOnly, useCompressionAndEncryption]);
+
 
   const N = chunks.length;
   const offset = N > 0 ? Math.floor(N / OFFSET_DIVISOR) : 0;

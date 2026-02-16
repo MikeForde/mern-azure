@@ -162,10 +162,10 @@ function AnimatedQRReaderPage() {
     return canvas;
   }, []);
 
-    const stopScanner = useCallback(() => {
+  const stopScanner = useCallback(() => {
     // Stop ROI loop
     if (controlsRef.current) {
-      try { controlsRef.current.stop(); } catch {}
+      try { controlsRef.current.stop(); } catch { }
       controlsRef.current = null;
     }
 
@@ -183,24 +183,24 @@ function AnimatedQRReaderPage() {
     const videoEl = videoRef.current;
 
     // Pause video (important on Android)
-    try { videoEl?.pause?.(); } catch {}
+    try { videoEl?.pause?.(); } catch { }
 
     const stream = videoEl?.srcObject;
     if (stream && typeof stream.getTracks === 'function') {
       stream.getTracks().forEach((t) => {
-        try { t.stop(); } catch {}
+        try { t.stop(); } catch { }
       });
     }
 
     if (videoEl) {
       videoEl.srcObject = null;
-      try { videoEl.load?.(); } catch {}
+      try { videoEl.load?.(); } catch { }
     }
   }, []);
 
 
 
-  const completeMessage = useCallback((chunkMap, total) => {
+  const completeMessage = useCallback(async (chunkMap, total) => {
     if (completedRef.current) return;
     completedRef.current = true;
 
@@ -271,15 +271,73 @@ function AnimatedQRReaderPage() {
         return;
       }
 
-      // 4) Optional gzip
       const mime = envelope.mimeType || '';
-      const mimeIndicatesGzip = mime.includes('gzip');
-      const magicLooksGzipped = looksGzipped(bytes);
+      const isEnc = mime.includes('aes256');
+      const isGzipMime = mime.includes('gzip');
 
-      report.gzip.mimeIndicatesGzip = mimeIndicatesGzip;
-      report.gzip.looksGzippedMagic = magicLooksGzipped;
+      // ---- CASE A: gzip + encrypt ----
+      // envelope.data base64-decodes to UTF-8 JSON: {"encryptedData":...,"iv":...,"mac":...}
+      // The gzip is INSIDE the decrypted plaintext. We do NOT ungzip here.
+      if (isEnc) {
+        try {
+          const jsonStr = bytesToUtf8(bytes);
 
-      if (mimeIndicatesGzip || magicLooksGzipped) {
+          // show what we got at this stage (the encrypted wrapper)
+          report.decodedUtf8 = jsonStr;
+
+          const encObj = JSON.parse(jsonStr);
+          report.envelopeParsedInner = encObj;
+
+          // Send to the same decoder endpoint your NFC page uses.
+          // NFC sends octet-stream, but in QR we naturally have JSON; easiest is send JSON.
+          const API_ORIGIN = `${window.location.protocol}//127.0.0.1:${window.location.port}`;
+          const resp = await fetch(`${API_ORIGIN}/test`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Encrypted': 'true',
+              'Content-Encoding': 'gzip, base64',
+            },
+            body: JSON.stringify(encObj),
+          });
+
+          const text = await resp.text();
+
+          if (!resp.ok) {
+            throw new Error(`Server decode failed: ${resp.status} ${resp.statusText}\n${text}`);
+          }
+
+          // If it's JSON, pretty-print; otherwise show raw
+          try {
+            report.serverDecodedPretty = JSON.stringify(JSON.parse(text), null, 2);
+          } catch {
+            report.serverDecodedPretty = text;
+          }
+
+          report.decodedUtf8 = report.serverDecodedPretty;
+
+          // Keep gzip flags informative only (we didn't gunzip client-side for ENC)
+          report.gzip = {
+            mimeIndicatesGzip: true,
+            looksGzippedMagic: false,
+            decompressed: false,
+            error: null,
+          };
+
+          setDecodedPayload(report);
+          return;
+        } catch (e) {
+          report.decodeError = `Encrypted payload decode failed: ${e?.message || String(e)}`;
+          setDecodedPayload(report);
+          return;
+        }
+      }
+
+      // ---- CASE B: gzip-only (what you already had) ----
+      report.gzip.mimeIndicatesGzip = isGzipMime;
+      report.gzip.looksGzippedMagic = looksGzipped(bytes);
+
+      if (isGzipMime || report.gzip.looksGzippedMagic) {
         try {
           bytes = pako.ungzip(bytes);
           report.gzip.decompressed = true;
@@ -383,7 +441,7 @@ function AnimatedQRReaderPage() {
     return () => clearTimeout(t);
   }, [lastSeenAt]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (decodedPayload) return;
 
     let isMounted = true;
@@ -413,7 +471,7 @@ function AnimatedQRReaderPage() {
       videoEl.srcObject = stream;
 
       // Safari sometimes needs play()
-      await videoEl.play().catch(() => {});
+      await videoEl.play().catch(() => { });
 
       // Wait for video metadata / dimensions
       await new Promise((resolve) => {
@@ -512,7 +570,7 @@ function AnimatedQRReaderPage() {
       rafId = null;
 
       if (controlsRef.current) {
-        try { controlsRef.current.stop(); } catch {}
+        try { controlsRef.current.stop(); } catch { }
         controlsRef.current = null;
       }
 
@@ -521,13 +579,13 @@ function AnimatedQRReaderPage() {
 
       if (s && typeof s.getTracks === 'function') {
         s.getTracks().forEach((t) => {
-          try { t.stop(); } catch {}
+          try { t.stop(); } catch { }
         });
       }
       if (videoEl) {
-        try { videoEl.pause?.(); } catch {}
+        try { videoEl.pause?.(); } catch { }
         videoEl.srcObject = null;
-        try { videoEl.load?.(); } catch {}
+        try { videoEl.load?.(); } catch { }
       }
     };
   }, [handlePacket, scanSession, decodedPayload, elementRectToVideoRect, cropVideoToCanvas, flashHit]);
