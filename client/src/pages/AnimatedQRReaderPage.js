@@ -290,12 +290,15 @@ function AnimatedQRReaderPage() {
 
           // Send to the same decoder endpoint your NFC page uses.
           // NFC sends octet-stream, but in QR we naturally have JSON; easiest is send JSON.
-          const API_ORIGIN = `${window.location.protocol}//127.0.0.1:${window.location.port}`;
-          const resp = await fetch(`${API_ORIGIN}/test`, {
+          const resp = await fetch('/test', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+
+              // Tell middleware to decrypt request body
               'X-Encrypted': 'true',
+
+              // Tell middleware the JSON fields are base64 and the underlying plaintext was gzipped before encryption
               'Content-Encoding': 'gzip, base64',
             },
             body: JSON.stringify(encObj),
