@@ -21,13 +21,21 @@
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4vw;
-  align-items: center;
-  justify-items: center;
-  padding: 6vh 6vw;
+
+  /* Make the boxes sit next to each other instead of stretching full width */
+  grid-template-columns: auto auto;
+
+  /* Center the pair horizontally + vertically */
+  justify-content: center;
+  align-content: center;
+
+  /* Small controlled gap between them */
+  column-gap: clamp(6px, 1vw, 14px);
+
+  padding: clamp(16px, 4vh, 40px) clamp(16px, 4vw, 40px);
   pointer-events: none;
 }
+
 
 .aqr-window {
   aspect-ratio: 1 / 1;
@@ -63,3 +71,15 @@
   transform: rotate(180deg);
   border-radius: 0 0 6px 0;
 }
+
+/* Visual feedback when a QR is successfully decoded in that window */
+.aqr-window.aqr-hit {
+  border-color: rgba(0, 255, 0, 0.95);
+  box-shadow:
+    0 0 0 4000px rgba(0,0,0,0.35),
+    0 0 18px rgba(0, 255, 0, 0.65),
+    0 0 36px rgba(0, 255, 0, 0.35);
+  transform: scale(1.01);
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+

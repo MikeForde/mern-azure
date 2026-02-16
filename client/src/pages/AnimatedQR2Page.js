@@ -202,8 +202,8 @@ function AnimatedQR2Page() {
       mode === 'ipsurl'
         ? (useGzipOnly ? 'application/x.ips.gzip.v1-0' : 'text/uri-list')
         : (useCompressionAndEncryption
-          ? 'application/x.ips.gzip.aes256.b64.v1-0'
-          : (useGzipOnly ? 'application/x.ips.gzip.b64.v1-0' : 'application/x.ips.v1-0'));
+          ? 'application/x.ips.gzip.aes256.v1-0'
+          : (useGzipOnly ? 'application/x.ips.gzip.v1-0' : 'application/x.ips.v1-0'));
 
     const wrapped = JSON.stringify({
       data: base64EncodeUtf8(payload),

@@ -47,6 +47,132 @@ function AnimatedQRReaderPage() {
   const [lastSeenAt, setLastSeenAt] = useState(null);
   const [scanSession, setScanSession] = useState(0);
 
+  const uiThrottleRef = useRef({ lastUiMs: 0 });
+  const seenPacketsRef = useRef(new Set());
+
+  const overlayRef = useRef(null);
+  const leftBoxRef = useRef(null);
+  const rightBoxRef = useRef(null);
+
+  const hitTimerLeftRef = useRef(null);
+  const hitTimerRightRef = useRef(null);
+
+  const flashHit = useCallback((side) => {
+    const el = side === 'left' ? leftBoxRef.current : rightBoxRef.current;
+    if (!el) return;
+
+    // add class immediately
+    el.classList.add('aqr-hit');
+
+    // clear existing timer
+    const timerRef = side === 'left' ? hitTimerLeftRef : hitTimerRightRef;
+    if (timerRef.current) clearTimeout(timerRef.current);
+
+    // remove class shortly after
+    timerRef.current = setTimeout(() => {
+      el.classList.remove('aqr-hit');
+      timerRef.current = null;
+    }, 180);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (hitTimerLeftRef.current) clearTimeout(hitTimerLeftRef.current);
+      if (hitTimerRightRef.current) clearTimeout(hitTimerRightRef.current);
+    };
+  }, []);
+
+
+
+  const roiCanvasRef = useRef(null);  // Offscreen canvas reused
+  const roiCtxRef = useRef(null);
+
+  function ensureRoiCanvas() {
+    if (!roiCanvasRef.current) {
+      const c = document.createElement('canvas');
+      roiCanvasRef.current = c;
+      roiCtxRef.current = c.getContext('2d', { willReadFrequently: true });
+    }
+    return { canvas: roiCanvasRef.current, ctx: roiCtxRef.current };
+  }
+
+  function clamp(n, min, max) {
+    return Math.max(min, Math.min(max, n));
+  }
+
+  // Convert an element’s bounding rect (in page pixels) into video pixel coords
+  // Convert an element’s bounding rect (in page pixels) into video pixel coords,
+  // correctly accounting for object-fit: cover.
+  const elementRectToVideoRect = useCallback((videoEl, elementEl) => {
+    if (!videoEl || !elementEl) return null;
+    if (!videoEl.videoWidth || !videoEl.videoHeight) return null;
+
+    const videoRect = videoEl.getBoundingClientRect();
+    const elRect = elementEl.getBoundingClientRect();
+
+    const left = clamp(elRect.left, videoRect.left, videoRect.right);
+    const top = clamp(elRect.top, videoRect.top, videoRect.bottom);
+    const right = clamp(elRect.right, videoRect.left, videoRect.right);
+    const bottom = clamp(elRect.bottom, videoRect.top, videoRect.bottom);
+
+    const cssW = right - left;
+    const cssH = bottom - top;
+    if (cssW < 10 || cssH < 10) return null;
+
+    const vw = videoEl.videoWidth;
+    const vh = videoEl.videoHeight;
+    const dw = videoRect.width;
+    const dh = videoRect.height;
+
+    const scale = Math.max(dw / vw, dh / vh);
+    const displayedW = vw * scale;
+    const displayedH = vh * scale;
+
+    const offsetX = (displayedW - dw) / 2;
+    const offsetY = (displayedH - dh) / 2;
+
+    const xInElement = (left - videoRect.left);
+    const yInElement = (top - videoRect.top);
+
+    const xOnScaledVideo = xInElement + offsetX;
+    const yOnScaledVideo = yInElement + offsetY;
+
+    const x = xOnScaledVideo / scale;
+    const y = yOnScaledVideo / scale;
+    const w = cssW / scale;
+    const h = cssH / scale;
+
+    const x2 = clamp(x, 0, vw - 1);
+    const y2 = clamp(y, 0, vh - 1);
+    const w2 = clamp(w, 1, vw - x2);
+    const h2 = clamp(h, 1, vh - y2);
+
+    return { x: x2, y: y2, w: w2, h: h2 };
+  }, []);
+
+
+
+  // Crop a rect from the video into the offscreen canvas and return a dataURL
+  // Crop a rect from the video into the offscreen canvas and return the canvas.
+  const cropVideoToCanvas = useCallback((videoEl, rect, targetSize = 480) => {
+    const { canvas, ctx } = ensureRoiCanvas();
+
+    const sx = Math.floor(rect.x);
+    const sy = Math.floor(rect.y);
+    const sw = Math.floor(rect.w);
+    const sh = Math.floor(rect.h);
+
+    canvas.width = targetSize;
+    canvas.height = targetSize;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(videoEl, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+
+    return canvas;
+  }, []);
+
+
+
   const stopScanner = useCallback(() => {
     // stop ZXing loop
     if (controlsRef.current) {
@@ -68,6 +194,7 @@ function AnimatedQRReaderPage() {
     completedRef.current = true;
 
     try {
+      // Ensure we truly have all chunks
       for (let i = 0; i < total; i++) {
         if (chunkMap[i] == null) {
           completedRef.current = false;
@@ -75,42 +202,114 @@ function AnimatedQRReaderPage() {
         }
       }
 
+      // 1) Raw reconstructed string (exactly what we captured)
       const reconstructed = Array.from({ length: total }, (_, i) => chunkMap[i]).join('');
-      const envelope = JSON.parse(reconstructed);
 
-      if (!envelope || typeof envelope !== 'object') throw new Error('Envelope not JSON object');
-      if (typeof envelope.data !== 'string') throw new Error('Envelope missing "data" string');
-      if (typeof envelope.mimeType !== 'string') throw new Error('Envelope missing "mimeType" string');
+      // Start building a detailed “decode report”
+      const report = {
+        rawReconstructed: reconstructed,
+        envelope: null,
+        base64ByteLength: null,
+        gzip: {
+          mimeIndicatesGzip: false,
+          looksGzippedMagic: false,
+          decompressed: false,
+          error: null,
+        },
+        decodedUtf8: null,
+        decodeError: null,
+      };
 
-      let bytes = base64ToBytes(envelope.data);
+      // 2) Try parse envelope JSON
+      let envelope;
+      try {
+        envelope = JSON.parse(reconstructed);
+        report.envelope = envelope;
+      } catch (e) {
+        report.decodeError = `Envelope JSON parse failed: ${e?.message || String(e)}`;
+        setDecodedPayload(report);
+        return;
+      }
 
+      if (!envelope || typeof envelope !== 'object') {
+        report.decodeError = 'Envelope not JSON object';
+        setDecodedPayload(report);
+        return;
+      }
+      if (typeof envelope.data !== 'string') {
+        report.decodeError = 'Envelope missing "data" string';
+        setDecodedPayload(report);
+        return;
+      }
+      if (typeof envelope.mimeType !== 'string') {
+        report.decodeError = 'Envelope missing "mimeType" string';
+        setDecodedPayload(report);
+        return;
+      }
+
+      // 3) Base64 -> bytes
+      let bytes;
+      try {
+        bytes = base64ToBytes(envelope.data);
+        report.base64ByteLength = bytes.length;
+      } catch (e) {
+        report.decodeError = `Base64 decode failed: ${e?.message || String(e)}`;
+        setDecodedPayload(report);
+        return;
+      }
+
+      // 4) Optional gzip
       const mime = envelope.mimeType || '';
-      const isGzipMime = mime.includes('gzip');
-      if (isGzipMime || looksGzipped(bytes)) {
+      const mimeIndicatesGzip = mime.includes('gzip');
+      const magicLooksGzipped = looksGzipped(bytes);
+
+      report.gzip.mimeIndicatesGzip = mimeIndicatesGzip;
+      report.gzip.looksGzippedMagic = magicLooksGzipped;
+
+      if (mimeIndicatesGzip || magicLooksGzipped) {
         try {
           bytes = pako.ungzip(bytes);
+          report.gzip.decompressed = true;
         } catch (e) {
-          throw new Error(`Gzip decompress failed: ${e?.message || e}`);
+          report.gzip.error = e?.message || String(e);
+          report.decodeError = `Gzip decompress failed: ${report.gzip.error}`;
+          setDecodedPayload(report);
+          return;
         }
       }
 
-      const utf8 = bytesToUtf8(bytes);
+      // 5) bytes -> utf8
+      try {
+        const utf8 = bytesToUtf8(bytes);
+        report.decodedUtf8 = utf8;
+      } catch (e) {
+        report.decodeError = `UTF-8 decode failed: ${e?.message || String(e)}`;
+        setDecodedPayload(report);
+        return;
+      }
 
-      setDecodedPayload({
-        mimeType: envelope.mimeType,
-        payload: utf8,
-      });
+      // Success (still keep raw + metadata)
+      setDecodedPayload(report);
     } catch (e) {
       console.error(e);
       setError(`Failed to decode message: ${e?.message || String(e)}`);
       completedRef.current = false;
+    } finally {
+      stopScanner();
     }
-    stopScanner();
   }, [stopScanner]);
+
 
   const handlePacket = useCallback((packet) => {
     if (completedRef.current) return;
     if (!packet || packet.length < 4) return;
+
+    // Dedupe identical QR contents (huge speed win near the end)
+    const seen = seenPacketsRef.current;
+    if (seen.has(packet)) return;
+    seen.add(packet);
+    // prevent unbounded growth (safety)
+    if (seen.size > 5000) seen.clear();
 
     const total = packet.charCodeAt(0);
     const firstIndex = packet.charCodeAt(1);
@@ -133,26 +332,37 @@ function AnimatedQRReaderPage() {
     const firstPayload = packet.substring(4, secondStart);
     const secondPayload = packet.substring(secondStart);
 
-    setLastSeenAt(Date.now());
-    setLastPacketInfo(`total=${total}, i1=${firstIndex}, i2=${secondIndex}, start2=${secondStart}, len=${packet.length}`);
-
     const updated = chunksRef.current;
 
     if (updated[firstIndex] == null) updated[firstIndex] = firstPayload;
     if (updated[secondIndex] == null) updated[secondIndex] = secondPayload;
 
     const received = Object.keys(updated).length;
+
+    // If complete, decode immediately (don’t wait for throttled UI)
+    if (received === total) {
+      completeMessage(updated, total);
+      return;
+    }
+
+    // Throttle UI updates (10 fps)
+    const now = Date.now();
+    if (now - uiThrottleRef.current.lastUiMs < 100) return;
+    uiThrottleRef.current.lastUiMs = now;
+
+    setLastSeenAt(now);
+    setLastPacketInfo(
+      `total=${total}, i1=${firstIndex}, i2=${secondIndex}, start2=${secondStart}, len=${packet.length}`
+    );
+
     setReceivedCount(received);
 
     const missing = countMissing(updated, total);
     setMissingCount(missing);
 
     setProgress(Math.floor((received / total) * 100));
-
-    if (received === total) {
-      completeMessage(updated, total);
-    }
   }, [completeMessage]);
+
 
   useEffect(() => {
     if (!lastSeenAt) return;
@@ -161,53 +371,123 @@ function AnimatedQRReaderPage() {
   }, [lastSeenAt]);
 
   useEffect(() => {
-    // Don’t try to start camera if the video isn’t rendered
     if (decodedPayload) return;
 
     let isMounted = true;
+    let rafId = null;
+    let running = true;
+
     const reader = new BrowserMultiFormatReader();
 
-    // Capture current video node for cleanup correctness
-    //const videoEl = videoRef.current;
-    let videoEl = null;
+    async function startCamera() {
+      await new Promise(requestAnimationFrame);
+
+      const videoEl = videoRef.current;
+      if (!videoEl) throw new Error('Video element not ready');
+
+      const constraints = {
+        audio: false,
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      videoEl.srcObject = stream;
+
+      // Safari sometimes needs play()
+      await videoEl.play().catch(() => { });
+
+      // Wait for video metadata / dimensions
+      await new Promise((resolve) => {
+        const check = () => {
+          if (!isMounted) return;
+          if (videoEl.videoWidth > 0 && videoEl.videoHeight > 0) resolve();
+          else requestAnimationFrame(check);
+        };
+        check();
+      });
+
+      return videoEl;
+    }
+
+    // IMPORTANT: ensure only one decode runs at a time
+    let decoding = false;
+
+    async function tryDecodeBox(videoEl, boxEl, label) {
+      if (!isMounted || completedRef.current) return;
+
+      const rect = elementRectToVideoRect(videoEl, boxEl);
+      if (!rect) return;
+
+      // Bigger targetSize = more reliable, slower. 480 is a decent default.
+      const cropCanvas = cropVideoToCanvas(videoEl, rect, 480);
+
+      try {
+        const result = await reader.decodeFromCanvas(cropCanvas);
+        if (result?.getText) {
+          // visual feedback only on success (no React state updates)
+          flashHit(label);
+          handlePacket(result.getText());
+        }
+      } catch (e) {
+        // decodeFromCanvas throws when no code found; ignore
+      }
+    }
+
+    async function step(videoEl) {
+      if (!running || !isMounted) return;
+      if (completedRef.current) return;
+
+      // Don’t pile up decode work
+      if (decoding) {
+        rafId = requestAnimationFrame(() => step(videoEl));
+        return;
+      }
+
+      decoding = true;
+      const t0 = performance.now();
+
+      // Left then right
+      await tryDecodeBox(videoEl, leftBoxRef.current, 'left');
+      if (!completedRef.current) {
+        await tryDecodeBox(videoEl, rightBoxRef.current, 'right');
+      }
+
+      decoding = false;
+
+      const elapsed = performance.now() - t0;
+
+      // Pace: if decoding is heavy, back off a bit.
+      const delayMs = elapsed > 50 ? 20 : 0;
+
+      if (delayMs > 0) {
+        setTimeout(() => {
+          rafId = requestAnimationFrame(() => step(videoEl));
+        }, delayMs);
+      } else {
+        rafId = requestAnimationFrame(() => step(videoEl));
+      }
+    }
 
     (async () => {
       try {
-        // Wait one frame so refs/DOM are definitely settled after remount (Safari fix)
-        await new Promise(requestAnimationFrame);
-        videoEl = videoRef.current;
-        if (!videoEl) throw new Error('Video element not ready');
+        const videoEl = await startCamera();
+        if (!isMounted) return;
 
-        const constraints = {
-          audio: false,
-          video: {
-            facingMode: { ideal: 'environment' },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
+        // Start loop
+        rafId = requestAnimationFrame(() => step(videoEl));
+
+        // Provide a stopper compatible with stopScanner()
+        controlsRef.current = {
+          stop: () => {
+            running = false;
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = null;
           },
         };
-
-        const controls = await reader.decodeFromConstraints(
-          constraints,
-          videoEl,
-          (result) => {
-            if (!isMounted) return;
-            if (completedRef.current) return;
-            if (!result) return;
-            try {
-              handlePacket(result.getText());
-            } catch (e) {
-              console.warn('handlePacket failed:', e);
-            }
-          }
-        );
-
-        if (!isMounted) {
-          controls.stop();
-          return;
-        }
-
-        controlsRef.current = controls;
       } catch (e) {
         console.error('Camera/scanner start failed:', e);
         const name = e?.name || 'Error';
@@ -218,25 +498,34 @@ function AnimatedQRReaderPage() {
 
     return () => {
       isMounted = false;
+      running = false;
+
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = null;
 
       if (controlsRef.current) {
-        controlsRef.current.stop();
+        try { controlsRef.current.stop(); } catch { }
         controlsRef.current = null;
       }
 
-      const stream = videoEl?.srcObject;
-      if (stream && typeof stream.getTracks === 'function') {
-        stream.getTracks().forEach((t) => t.stop());
+      const videoEl = videoRef.current;
+      const s = videoEl?.srcObject;
+
+      if (s && typeof s.getTracks === 'function') {
+        s.getTracks().forEach((t) => t.stop());
       }
       if (videoEl) videoEl.srcObject = null;
     };
-  }, [handlePacket, scanSession, decodedPayload]);
+  }, [handlePacket, scanSession, decodedPayload, elementRectToVideoRect, cropVideoToCanvas, flashHit]);
+
+
 
   const reset = useCallback(() => {
     stopScanner();
     completedRef.current = false;
     totalRef.current = null;
     chunksRef.current = {};
+    seenPacketsRef.current.clear();
 
     setTotalChunks(null);
     setProgress(0);
@@ -250,10 +539,12 @@ function AnimatedQRReaderPage() {
     setScanSession((s) => s + 1);
   }, [stopScanner]);
 
+
   return (
     <div className="container">
       <h3>Animated QR Reader</h3>
 
+      {/* SCANNING VIEW */}
       {!decodedPayload && (
         <>
           <div className="aqr-reader">
@@ -264,37 +555,116 @@ function AnimatedQRReaderPage() {
               muted
               playsInline
             />
-            <div className="aqr-overlay">
-              <div className="aqr-window aqr-left" />
-              <div className="aqr-window aqr-right" />
+            <div className="aqr-overlay" ref={overlayRef}>
+              <div className="aqr-window aqr-left" ref={leftBoxRef} />
+              <div className="aqr-window aqr-right" ref={rightBoxRef} />
             </div>
           </div>
 
           <ProgressBar now={progress} label={`${progress}%`} />
 
           <div style={{ marginTop: 10, fontSize: 12, opacity: 0.85 }}>
-            <div><strong>Status:</strong> {lastSeenAt ? 'Scanning (seeing QRs)' : 'Scanning (no QRs seen yet)'}</div>
-            <div><strong>Last packet:</strong> {lastPacketInfo || '(none yet)'}</div>
             <div>
-              <strong>Received:</strong> {receivedCount}{totalChunks ? ` / ${totalChunks}` : ''}
-              {missingCount != null ? <span> &nbsp;|&nbsp; <strong>Missing:</strong> {missingCount}</span> : null}
+              <strong>Status:</strong>{" "}
+              {lastSeenAt ? "Scanning (seeing QRs)" : "Scanning (no QRs seen yet)"}
+            </div>
+            <div>
+              <strong>Last packet:</strong> {lastPacketInfo || "(none yet)"}
+            </div>
+            <div>
+              <strong>Received:</strong> {receivedCount}
+              {totalChunks ? ` / ${totalChunks}` : ""}
+              {missingCount != null ? (
+                <span>
+                  {" "}
+                  &nbsp;|&nbsp; <strong>Missing:</strong> {missingCount}
+                </span>
+              ) : null}
             </div>
           </div>
         </>
       )}
 
+      {/* COMPLETE VIEW */}
       {decodedPayload && (
         <>
-          <Alert variant="success">Scan Complete</Alert>
-          <p><strong>MIME:</strong> {decodedPayload.mimeType}</p>
-          <pre style={{ maxHeight: 400, overflow: 'auto' }}>
-            {decodedPayload.payload}
+          <Alert variant={decodedPayload.decodeError ? "warning" : "success"}>
+            {decodedPayload.decodeError
+              ? "Scan Complete (with decode issues)"
+              : "Scan Complete"}
+          </Alert>
+
+          {/* 1) Literally what we captured */}
+          <h5 style={{ marginTop: 12 }}>Captured (raw reconstructed)</h5>
+          <pre style={{ maxHeight: 220, overflow: "auto", whiteSpace: "pre-wrap" }}>
+            {decodedPayload.rawReconstructed}
           </pre>
-          <Button onClick={reset}>Scan Another</Button>
+
+          {/* 2) Decoded interpretation */}
+          <h5 style={{ marginTop: 12 }}>Decoded (best effort)</h5>
+
+          {decodedPayload.envelope?.mimeType ? (
+            <p style={{ marginBottom: 6 }}>
+              <strong>MIME:</strong> {decodedPayload.envelope.mimeType}
+            </p>
+          ) : null}
+
+          <div style={{ fontSize: 13, opacity: 0.9, marginBottom: 8 }}>
+            <div>
+              <strong>Base64 bytes:</strong>{" "}
+              {decodedPayload.base64ByteLength ?? "(unknown)"}
+            </div>
+            <div>
+              <strong>Gzip:</strong>{" "}
+              mime={String(decodedPayload.gzip?.mimeIndicatesGzip)}{" "}
+              magic={String(decodedPayload.gzip?.looksGzippedMagic)}{" "}
+              decompressed={String(decodedPayload.gzip?.decompressed)}
+              {decodedPayload.gzip?.error ? (
+                <span>
+                  {" "}
+                  &nbsp;|&nbsp; <strong>Error:</strong> {decodedPayload.gzip.error}
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          {decodedPayload.decodeError ? (
+            <Alert variant="danger" style={{ marginTop: 8 }}>
+              <strong>Decode error:</strong> {decodedPayload.decodeError}
+            </Alert>
+          ) : null}
+
+          {decodedPayload.decodedUtf8 != null ? (
+            <>
+              <h6 style={{ marginTop: 10 }}>Decoded UTF-8 payload</h6>
+              <pre style={{ maxHeight: 320, overflow: "auto", whiteSpace: "pre-wrap" }}>
+                {decodedPayload.decodedUtf8}
+              </pre>
+            </>
+          ) : (
+            <div style={{ fontSize: 13, opacity: 0.85 }}>
+              No decoded UTF-8 payload available.
+            </div>
+          )}
+
+          <details style={{ marginTop: 10 }}>
+            <summary>Show parsed envelope JSON</summary>
+            <pre style={{ maxHeight: 220, overflow: "auto", whiteSpace: "pre-wrap" }}>
+              {JSON.stringify(decodedPayload.envelope, null, 2)}
+            </pre>
+          </details>
+
+          <Button onClick={reset} style={{ marginTop: 12 }}>
+            Scan Another
+          </Button>
         </>
       )}
 
-      {error && <Alert variant="danger" style={{ marginTop: 10 }}>{error}</Alert>}
+      {error && (
+        <Alert variant="danger" style={{ marginTop: 10 }}>
+          {error}
+        </Alert>
+      )}
     </div>
   );
 }
