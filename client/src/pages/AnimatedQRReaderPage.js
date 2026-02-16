@@ -75,9 +75,6 @@ function AnimatedQRReaderPage() {
     }, 180);
   }, []);
 
-
-
-
   const roiCanvasRef = useRef(null);  // Offscreen canvas reused
   const roiCtxRef = useRef(null);
 
@@ -165,9 +162,7 @@ function AnimatedQRReaderPage() {
     return canvas;
   }, []);
 
-
-
-      const stopScanner = useCallback(() => {
+    const stopScanner = useCallback(() => {
     // Stop ROI loop
     if (controlsRef.current) {
       try { controlsRef.current.stop(); } catch {}
@@ -209,7 +204,7 @@ function AnimatedQRReaderPage() {
     if (completedRef.current) return;
     completedRef.current = true;
 
-    stopScanner();
+
 
     try {
       // Ensure we truly have all chunks
@@ -388,19 +383,21 @@ function AnimatedQRReaderPage() {
     return () => clearTimeout(t);
   }, [lastSeenAt]);
 
-  useEffect(() => {
+    useEffect(() => {
     if (decodedPayload) return;
 
     let isMounted = true;
     let rafId = null;
     let running = true;
 
+    // Capture once for the whole effect + cleanup (prevents .current lint warnings)
+    const videoEl = videoRef.current;
+
     const reader = new BrowserMultiFormatReader();
 
     async function startCamera() {
       await new Promise(requestAnimationFrame);
 
-      const videoEl = videoRef.current;
       if (!videoEl) throw new Error('Video element not ready');
 
       const constraints = {
@@ -416,7 +413,7 @@ function AnimatedQRReaderPage() {
       videoEl.srcObject = stream;
 
       // Safari sometimes needs play()
-      await videoEl.play().catch(() => { });
+      await videoEl.play().catch(() => {});
 
       // Wait for video metadata / dimensions
       await new Promise((resolve) => {
@@ -434,71 +431,64 @@ function AnimatedQRReaderPage() {
     // IMPORTANT: ensure only one decode runs at a time
     let decoding = false;
 
-    async function tryDecodeBox(videoEl, boxEl, label) {
+    async function tryDecodeBox(boxEl, label) {
       if (!isMounted || completedRef.current) return;
+      if (!videoEl) return;
 
       const rect = elementRectToVideoRect(videoEl, boxEl);
       if (!rect) return;
 
-      // Bigger targetSize = more reliable, slower. 480 is a decent default.
       const cropCanvas = cropVideoToCanvas(videoEl, rect, 480);
 
       try {
         const result = await reader.decodeFromCanvas(cropCanvas);
         if (result?.getText) {
-          // visual feedback only on success (no React state updates)
           flashHit(label);
           handlePacket(result.getText());
         }
       } catch (e) {
-        // decodeFromCanvas throws when no code found; ignore
+        // ignore "not found"
       }
     }
 
-    async function step(videoEl) {
+    async function step() {
       if (!running || !isMounted) return;
       if (completedRef.current) return;
 
-      // Don’t pile up decode work
       if (decoding) {
-        rafId = requestAnimationFrame(() => step(videoEl));
+        rafId = requestAnimationFrame(step);
         return;
       }
 
       decoding = true;
       const t0 = performance.now();
 
-      // Left then right
-      await tryDecodeBox(videoEl, leftBoxRef.current, 'left');
+      await tryDecodeBox(leftBoxRef.current, 'left');
       if (!completedRef.current) {
-        await tryDecodeBox(videoEl, rightBoxRef.current, 'right');
+        await tryDecodeBox(rightBoxRef.current, 'right');
       }
 
       decoding = false;
 
       const elapsed = performance.now() - t0;
-
-      // Pace: if decoding is heavy, back off a bit.
       const delayMs = elapsed > 50 ? 20 : 0;
 
       if (delayMs > 0) {
         setTimeout(() => {
-          rafId = requestAnimationFrame(() => step(videoEl));
+          rafId = requestAnimationFrame(step);
         }, delayMs);
       } else {
-        rafId = requestAnimationFrame(() => step(videoEl));
+        rafId = requestAnimationFrame(step);
       }
     }
 
     (async () => {
       try {
-        const videoEl = await startCamera();
+        await startCamera();
         if (!isMounted) return;
 
-        // Start loop
-        rafId = requestAnimationFrame(() => step(videoEl));
+        rafId = requestAnimationFrame(step);
 
-        // Provide a stopper compatible with stopScanner()
         controlsRef.current = {
           stop: () => {
             running = false;
@@ -522,19 +512,26 @@ function AnimatedQRReaderPage() {
       rafId = null;
 
       if (controlsRef.current) {
-        try { controlsRef.current.stop(); } catch { }
+        try { controlsRef.current.stop(); } catch {}
         controlsRef.current = null;
       }
 
-      const videoEl = videoRef.current;
+      // Use captured videoEl (no videoRef.current here)
       const s = videoEl?.srcObject;
 
       if (s && typeof s.getTracks === 'function') {
-        s.getTracks().forEach((t) => t.stop());
+        s.getTracks().forEach((t) => {
+          try { t.stop(); } catch {}
+        });
       }
-      if (videoEl) videoEl.srcObject = null;
+      if (videoEl) {
+        try { videoEl.pause?.(); } catch {}
+        videoEl.srcObject = null;
+        try { videoEl.load?.(); } catch {}
+      }
     };
   }, [handlePacket, scanSession, decodedPayload, elementRectToVideoRect, cropVideoToCanvas, flashHit]);
+
 
 
 
