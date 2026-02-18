@@ -369,7 +369,11 @@ function AnimatedQRReaderPage() {
       // 5) bytes -> utf8
       try {
         const utf8 = bytesToUtf8(bytes);
-        report.decodedUtf8 = utf8;
+        try {
+          report.decodedUtf8 = JSON.stringify(JSON.parse(utf8), null, 2);
+        } catch {
+          report.decodedUtf8 = utf8;
+        }
       } catch (e) {
         report.decodeError = `UTF-8 decode failed: ${e?.message || String(e)}`;
         setDecodedPayload(report);
