@@ -282,18 +282,38 @@ export default function NFCReaderPage() {
           <Button variant={isReading ? 'dark' : 'primary'} onClick={handleReadFromNfc} disabled={isReading}>
             {isReading ? 'Waiting...' : 'Read card'}
           </Button>
-          <Button variant="success" className="ml-2" onClick={handleImport} disabled={!rawPayload || isImporting}>
+          <Button variant="success" className="ms-2" onClick={handleImport} disabled={!rawPayload || isImporting}>
             {isImporting ? 'Importing...' : 'Import'}
           </Button>
-          <Button variant="secondary" className="ml-2" onClick={handleConvertOnly} disabled={!rawPayload || isConverting}>
+          <Button variant="secondary" className="ms-2" onClick={handleConvertOnly} disabled={!rawPayload || isConverting}>
             {isConverting ? 'Converting...' : 'NoSQL'}
           </Button>
-          <Button variant="info" className="ml-2" onClick={handleValidate} disabled={!rawPayload || isValidating}>
+          <Button variant="info" className="ms-2" onClick={handleValidate} disabled={!rawPayload || isValidating}>
             {isValidating ? 'Validating...' : 'Validate'}
           </Button>
-          <Button variant="outline-secondary" className="ml-2" onClick={showOriginal} disabled={!originalData}>
+          <Button variant="outline-secondary" className="ms-2" onClick={showOriginal} disabled={!originalData}>
             Original
           </Button>
+          <Button
+            variant="outline-danger"
+            className="ms-3"
+            onClick={() => {
+              const confirmed = window.confirm(
+                "This will permanently clear the current NFC payload from memory.\n\nAre you sure?"
+              );
+              if (!confirmed) return;
+
+              clearNfcSession();
+              setReadData('');
+              setOriginalData('');
+              setRawPayload('');
+              setCardInfo('');
+            }}
+            disabled={!rawPayload && !readData && !cardInfo}
+          >
+            Clear
+          </Button>
+
         </div>
 
         <h5>Card Info</h5>
