@@ -228,10 +228,10 @@ function AnimatedQRReaderPage() {
     }
   }, []);
 
-  function prettyIfJson(str) {
-    try { return JSON.stringify(JSON.parse(str), null, 2); }
-    catch { return str; }
-  }
+  // function prettyIfJson(str) {
+  //   try { return JSON.stringify(JSON.parse(str), null, 2); }
+  //   catch { return str; }
+  // }
 
   const completeMessage = useCallback(async (chunkMap, total) => {
     if (completedRef.current) return;
