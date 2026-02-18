@@ -2,8 +2,32 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Button, Form, Toast, ToastContainer } from 'react-bootstrap';
 import './Page.css';
+//import { or } from 'ajv/dist/compile/codegen';
 
 const NFC_SESSION_KEY = 'nfc:lastRead:v1';
+
+function looksLikeJsonPayload(str) {
+  if (!str) return false;
+  const s = str.trim();
+  return s.startsWith('{') || s.startsWith('[');
+}
+
+function hydrateRawFromOriginal(originalData) {
+  if (!originalData) return '';
+
+  // If it's JSON (pretty or not), compact it for action calls
+  if (looksLikeJsonPayload(originalData)) {
+    try {
+      return JSON.stringify(JSON.parse(originalData));
+    } catch {
+      // It looks like JSON but isn't parseable; fall back
+      return originalData;
+    }
+  }
+
+  // HL7 / BEER / plain text payloads should be used as-is
+  return originalData;
+}
 
 function saveNfcSession(state) {
   try {
@@ -49,27 +73,44 @@ export default function NFCReaderPage() {
   const BINARY_MIME_GZIP = 'application/x.ips.gzip.v1-0';
 
   useEffect(() => {
+    // If we have an original payload but rawPayload is missing, regenerate it.
+    if (!originalData) return;
+
+    setRawPayload((prev) => {
+      if (prev && prev.trim().length > 0) return prev;
+      return hydrateRawFromOriginal(originalData);
+    });
+
+    // If user is looking at an empty box but we have original, show it
+    setReadData((prev) => {
+      if (prev && prev.trim().length > 0) return prev;
+      return originalData;
+    });
+  }, [originalData]);
+
+
+  useEffect(() => {
     const restored = loadNfcSession();
     if (!restored) return;
 
     // restore only the meaningful bits
     if (typeof restored.readData === 'string') setReadData(restored.readData);
     if (typeof restored.originalData === 'string') setOriginalData(restored.originalData);
-    if (typeof restored.rawPayload === 'string') setRawPayload(restored.rawPayload);
+    //if (typeof restored.rawPayload === 'string') setRawPayload(restored.rawPayload);
     if (typeof restored.cardInfo === 'string') setCardInfo(restored.cardInfo);
   }, []);
 
   useEffect(() => {
     // Only persist when we actually have something worth restoring
-    if (!rawPayload && !readData && !cardInfo) return;
+    if (!originalData && !readData && !cardInfo) return;
 
     saveNfcSession({
       readData,
       originalData,
-      rawPayload,
+      //rawPayload,
       cardInfo,
     });
-  }, [readData, originalData, rawPayload, cardInfo]);
+  }, [readData, originalData, cardInfo]);
 
   const handleReadFromNfc = async () => {
     if (!('NDEFReader' in window)) {
@@ -161,9 +202,10 @@ export default function NFCReaderPage() {
           }
         }
 
-        setRawPayload(extracted);
         setOriginalData(extracted);
         setReadData(extracted);
+        setRawPayload(hydrateRawFromOriginal(extracted));
+
         setToastMsg('NFC tag read successfully!');
         setToastVariant('success');
         setShowToast(true);

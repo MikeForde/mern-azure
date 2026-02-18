@@ -8,6 +8,22 @@ import { useLoading } from '../contexts/LoadingContext';
 
 const AQR_SESSION_KEY = 'aqr:lastDecodedPayload:v1';
 
+function hydrateActionStateFromReport(report) {
+  const usable = report?.decodedUtf8 ?? '';
+  if (!usable) return null;
+
+  // For actions, prefer compact JSON if it is JSON
+  let raw = usable;
+  try {
+    raw = JSON.stringify(JSON.parse(usable));
+  } catch {
+    // leave as-is (HL7/BEER/plaintext)
+  }
+
+  return { usable, raw };
+}
+
+
 function saveDecodedToSession(report) {
   try {
     sessionStorage.setItem(AQR_SESSION_KEY, JSON.stringify({
@@ -101,6 +117,7 @@ function AnimatedQRReaderPage() {
   const [toastMsg, setToastMsg] = useState('');
   const [toastVariant, setToastVariant] = useState('info');
 
+
   useEffect(() => {
     const restored = loadDecodedFromSession();
     if (restored && !decodedPayload) {
@@ -109,6 +126,22 @@ function AnimatedQRReaderPage() {
     // no dependency on decodedPayload here on purpose: only restore once
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const restored = loadDecodedFromSession();
+    if (restored && !decodedPayload) {
+      setDecodedPayload(restored);
+
+      const hydrated = hydrateActionStateFromReport(restored);
+      if (hydrated) {
+        setRawPayload(hydrated.raw);
+        setOriginalData(hydrated.usable);
+        setReadData(hydrated.usable);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
 
   useEffect(() => {
@@ -119,6 +152,19 @@ function AnimatedQRReaderPage() {
       stopLoading();
     };
   }, [stopLoading]);
+
+  useEffect(() => {
+    if (!decodedPayload?.decodedUtf8) return;
+
+    const hydrated = hydrateActionStateFromReport(decodedPayload);
+    if (!hydrated) return;
+
+    // Only populate if empty (so we don't overwrite user edits / converted view)
+    setRawPayload((prev) => (prev ? prev : hydrated.raw));
+    setOriginalData((prev) => (prev ? prev : hydrated.usable));
+    setReadData((prev) => (prev ? prev : hydrated.usable));
+  }, [decodedPayload]);
+
 
 
   const flashHit = useCallback((side) => {
