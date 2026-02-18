@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
-import { Button, ProgressBar, Alert } from 'react-bootstrap';
+import { Button, ProgressBar, Alert, Form, Toast, ToastContainer } from 'react-bootstrap';
+import axios from 'axios';
 import './AnimatedQRReaderPage.css';
 import pako from 'pako';
 import { useLoading } from '../contexts/LoadingContext';
+
 
 
 function base64ToBytes(b64) {
@@ -59,6 +61,21 @@ function AnimatedQRReaderPage() {
 
   const hitTimerLeftRef = useRef(null);
   const hitTimerRightRef = useRef(null);
+
+  // --- “NFC-style” actions state ---
+  const [readData, setReadData] = useState('');
+  const [originalData, setOriginalData] = useState('');
+  const [rawPayload, setRawPayload] = useState('');
+
+  const [isImporting, setIsImporting] = useState(false);
+  const [isConverting, setIsConverting] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+
+  // Toast state
+  const [showToast, setShowToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
+  const [toastVariant, setToastVariant] = useState('info');
+
 
   useEffect(() => {
     // If we navigated here after another page set the global spinner,
@@ -211,7 +228,10 @@ function AnimatedQRReaderPage() {
     }
   }, []);
 
-
+  function prettyIfJson(str) {
+    try { return JSON.stringify(JSON.parse(str), null, 2); }
+    catch { return str; }
+  }
 
   const completeMessage = useCallback(async (chunkMap, total) => {
     if (completedRef.current) return;
@@ -378,6 +398,24 @@ function AnimatedQRReaderPage() {
         report.decodeError = `UTF-8 decode failed: ${e?.message || String(e)}`;
         setDecodedPayload(report);
         return;
+      }
+
+      if (report.decodedUtf8 != null) {
+        const usable = report.decodedUtf8;           // may be pretty already
+        const raw = (() => {
+          // For actions, prefer a non-prettified JSON string if it is JSON
+          // (prettified is still valid JSON, so this is mostly cosmetic)
+          try {
+            const obj = JSON.parse(report.decodedUtf8);
+            return JSON.stringify(obj);
+          } catch {
+            return report.decodedUtf8;
+          }
+        })();
+
+        setRawPayload(raw);
+        setOriginalData(usable);
+        setReadData(usable);
       }
 
       // Success (still keep raw + metadata)
@@ -631,7 +669,109 @@ function AnimatedQRReaderPage() {
     setMissingCount(null);
     setLastSeenAt(null);
     setScanSession((s) => s + 1);
+    setReadData('');
+    setOriginalData('');
+    setRawPayload('');
+
   }, [stopScanner]);
+
+  const showOriginal = () => setReadData(originalData);
+
+  const handleImport = async () => {
+    if (!rawPayload) return;
+    setIsImporting(true);
+
+    let endpoint;
+    let payloadToSend;
+
+    try {
+      const trimmed = rawPayload.trim();
+
+      if (trimmed.startsWith('{') && trimmed.includes('"resourceType"') && trimmed.includes('Bundle')) {
+        endpoint = '/ipsbundle';
+        payloadToSend = JSON.parse(trimmed);
+      } else if (trimmed.startsWith('MSH')) {
+        endpoint = '/ipsfromhl72x';
+        payloadToSend = trimmed;
+      } else if (trimmed.startsWith('H9')) {
+        endpoint = '/ipsfrombeer';
+        payloadToSend = trimmed;
+      } else {
+        throw new Error('Unrecognized IPS format');
+      }
+
+      const isJson = endpoint === '/ipsbundle';
+      const contentType = isJson ? 'application/json' : 'text/plain';
+
+      const resp = await axios.post(endpoint, payloadToSend, {
+        headers: { 'Content-Type': contentType },
+      });
+
+      setToastMsg(`Import success: ${resp.status} ${resp.statusText}`);
+      setToastVariant('success');
+    } catch (err) {
+      setToastMsg(`Import failed: ${err.message}`);
+      setToastVariant('danger');
+    } finally {
+      setShowToast(true);
+      setIsImporting(false);
+    }
+  };
+
+  const handleConvertOnly = async () => {
+    if (!rawPayload) return;
+    setIsConverting(true);
+
+    try {
+      const obj = JSON.parse(rawPayload);
+      const resp = await axios.post('/convertips2mongo', obj, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const converted = JSON.stringify(resp.data, null, 2);
+      setReadData(converted);
+
+      setToastMsg('Conversion successful');
+      setToastVariant('success');
+    } catch (err) {
+      setToastMsg(`Conversion failed: ${err.message}`);
+      setToastVariant('danger');
+    } finally {
+      setShowToast(true);
+      setIsConverting(false);
+    }
+  };
+
+  const handleValidate = async () => {
+    if (!rawPayload) return;
+    setIsValidating(true);
+
+    try {
+      const obj = JSON.parse(rawPayload);
+      const resp = await axios.post('/ipsUniVal', obj, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      let formatted;
+      if (resp.data.valid) {
+        formatted = '✅ Valid!';
+      } else {
+        formatted = resp.data.errors
+          .map((err) => `${err.path || '/'}: ${err.message}`)
+          .join('\n');
+      }
+
+      setReadData(formatted);
+      setToastMsg(resp.data.valid ? 'Validation passed' : 'Validation errors');
+      setToastVariant(resp.data.valid ? 'success' : 'warning');
+    } catch (err) {
+      setToastMsg(`Validation failed: ${err.message}`);
+      setToastVariant('danger');
+    } finally {
+      setShowToast(true);
+      setIsValidating(false);
+    }
+  };
 
 
   return (
@@ -687,6 +827,38 @@ function AnimatedQRReaderPage() {
               ? "Scan Complete (with decode issues)"
               : "Scan Complete"}
           </Alert>
+
+
+          <div className="button-container mb-3" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <Button variant="primary" onClick={reset}>
+              Scan Another
+            </Button>
+
+            <Button variant="success" onClick={handleImport} disabled={!rawPayload || isImporting}>
+              {isImporting ? 'Importing...' : 'Import'}
+            </Button>
+
+            <Button variant="secondary" onClick={handleConvertOnly} disabled={!rawPayload || isConverting}>
+              {isConverting ? 'Converting...' : 'NoSQL'}
+            </Button>
+
+            <Button variant="info" onClick={handleValidate} disabled={!rawPayload || isValidating}>
+              {isValidating ? 'Validating...' : 'Validate'}
+            </Button>
+
+            <Button variant="outline-secondary" onClick={showOriginal} disabled={!originalData}>
+              Original
+            </Button>
+          </div>
+
+          <h5>Payload</h5>
+          <Form.Control
+            as="textarea"
+            rows={15}
+            value={readData || decodedPayload.decodedUtf8 || ''}
+            readOnly
+            className="resultTextArea"
+          />
 
           {/* 1) Literally what we captured */}
           <h5 style={{ marginTop: 12 }}>Captured (raw reconstructed)</h5>
@@ -759,6 +931,18 @@ function AnimatedQRReaderPage() {
           {error}
         </Alert>
       )}
+
+      <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999 }}>
+        <Toast onClose={() => setShowToast(false)} show={showToast} bg={toastVariant} delay={4000} autohide>
+          <Toast.Header>
+            <strong className="me-auto">IPS MERN QR</strong>
+          </Toast.Header>
+          <Toast.Body className={toastVariant !== 'light' ? 'text-white' : ''}>
+            {toastMsg}
+          </Toast.Body>
+        </Toast>
+      </ToastContainer>
+
     </div>
   );
 }
