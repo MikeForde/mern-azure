@@ -798,6 +798,16 @@ function ChangeLogPage() {
                                 <li>Improved large-record handling via UTF-8-safe chunking and adaptive animation pacing.</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_80 — 18th Feb 2026</h5>
+                            <ul>
+                                <li><strong>Full Animated QR Workflow & Payload Persistence</strong></li>
+                                <li>Extended Animated QR Reader to support full IPS workflow actions directly from scanned content, including <strong>Import</strong>, <strong>NoSQL conversion</strong>, <strong>Validation</strong>, and <strong>Original view</strong> — matching NFC Reader functionality.</li>
+                                <li>Enabled seamless worflow interoperability between IPS MERN and Android Mercury across animated QR transfers (generate → scan → decode → import/validate).</li>
+                                <li>Added session-based payload persistence to both <strong>Animated QR Reader</strong> and <strong>NFC Reader</strong> pages, preventing accidental data loss when navigating between routes.</li>
+                                <li>Added explicit user-controlled reset ("Scan Another" / "Clear") to avoid unintended data loss during navigation.</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>
