@@ -1,7 +1,30 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Button, Form, Toast, ToastContainer } from 'react-bootstrap';
 import './Page.css';
+
+const NFC_SESSION_KEY = 'nfc:lastRead:v1';
+
+function saveNfcSession(state) {
+  try {
+    sessionStorage.setItem(NFC_SESSION_KEY, JSON.stringify({ savedAt: Date.now(), ...state }));
+  } catch { }
+}
+
+function loadNfcSession() {
+  try {
+    const raw = sessionStorage.getItem(NFC_SESSION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function clearNfcSession() {
+  try { sessionStorage.removeItem(NFC_SESSION_KEY); } catch { }
+}
+
 
 export default function NFCReaderPage() {
   const [readData, setReadData] = useState('');
@@ -25,6 +48,29 @@ export default function NFCReaderPage() {
   const BINARY_MIME_ENC = 'application/x.ips.gzip.aes256.v1-0';
   const BINARY_MIME_GZIP = 'application/x.ips.gzip.v1-0';
 
+  useEffect(() => {
+    const restored = loadNfcSession();
+    if (!restored) return;
+
+    // restore only the meaningful bits
+    if (typeof restored.readData === 'string') setReadData(restored.readData);
+    if (typeof restored.originalData === 'string') setOriginalData(restored.originalData);
+    if (typeof restored.rawPayload === 'string') setRawPayload(restored.rawPayload);
+    if (typeof restored.cardInfo === 'string') setCardInfo(restored.cardInfo);
+  }, []);
+
+  useEffect(() => {
+    // Only persist when we actually have something worth restoring
+    if (!rawPayload && !readData && !cardInfo) return;
+
+    saveNfcSession({
+      readData,
+      originalData,
+      rawPayload,
+      cardInfo,
+    });
+  }, [readData, originalData, rawPayload, cardInfo]);
+
   const handleReadFromNfc = async () => {
     if (!('NDEFReader' in window)) {
       setToastMsg('Web NFC is not supported on this device/browser.');
@@ -33,6 +79,7 @@ export default function NFCReaderPage() {
       return;
     }
 
+    clearNfcSession();
     setIsReading(true);
     setReadData('');
     setOriginalData('');
@@ -250,10 +297,10 @@ export default function NFCReaderPage() {
         </div>
 
         <h5>Card Info</h5>
-        <Form.Control as="textarea" rows={3} value={cardInfo} readOnly className="mb-3"/>
+        <Form.Control as="textarea" rows={3} value={cardInfo} readOnly className="mb-3" />
 
         <h5>Payload</h5>
-        <Form.Control as="textarea" rows={15} value={readData} readOnly className="resultTextArea"/>
+        <Form.Control as="textarea" rows={15} value={readData} readOnly className="resultTextArea" />
       </div>
 
       <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999 }}>
