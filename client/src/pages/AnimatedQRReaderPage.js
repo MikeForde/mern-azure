@@ -6,6 +6,31 @@ import './AnimatedQRReaderPage.css';
 import pako from 'pako';
 import { useLoading } from '../contexts/LoadingContext';
 
+const AQR_SESSION_KEY = 'aqr:lastDecodedPayload:v1';
+
+function saveDecodedToSession(report) {
+  try {
+    sessionStorage.setItem(AQR_SESSION_KEY, JSON.stringify({
+      savedAt: Date.now(),
+      report
+    }));
+  } catch { }
+}
+
+function loadDecodedFromSession() {
+  try {
+    const raw = sessionStorage.getItem(AQR_SESSION_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    return obj?.report ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function clearDecodedFromSession() {
+  try { sessionStorage.removeItem(AQR_SESSION_KEY); } catch { }
+}
 
 
 function base64ToBytes(b64) {
@@ -75,6 +100,15 @@ function AnimatedQRReaderPage() {
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const [toastVariant, setToastVariant] = useState('info');
+
+  useEffect(() => {
+    const restored = loadDecodedFromSession();
+    if (restored && !decodedPayload) {
+      setDecodedPayload(restored);
+    }
+    // no dependency on decodedPayload here on purpose: only restore once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
   useEffect(() => {
@@ -420,6 +454,7 @@ function AnimatedQRReaderPage() {
 
       // Success (still keep raw + metadata)
       setDecodedPayload(report);
+      saveDecodedToSession(report);
     } catch (e) {
       console.error(e);
       setError(`Failed to decode message: ${e?.message || String(e)}`);
@@ -653,6 +688,7 @@ function AnimatedQRReaderPage() {
 
 
   const reset = useCallback(() => {
+    clearDecodedFromSession();
     stopScanner();
     completedRef.current = false;
     totalRef.current = null;
