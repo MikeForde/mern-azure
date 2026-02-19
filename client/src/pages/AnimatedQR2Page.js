@@ -100,7 +100,7 @@ function AnimatedQR2Page() {
 
   const [useCompressionAndEncryption, setUseCompressionAndEncryption] = useState(false);
   const [useIncludeKey, setUseIncludeKey] = useState(false);
-  const [useGzipOnly, setUseGzipOnly] = useState(false);
+  const [useGzipOnly, setUseGzipOnly] = useState(true);
 
   const [payload, setPayload] = useState('');
   const [responseSize, setResponseSize] = useState(0);
