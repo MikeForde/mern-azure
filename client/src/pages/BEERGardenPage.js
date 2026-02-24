@@ -15,8 +15,8 @@ function BEERGardenPage() {
   const isConvertingRef = useRef(false);
   const [mongoSize, setMongoSize] = useState(0);
   const [beerSize, setBEERSize] = useState(0);
-  const [selectedFormat, setSelectedFormat] = useState('IPS JSON');
-  const [displayFormat, setDisplayFormat] = useState('IPS JSON');
+  const [selectedFormat, setSelectedFormat] = useState('NPS JSON');
+  const [displayFormat, setDisplayFormat] = useState('NPS JSON');
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find(record => record._id === recordId);
@@ -36,7 +36,7 @@ function BEERGardenPage() {
           setMongoData(responseData);
           setShowNotification(false);
           setMongoSize(mongoSize);
-          setDisplayFormat('IPS JSON');
+          setDisplayFormat('NPS JSON');
           setMessage('');
           setBeerData('');
           setBEERSize(0);
@@ -87,8 +87,8 @@ function BEERGardenPage() {
         setShowNotification(false);
       })
       .catch(error => {
-        console.error('Error converting to BEER format from IPS JSON:', error);
-        setMessage('Error converting to BEER format from IPS JSON');
+        console.error('Error converting to BEER format from NPS JSON:', error);
+        setMessage('Error converting to BEER format from NPS JSON');
         setShowNotification(true);
       })
       .finally(() => {
@@ -130,12 +130,12 @@ function BEERGardenPage() {
       setMongoSize(mongoSize);
       const beerSize = new TextEncoder().encode(beerData.trim()).length;
       setBEERSize(beerSize);
-      setMessage('Successfully converted to IPS JSON format');
-      setDisplayFormat('IPS JSON');
+      setMessage('Successfully converted to NPS JSON format');
+      setDisplayFormat('NPS JSON');
       setShowNotification(false);
     } catch (error) {
-      console.error('Error converting to IPS JSON format:', error);
-      setMessage('Error converting to IPS JSON format');
+      console.error('Error converting to NPS JSON format:', error);
+      setMessage('Error converting to NPS JSON format');
       setShowNotification(true);
     } finally {
       stopLoading();
@@ -192,7 +192,7 @@ function BEERGardenPage() {
               className="mt-3"
             >
               <Dropdown.Item eventKey="MongoDB">MongoDB</Dropdown.Item>
-              <Dropdown.Item eventKey="IPS JSON">IPS JSON</Dropdown.Item>
+              <Dropdown.Item eventKey="NPS JSON">NPS JSON</Dropdown.Item>
             </DropdownButton>
             <Button className="mt-3" variant="secondary" onClick={selectedFormat === 'MongoDB' ? handleConvertToMongo : handleConvertToIPS}>
               Convert to {selectedFormat} Format

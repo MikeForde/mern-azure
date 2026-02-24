@@ -23,9 +23,9 @@ function APIGETPage() {
   const [isWriting, setIsWriting] = useState(false);
   const [useFieldEncrypt, setUseFieldEncrypt] = useState(false); // => protect=1 (JWE)
   const [useIdOmit, setUseIdOmit] = useState(false);             // => protect=2 (omit)
-  // const [useBinary, setUseBinary] = useState(false);
 
-
+  // IPS narrative toggle (only for mode === 'ips')
+  const [useIpsNarrative, setUseIpsNarrative] = useState(false); // => narrative=1&resourceNarrative=1
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find((record) => record._id === recordId);
@@ -50,6 +50,11 @@ function APIGETPage() {
           } else if (useIdOmit) {
             endpoint += (endpoint.includes('?') ? '&' : '?') + 'protect=2';
           }
+        }
+
+        // add narrative flags for IPS only
+        if (mode === 'ips' && useIpsNarrative) {
+          endpoint += (endpoint.includes('?') ? '&' : '?') + 'narrative=1&resourceNarrative=1';
         }
 
         console.log('Fetching data from:', endpoint);
@@ -92,7 +97,17 @@ function APIGETPage() {
 
       fetchData();
     }
-  }, [selectedPatient, mode, useCompressionAndEncryption, stopLoading, startLoading, useIncludeKey, useFieldEncrypt, useIdOmit]);
+  }, [
+    selectedPatient,
+    mode,
+    useCompressionAndEncryption,
+    stopLoading,
+    startLoading,
+    useIncludeKey,
+    useFieldEncrypt,
+    useIdOmit,
+    useIpsNarrative, 
+  ]);
 
   const handleDownloadData = () => {
     if (!selectedPatient) return;
@@ -142,7 +157,8 @@ function APIGETPage() {
     const ikSuffix = useIncludeKey && useCompressionAndEncryption ? '_ik' : '';
     const ceSuffix = useCompressionAndEncryption ? '_ce' : '';
     const pmSuffix = mode === 'ipsunified' ? useFieldEncrypt ? '_jwefld' : (useIdOmit ? '_omit' : '') : '';
-    const fileName = `${yyyymmdd}-${fam}_${giv}_${last6}_${mode}${pmSuffix}${ceSuffix}${ikSuffix}.${extension}`;
+    const narSuffix = (mode === 'ips' && useIpsNarrative) ? '_narr' : '';
+    const fileName = `${yyyymmdd}-${fam}_${giv}_${last6}_${mode}${narSuffix}${pmSuffix}${ceSuffix}${ikSuffix}.${extension}`;
 
     // 5) Create & click the download link
     const blob = new Blob([data], { type: mimeType });
@@ -156,10 +172,15 @@ function APIGETPage() {
     window.URL.revokeObjectURL(url);
   };
 
-
   const handleModeChange = (selectedMode) => {
     startLoading();
     setMode(selectedMode);
+
+    // reset narrative toggle when leaving IPS mode
+    if (selectedMode !== 'ips') {
+      setUseIpsNarrative(false);
+    }
+
     switch (selectedMode) {
       case 'ips':
         setModeText('IPS JSON Bundle - /ips/:id or /ipsbyname/:name/:given');
@@ -366,6 +387,19 @@ function APIGETPage() {
                   }}
                 />
               </div>
+
+              {/* show only in IPS mode */}
+              {mode === 'ips' && (
+                <div className="col-auto">
+                  <Form.Check
+                    type="checkbox"
+                    id="ipsNarrative"
+                    label="Include narrative (full)"
+                    checked={useIpsNarrative}
+                    onChange={(e) => setUseIpsNarrative(e.target.checked)}
+                  />
+                </div>
+              )}
             </div>
           </>
         )}
@@ -395,8 +429,22 @@ function APIGETPage() {
               <div className="col-auto">
                 <Button
                   variant="primary"
-                  onClick={() => window.open('https://ipsviewer.com', '_blank')}
                   disabled={!data}
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(data || '');
+                      setToastMsg('IPS bundle copied to clipboard. Opening IPS Viewer...');
+                      setToastVariant('success');
+                      setShowToast(true);
+                    } catch (err) {
+                      console.error(err);
+                      setToastMsg('Could not copy to clipboard (browser permissions). Opening IPS Viewer anyway...');
+                      setToastVariant('warning');
+                      setShowToast(true);
+                    } finally {
+                      window.open('https://ipsviewer.com', '_blank');
+                    }
+                  }}
                 >
                   Open IPS Viewer
                 </Button>
@@ -435,7 +483,7 @@ function APIGETPage() {
           autohide
         >
           <Toast.Header>
-            <strong className="me-auto">IPS MERN NFC</strong>
+            <strong className="me-auto">IPS MERN NFC</strong>
           </Toast.Header>
           <Toast.Body className={toastVariant === 'light' ? '' : 'text-white'}>
             {toastMsg}

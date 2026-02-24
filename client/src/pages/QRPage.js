@@ -22,7 +22,6 @@ function gzipToBase64(str) {
   return uint8ToBase64(gz);
 }
 
-
 function QRPage() {
   const { selectedPatients, selectedPatient, setSelectedPatient } = useContext(PatientContext);
   const [qrData, setQRData] = useState('');
@@ -34,8 +33,8 @@ function QRPage() {
   const [useIncludeKey, setUseIncludeKey] = useState(false);
   const [useGzipOnly, setUseGzipOnly] = useState(false);
 
-
-
+  // NEW: IPS narrative toggle (only for mode === 'ips')
+  const [useIpsNarrative, setUseIpsNarrative] = useState(false); // => narrative=1&resourceNarrative=1
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find(record => record._id === recordId);
@@ -53,6 +52,11 @@ function QRPage() {
         endpoint = `/ipsbeer/${selectedPatient._id}/pipe`;
       } else {
         endpoint = `/${mode}/${selectedPatient._id}`;
+      }
+
+      // NEW: add narrative flags for IPS only
+      if (mode === 'ips' && useIpsNarrative) {
+        endpoint += (endpoint.includes('?') ? '&' : '?') + 'narrative=1&resourceNarrative=1';
       }
 
       if (mode === 'ipsurl') {
@@ -87,8 +91,6 @@ function QRPage() {
               responseData = gzipToBase64(responseData);
             }
 
-
-
             const responseSize = new TextEncoder().encode(responseData).length;
             setResponseSize(responseSize);
 
@@ -110,8 +112,15 @@ function QRPage() {
           });
       }
     }
-  }, [selectedPatient, mode, useCompressionAndEncryption, useGzipOnly, useIncludeKey, stopLoading]);
-
+  }, [
+    selectedPatient,
+    mode,
+    useCompressionAndEncryption,
+    useGzipOnly,
+    useIncludeKey,
+    useIpsNarrative, // NEW dependency
+    stopLoading
+  ]);
 
   const handleDownloadQR = () => {
     if (!selectedPatient) return;
@@ -147,6 +156,7 @@ function QRPage() {
     // 3) flags (_ce for compress+encrypt, _ik for includeKey)
     const flags = [];
     if (mode !== 'ipsurl') {
+      if (useIpsNarrative && mode === 'ips') flags.push('narr'); // NEW
       if (useGzipOnly) flags.push('gz');
       if (useCompressionAndEncryption) flags.push('ce');
       if (useIncludeKey && useCompressionAndEncryption) flags.push('ik');
@@ -154,7 +164,6 @@ function QRPage() {
     const flagPart = flags.length ? `_${flags.join('_')}` : '';
 
     // 4) assemble filename
-    //    e.g. 20250430-DOE_JENNIFER_38346e_ipsunified_ce_ik.png
     const fileName = `${yyyymmdd}-${fam}_${giv}_${last6}_${mode}${flagPart}.png`;
 
     // 5) grab canvas and download
@@ -169,24 +178,26 @@ function QRPage() {
     document.body.removeChild(link);
   };
 
-
   const handleModeChange = (selectedMode) => {
     startLoading();
     setMode(selectedMode);
+
+    // NEW: reset narrative toggle when leaving IPS mode
+    if (selectedMode !== 'ips') {
+      setUseIpsNarrative(false);
+    }
   };
 
   const maxQRSize = 600; // QR code canvas Max Size
-
   const qrSize = Math.min(window.innerWidth * 0.8, window.innerHeight * 0.8, maxQRSize);
 
   return (
     <div className="app">
       <div className="container">
-        {/* <div className="header-container"> */}
         <h3>
           Generate QR Code{mode !== 'ipsurl' ? ` - ${responseSize} bytes` : ''}
         </h3>
-        {/* </div> */}
+
         {selectedPatients.length > 0 && selectedPatient && (
           <>
             {/* --- Top row: patient + mode dropdowns side-by-side --- */}
@@ -234,6 +245,19 @@ function QRPage() {
 
             {/* --- Second row: compact checkbox bar --- */}
             <div className="row g-3 mb-3 align-items-center flex-wrap small">
+              {/* NEW: show only in IPS mode */}
+              {mode === 'ips' && (
+                <div className="col-auto">
+                  <Form.Check
+                    type="checkbox"
+                    id="ipsNarrative"
+                    label="Include narrative (full)"
+                    checked={useIpsNarrative}
+                    onChange={(e) => setUseIpsNarrative(e.target.checked)}
+                  />
+                </div>
+              )}
+
               <div className="col-auto">
                 <Form.Check
                   type="checkbox"
@@ -282,6 +306,7 @@ function QRPage() {
             </div>
           </>
         )}
+
         {showNotification ? (
           <Alert variant="danger">
             Data is too large to display

@@ -25,7 +25,48 @@ function pruneNulls(value) {
   return value; // primitives
 }
 
-function generateIPSBundle(ipsRecord) {
+// ---------- Narrative helpers ----------
+function escapeHtml(s) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// FHIR requires XHTML in a div with this xmlns
+function xhtmlDiv(innerXhtml) {
+  return `<div xmlns="http://www.w3.org/1999/xhtml">${innerXhtml}</div>`;
+}
+
+function narrativeFromRows(title, rows) {
+  // rows: array of arrays (cells)
+  const header = `<h3>${escapeHtml(title)}</h3>`;
+  const table =
+    `<table border="1" cellpadding="4" cellspacing="0">` +
+    rows.map(r => `<tr>${r.map(c => `<td>${escapeHtml(c)}</td>`).join("")}</tr>`).join("") +
+    `</table>`;
+  return xhtmlDiv(header + table);
+}
+
+function narrativeFromList(title, items) {
+  const header = `<h3>${escapeHtml(title)}</h3>`;
+  const list = `<ul>${items.map(i => `<li>${escapeHtml(i)}</li>`).join("")}</ul>`;
+  return xhtmlDiv(header + list);
+}
+
+/**
+ * options:
+ *  - includeNarrative: boolean (default false) -> Composition.section[].text
+ *  - includeResourceNarrative: boolean (default false) -> resource.text on entries too
+ */
+function generateIPSBundle(ipsRecord, options = {}) {
+    const {
+      includeNarrative = false,
+      includeResourceNarrative = false,
+    } = options;
+
     // Generate UUIDs
     const compositionUUID = uuidv4();
     const patientUUID = uuidv4();
@@ -36,132 +77,182 @@ function generateIPSBundle(ipsRecord) {
     const currentDateTime = new Date().toISOString();
 
     // Construct Medication resources - Medication first as referenced by MedicationStatement
-    const medications = ipsRecord.medication.map((med, index) => {
+    const medications = ipsRecord.medication.map((med) => {
         const medicationUUID = uuidv4();
+
+        const resource = {
+            "resourceType": "Medication",
+            "id": medicationUUID,
+            "code": {
+                "coding": [
+                    {
+                        "display": med.name,
+                        "system": med.system,
+                        "code": med.code
+                    }
+                ]
+            }
+        };
+
+        if (includeResourceNarrative) {
+          resource.text = {
+            status: "generated",
+            div: narrativeFromRows("Medication", [
+              ["Name", med.name],
+              ["System", med.system],
+              ["Code", med.code],
+            ])
+          };
+        }
 
         return {
             "fullUrl": `urn:uuid:${medicationUUID}`,
-            "resource": {
-                "resourceType": "Medication",
-                "id": medicationUUID,
-                "code": {
-                    "coding": [
-                        {
-                            "display": med.name,
-                            "system": med.system,
-                            "code": med.code
-                        }
-                    ]
-                }
-            }
+            "resource": resource
         };
     });
 
     // Construct MedicationStatement resources
     const medicationStatements = medications.map((medication, index) => {
         const medicationStatementUUID = uuidv4();
+        const med = ipsRecord.medication[index];
+
+        const resource = {
+            "resourceType": "MedicationStatement",
+            "id": medicationStatementUUID,
+            "medicationReference": {
+                "reference": `Medication/${medication.resource.id}`,
+                "display": medication.resource.code.coding[0].display
+            },
+            "subject": {
+                "reference": `Patient/${patientUUID}`
+            },
+            "effectivePeriod": {
+                "start": med.date
+            },
+            "dosage": [
+                {
+                    "text": med.dosage
+                }
+            ]
+        };
+
+        if (includeResourceNarrative) {
+          resource.text = {
+            status: "generated",
+            div: narrativeFromRows("Medication Statement", [
+              ["Medication", medication.resource.code.coding[0].display],
+              ["Start", med.date],
+              ["Dosage", med.dosage],
+            ])
+          };
+        }
 
         return {
             "fullUrl": `urn:uuid:${medicationStatementUUID}`,
-            "resource": {
-                "resourceType": "MedicationStatement",
-                "id": medicationStatementUUID,
-                "medicationReference": {
-                    "reference": `Medication/${medication.resource.id}`,
-                    "display": medication.resource.code.coding[0].display
-                },
-                "subject": {
-                    "reference": `Patient/${patientUUID}`
-                },
-                "effectivePeriod": {
-                    "start": ipsRecord.medication[index].date
-                },
-                "dosage": [
-                    {
-                        "text": ipsRecord.medication[index].dosage
-                    }
-                ]
-            }
+            "resource": resource
         };
     });
 
     // Construct AllergyIntolerance resources
-    const allergyIntolerances = ipsRecord.allergies.map((allergy, index) => {
+    const allergyIntolerances = ipsRecord.allergies.map((allergy) => {
         const allergyIntoleranceUUID = uuidv4();
+
+        const resource = {
+            "resourceType": "AllergyIntolerance",
+            "id": allergyIntoleranceUUID,
+            "type": "allergy",
+            "category": ["medication"],
+            "criticality": allergy.criticality,
+            "code": {
+                "coding": [
+                    {
+                        "display": allergy.name,
+                        "system": allergy.system,
+                        "code": allergy.code
+                    }
+                ]
+            },
+            "patient": {
+                "reference": `Patient/${patientUUID}`
+            },
+            "onsetDateTime": allergy.date
+        };
+
+        if (includeResourceNarrative) {
+          resource.text = {
+            status: "generated",
+            div: narrativeFromRows("Allergy / Intolerance", [
+              ["Substance", allergy.name],
+              ["Criticality", allergy.criticality],
+              ["Onset", allergy.date],
+            ])
+          };
+        }
 
         return {
             "fullUrl": `urn:uuid:${allergyIntoleranceUUID}`,
-            "resource": {
-                "resourceType": "AllergyIntolerance",
-                "id": allergyIntoleranceUUID,
-                "type": "allergy",
-                "category": ["medication"],
-                "criticality": allergy.criticality,
-                "code": {
-                    "coding": [
-                        {
-                            "display": allergy.name,
-                            "system": allergy.system,
-                            "code": allergy.code
-                        }
-                    ]
-                },
-                "patient": {
-                    "reference": `Patient/${patientUUID}`
-                },
-                "onsetDateTime": allergy.date
-            }
+            "resource": resource
         };
     });
 
     // Construct Condition resource
-    const conditions = ipsRecord.conditions.map((condition, index) => {
+    const conditions = ipsRecord.conditions.map((condition) => {
         const conditionUUID = uuidv4();
+
+        const resource = {
+            "resourceType": "Condition",
+            "id": conditionUUID,
+            "code": {
+                "coding": [
+                    {
+                        "display": condition.name,
+                        "system": condition.system,
+                        "code": condition.code
+                    }
+                ]
+            },
+            "subject": {
+                "reference": `Patient/${patientUUID}`
+            },
+            "onsetDateTime": condition.date
+        };
+
+        if (includeResourceNarrative) {
+          resource.text = {
+            status: "generated",
+            div: narrativeFromRows("Condition", [
+              ["Condition", condition.name],
+              ["Onset", condition.date],
+            ])
+          };
+        }
 
         return {
             "fullUrl": `urn:uuid:${conditionUUID}`,
-            "resource": {
-                "resourceType": "Condition",
-                "id": conditionUUID,
-                "code": {
-                    "coding": [
-                        {
-                            "display": condition.name,
-                            "system": condition.system,
-                            "code": condition.code
-                        }
-                    ]
-                },
-                "subject": {
-                    "reference": `Patient/${patientUUID}`
-                },
-                "onsetDateTime": condition.date
-            }
+            "resource": resource
         };
     });
 
     // Construct Observation resources
-    const observations = ipsRecord.observations.map((observation, index) => {
+    const observations = ipsRecord.observations.map((observation) => {
         const observationUUID = uuidv4();
-        let observationResource = {
-            "fullUrl": `urn:uuid:${observationUUID}`,
-            "resource": {
-                "resourceType": "Observation",
-                "id": observationUUID,
-                "code": {
-                    "coding": [
-                        {
-                            "display": observation.name,
-                            "system": observation.system,
-                            "code": observation.code
-                        }
-                    ]
-                },
-                "subject": {
-                    "reference": `Patient/${patientUUID}`
-                },
-                "effectiveDateTime": observation.date
-            }
+
+        let resource = {
+            "resourceType": "Observation",
+            "id": observationUUID,
+            "code": {
+                "coding": [
+                    {
+                        "display": observation.name,
+                        "system": observation.system,
+                        "code": observation.code
+                    }
+                ]
+            },
+            "subject": {
+                "reference": `Patient/${patientUUID}`
+            },
+            "effectiveDateTime": observation.date
         };
 
         if (observation.value) {
@@ -169,8 +260,9 @@ function generateIPSBundle(ipsRecord) {
                 // Check if the value is in the blood pressure format
                 if (observation.value.includes('-')) {
                     if (observation.value.endsWith('mmHg') || observation.value.endsWith('mm[Hg]')) {
-                        const bpValues = observation.value.replace('mmHg', '').split('-').map(v => parseFloat(v.trim()));
-                        observationResource.resource.component = [
+                        const cleaned = observation.value.replace('mmHg', '').replace('mm[Hg]', '');
+                        const bpValues = cleaned.split('-').map(v => parseFloat(v.trim()));
+                        resource.component = [
                             {
                                 code: {
                                     coding: [
@@ -207,11 +299,10 @@ function generateIPSBundle(ipsRecord) {
                             }
                         ];
                     } else {
-                        // More genenic solution to hyphenated values that are not therefore BP values - we won't include the code element and we take the unit and code from the last part of the string for both elements
+                        // Generic hyphenated numeric values (not BP)
                         const otherValues = observation.value.split('-').map(v => parseFloat(v.trim()));
-                        // the unit is the last part of the string after the last space
                         const unit = observation.value.substring(observation.value.lastIndexOf(' ') + 1).trim();
-                        observationResource.resource.component = otherValues.map((value, index) => ({
+                        resource.component = otherValues.map((value, index) => ({
                             code: {
                                 coding: [
                                     {
@@ -228,10 +319,9 @@ function generateIPSBundle(ipsRecord) {
                         }));
                     }
                 } else if (observation.value.includes('.')) {
-                    // Value contains a decimal point, assume it's a numerical value with units
                     const valueMatch = observation.value.match(/(\d+\.\d+)(\D+)/);
                     if (valueMatch) {
-                        observationResource.resource.valueQuantity = {
+                        resource.valueQuantity = {
                             value: parseFloat(valueMatch[1]),
                             unit: valueMatch[2].trim(),
                             system: "http://unitsofmeasure.org",
@@ -239,10 +329,9 @@ function generateIPSBundle(ipsRecord) {
                         };
                     }
                 } else {
-                    // Value contains a number, assume it's numerical value with units
                     const valueMatch = observation.value.match(/(\d+)(\D+)/);
                     if (valueMatch) {
-                        observationResource.resource.valueQuantity = {
+                        resource.valueQuantity = {
                             value: parseFloat(valueMatch[1]),
                             unit: valueMatch[2].trim(),
                             system: "http://unitsofmeasure.org",
@@ -250,10 +339,9 @@ function generateIPSBundle(ipsRecord) {
                         };
                     }
                 }
-            }
-             else {
-                // Value is just text, for now assume it's body site related but we need to fix in future
-                observationResource.resource.bodySite = {
+            } else {
+                // Text value (temporary heuristic)
+                resource.bodySite = {
                     coding: [
                         {
                             display: observation.value
@@ -262,9 +350,8 @@ function generateIPSBundle(ipsRecord) {
                 };
             }
 
-            // Eventually we will confine bodySite to just its field in the database but for now we'll cope with both options
             if (observation.bodySite) {
-                observationResource.resource.bodySite = {
+                resource.bodySite = {
                     "coding": [
                         {
                             "display": observation.bodySite
@@ -274,34 +361,117 @@ function generateIPSBundle(ipsRecord) {
             }
         }
 
-        return observationResource;
+        if (includeResourceNarrative) {
+          const valueDisplay = observation.value ?? "";
+          resource.text = {
+            status: "generated",
+            div: narrativeFromRows("Observation", [
+              ["Observation", observation.name],
+              ["Value", valueDisplay],
+              ["Date", observation.date],
+              ...(observation.bodySite ? [["Body site", observation.bodySite]] : []),
+            ])
+          };
+        }
+
+        return {
+            "fullUrl": `urn:uuid:${observationUUID}`,
+            "resource": resource
+        };
     });
 
     // Construct Immunization resources
-    const immunizations = ipsRecord.immunizations.map((immunization, index) => {
+    const immunizations = ipsRecord.immunizations.map((immunization) => {
         const immunizationUUID = uuidv4();
+
+        const resource = {
+            "resourceType": "Immunization",
+            "id": immunizationUUID,
+            "status": "completed",
+            "vaccineCode": {
+                "coding": [
+                    {
+                        "display": immunization.name,
+                        "system": immunization.system,
+                        "code": immunization.code
+                    }
+                ]
+            },
+            "patient": {
+                "reference": `Patient/${patientUUID}`
+            },
+            "occurrenceDateTime": immunization.date
+        };
+
+        if (includeResourceNarrative) {
+          resource.text = {
+            status: "generated",
+            div: narrativeFromRows("Immunization", [
+              ["Vaccine", immunization.name],
+              ["Date", immunization.date],
+            ])
+          };
+        }
+
         return {
             "fullUrl": `urn:uuid:${immunizationUUID}`,
-            "resource": {
-                "resourceType": "Immunization",
-                "id": immunizationUUID,
-                "status": "completed",
-                "vaccineCode": {
-                    "coding": [
-                        {
-                            "display": immunization.name,
-                            "system": immunization.system,
-                            "code": immunization.code
-                        }
-                    ]
-                },
-                "patient": {
-                    "reference": `Patient/${patientUUID}`
-                },
-                "occurrenceDateTime": immunization.date
-            }
+            "resource": resource
         };
     });
+
+    // Build narrative strings for Composition sections (optional)
+    const medicationSectionText = includeNarrative
+      ? {
+          status: "generated",
+          div: narrativeFromList(
+            "Medication",
+            ipsRecord.medication.map(m => `${m.name}${m.dosage ? ` — ${m.dosage}` : ""}${m.date ? ` (${m.date})` : ""}`)
+          )
+        }
+      : undefined;
+
+    const allergiesSectionText = includeNarrative
+      ? {
+          status: "generated",
+          div: narrativeFromList(
+            "Allergies and Intolerances",
+            ipsRecord.allergies.map(a => `${a.name}${a.criticality ? ` — ${a.criticality}` : ""}${a.date ? ` (${a.date})` : ""}`)
+          )
+        }
+      : undefined;
+
+    const conditionsSectionText = includeNarrative
+      ? {
+          status: "generated",
+          div: narrativeFromList(
+            "Conditions",
+            ipsRecord.conditions.map(c => `${c.name}${c.date ? ` (${c.date})` : ""}`)
+          )
+        }
+      : undefined;
+
+    const observationsSectionText = includeNarrative
+      ? {
+          status: "generated",
+          div: narrativeFromRows(
+            "Observations",
+            [
+              ["Name", "Value", "Date"],
+              ...ipsRecord.observations.map(o => [o.name, o.value ?? "", o.date])
+            ]
+          )
+        }
+      : undefined;
+
+    const immunizationsSectionText = includeNarrative
+      ? {
+          status: "generated",
+          div: narrativeFromList(
+            "Immunizations",
+            ipsRecord.immunizations.map(i => `${i.name}${i.date ? ` (${i.date})` : ""}`)
+          )
+        }
+      : undefined;
 
     // Construct Composition resource
     const composition = {
@@ -343,6 +513,7 @@ function generateIPSBundle(ipsRecord) {
                             }
                         ]
                     },
+                    ...(medicationSectionText ? { text: medicationSectionText } : {}),
                     "entry": medicationStatements.map((medStatement) => ({
                         "reference": `MedicationStatement/${medStatement.resource.id}`
                     }))
@@ -358,6 +529,7 @@ function generateIPSBundle(ipsRecord) {
                             }
                         ]
                     },
+                    ...(allergiesSectionText ? { text: allergiesSectionText } : {}),
                     "entry": allergyIntolerances.map((allergyIntolerance) => ({
                         "reference": `AllergyIntolerance/${allergyIntolerance.resource.id}`
                     }))
@@ -373,6 +545,7 @@ function generateIPSBundle(ipsRecord) {
                             }
                         ]
                     },
+                    ...(conditionsSectionText ? { text: conditionsSectionText } : {}),
                     "entry": conditions.map((condition) => ({
                         "reference": `Condition/${condition.resource.id}`
                     }))
@@ -388,6 +561,7 @@ function generateIPSBundle(ipsRecord) {
                             }
                         ]
                     },
+                    ...(observationsSectionText ? { text: observationsSectionText } : {}),
                     "entry": observations.map((observation) => ({
                         "reference": `Observation/${observation.resource.id}`
                     }))
@@ -397,12 +571,13 @@ function generateIPSBundle(ipsRecord) {
                     "code": {
                         "coding": [
                             {
-                                "system": "http://loinc .org",
+                                "system": "http://loinc.org", // (also fixed your "http://loinc .org" typo)
                                 "code": "11369-6",
                                 "display": "Immunization Activity"
                             }
                         ]
                     },
+                    ...(immunizationsSectionText ? { text: immunizationsSectionText } : {}),
                     "entry": immunizations.map((immunization) => ({
                         "reference": `Immunization/${immunization.resource.id}`
                     }))
@@ -411,17 +586,14 @@ function generateIPSBundle(ipsRecord) {
         }
     };
 
-    // Construct bundle - actual order of entries is important for FHIR compliance
-    // However, we use the commonense order of Composition, Patient, Practitioner, Organization, Medication, AllergyIntolerance
+    // Construct bundle
     const ipsBundle = {
         "resourceType": "Bundle",
         "id": ipsRecord.packageUUID,
         "type": "document",
         "timestamp": ipsRecord.timeStamp.toISOString(),
         "entry": [
-            // Composition entry - arguably nugatory but required for FHIR compliance
             composition,
-            // Patient, Practitioner, and Organization entries
             {
                 "fullUrl": `urn:uuid:${patientUUID}`,
                 "resource": {
@@ -439,7 +611,18 @@ function generateIPSBundle(ipsRecord) {
                         {
                             "country": ipsRecord.patient.nation
                         }
-                    ]
+                    ],
+                    ...(includeResourceNarrative ? {
+                      text: {
+                        status: "generated",
+                        div: narrativeFromRows("Patient", [
+                          ["Name", `${ipsRecord.patient.given} ${ipsRecord.patient.name}`],
+                          ["DOB", ipsRecord.patient.dob.toISOString().split('T')[0]],
+                          ["Gender", ipsRecord.patient.gender],
+                          ["Country", ipsRecord.patient.nation],
+                        ])
+                      }
+                    } : {})
                 }
             },
             {
@@ -451,7 +634,15 @@ function generateIPSBundle(ipsRecord) {
                         {
                             "text": ipsRecord.patient.practitioner
                         }
-                    ]
+                    ],
+                    ...(includeResourceNarrative ? {
+                      text: {
+                        status: "generated",
+                        div: narrativeFromRows("Practitioner", [
+                          ["Name", ipsRecord.patient.practitioner],
+                        ])
+                      }
+                    } : {})
                 }
             },
             {
@@ -459,11 +650,17 @@ function generateIPSBundle(ipsRecord) {
                 "resource": {
                     "resourceType": "Organization",
                     "id": organizationUUID,
-                    "name": ipsRecord.patient.organization ? ipsRecord.patient.organization : "Unknown"
+                    "name": ipsRecord.patient.organization ? ipsRecord.patient.organization : "Unknown",
+                    ...(includeResourceNarrative ? {
+                      text: {
+                        status: "generated",
+                        div: narrativeFromRows("Organization", [
+                          ["Name", ipsRecord.patient.organization ? ipsRecord.patient.organization : "Unknown"],
+                        ])
+                      }
+                    } : {})
                 }
             },
-            // Medication and AllergyIntolerance entries
-            // MedicationStatement plus Medication constitutes a Medication Summary 'entry'
             ...medicationStatements,
             ...medications,
             ...allergyIntolerances,

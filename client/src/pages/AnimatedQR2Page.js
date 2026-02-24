@@ -102,6 +102,8 @@ function AnimatedQR2Page() {
   const [useIncludeKey, setUseIncludeKey] = useState(false);
   const [useGzipOnly, setUseGzipOnly] = useState(true);
 
+  const [useIpsNarrative, setUseIpsNarrative] = useState(false);
+
   const [payload, setPayload] = useState('');
   const [responseSize, setResponseSize] = useState(0);
   const [fetchError, setFetchError] = useState('');
@@ -121,6 +123,11 @@ function AnimatedQR2Page() {
   const handleModeChange = (selectedMode) => {
     startLoading();
     setMode(selectedMode);
+
+    // reset narrative toggle when leaving IPS mode
+    if (selectedMode !== 'ips') {
+      setUseIpsNarrative(false);
+    }
   };
 
   // keep includeKey meaningful
@@ -139,6 +146,10 @@ function AnimatedQR2Page() {
       endpoint = `/ipsbeer/${selectedPatient._id}/pipe`;
     } else {
       endpoint = `/${mode}/${selectedPatient._id}`;
+    }
+
+    if (mode === 'ips' && useIpsNarrative) {
+      endpoint += (endpoint.includes('?') ? '&' : '?') + 'narrative=1&resourceNarrative=1';
     }
 
     if (mode === 'ipsurl') {
@@ -189,9 +200,17 @@ function AnimatedQR2Page() {
         setResponseSize(0);
       })
       .finally(() => stopLoading());
-  }, [selectedPatient, mode, useCompressionAndEncryption, useIncludeKey, useGzipOnly, stopLoading]);
+  }, [
+    selectedPatient,
+    mode,
+    useCompressionAndEncryption,
+    useIncludeKey,
+    useGzipOnly,
+    useIpsNarrative,
+    stopLoading
+  ]);
 
-    // --- helpers ---
+  // --- helpers ---
   function looksBase64(str) {
     if (typeof str !== 'string') return false;
     const s = str.trim();
@@ -230,7 +249,6 @@ function AnimatedQR2Page() {
     const wrapped = JSON.stringify({ data, mimeType });
     return calculateAnimatedQrChunks(wrapped, maxByteContent);
   }, [payload, ecLevel, mode, useGzipOnly, useCompressionAndEncryption]);
-
 
   const N = chunks.length;
   const offset = N > 0 ? Math.floor(N / OFFSET_DIVISOR) : 0;
@@ -310,6 +328,7 @@ function AnimatedQR2Page() {
 
     const flags = [];
     if (mode !== 'ipsurl') {
+      if (useIpsNarrative && mode === 'ips') flags.push('narr');
       if (useGzipOnly) flags.push('gz');
       if (useCompressionAndEncryption) flags.push('ce');
       if (useIncludeKey && useCompressionAndEncryption) flags.push('ik');
@@ -381,6 +400,19 @@ function AnimatedQR2Page() {
 
             {/* --- Second row: compact checkbox bar --- */}
             <div className="row g-3 mb-2 align-items-center flex-wrap small">
+              {/* show only in IPS mode */}
+              {mode === 'ips' && (
+                <div className="col-auto">
+                  <Form.Check
+                    type="checkbox"
+                    id="ipsNarrative"
+                    label="Include narrative (full)"
+                    checked={useIpsNarrative}
+                    onChange={(e) => setUseIpsNarrative(e.target.checked)}
+                  />
+                </div>
+              )}
+
               <div className="col-auto">
                 <Form.Check
                   type="checkbox"
