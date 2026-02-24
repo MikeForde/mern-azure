@@ -4,6 +4,8 @@ const { v4: uuidv4 } = require('uuid');
 function convertIPSBundleToSchema(ipsBundle) {
   var { id: packageUUID, timestamp: timeStamp, entry } = ipsBundle;
 
+  console.log("Starting conversion of IPS Bundle to schema...");
+
   // if no id is provided then generate UUID
   if (!packageUUID) {
     packageUUID = uuidv4();
@@ -41,8 +43,9 @@ function convertIPSBundleToSchema(ipsBundle) {
 
     // Extract information based on resource type - change to lowercase
     switch ((resource.resourceType).toLowerCase()) {
+      case "composition":
+        break;
       case "patient":
-        //console.log("Processing Patient resource");
         patient.name = resource.name[0].family;
         patient.given = resource.name[0].given ? resource.name[0].given[0] : "Unknown";
         // check if patient given is just empty string
@@ -50,20 +53,24 @@ function convertIPSBundleToSchema(ipsBundle) {
           patient.given = "Unknown";
         }
         patient.dob = new Date(resource.birthDate).toISOString().split('T')[0];
-        patient.gender = resource.gender !== undefined ? resource.gender : "Unknown";
+        patient.gender = resource.gender !== undefined ? resource.gender : "U3450nknown";
+        
         // If no address is provided, set nation to Unknown
         patient.nation = resource.address !== undefined ? resource.address[0].country : "Unknown";
-        if (resource.identifier[0] !== undefined) {
-          patient.identifier = resource.identifier[0].value ? resource.identifier[0].value : "Unknown";
-          if (resource.identifier[1] !== undefined){
-            patient.identifier2 = resource.identifier[1].value ? resource.identifier[1].value : "Unknown";
+        
+        // May be no identifier, or multiple identifiers. For now, we'll capture the first two if they exist.
+        if (resource.identifier !== undefined && resource.identifier.length !== 0) {
+          if (resource.identifier[0] !== undefined) {
+            patient.identifier = resource.identifier[0].value ? resource.identifier[0].value : "Unknown";
+            if (resource.identifier[1] !== undefined){
+              patient.identifier2 = resource.identifier[1].value ? resource.identifier[1].value : "Unknown";
+            }
           }
-        }
-        console.log("Patient = " + JSON.stringify(patient));
+        } 
+        //console.log("Patient = " + JSON.stringify(patient));
         break;
 
       case "practitioner":
-        //console.log("Processing Practitioner resource");
         if (resource.name) {
           if (resource.name[0].text) {
             patient.practitioner = resource.name[0].text;
@@ -84,13 +91,15 @@ function convertIPSBundleToSchema(ipsBundle) {
 
       case "medicationstatement":
         // Try to extract dosage information
-        if (resource.dosage[0].text) {
-          dosage = resource.dosage[0].text;
-        } else {
-          dosage = resource.dosage[0].doseAndRate[0].doseQuantity.value + " " +
-            resource.dosage[0].doseAndRate[0].doseQuantity.unit;
-          if (resource.dosage[0].timing) {
-            dosage += " " + resource.dosage[0].timing.repeat.frequency + resource.dosage[0].timing.repeat.periodUnit;
+        if (resource.dosage !== undefined && resource.dosage.length > 0) {
+          if (resource.dosage[0].text) {
+            dosage = resource.dosage[0].text;
+          } else {
+            dosage = resource.dosage[0].doseAndRate[0].doseQuantity.value + " " +
+              resource.dosage[0].doseAndRate[0].doseQuantity.unit;
+            if (resource.dosage[0].timing) {
+              dosage += " " + resource.dosage[0].timing.repeat.frequency + resource.dosage[0].timing.repeat.periodUnit;
+            }
           }
         }
         // Create a medication entry.

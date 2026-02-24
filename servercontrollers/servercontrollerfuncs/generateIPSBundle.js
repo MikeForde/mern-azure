@@ -4,56 +4,60 @@ const { v4: uuidv4 } = require('uuid');
 const containsNumber = (str) => /\d/.test(str);
 
 function pruneNulls(value) {
-  if (value === null || value === undefined) return undefined;
+    if (value === null || value === undefined) return undefined;
 
-  if (Array.isArray(value)) {
-    const arr = value
-      .map(pruneNulls)
-      .filter(v => v !== undefined);
-    return arr.length ? arr : undefined;
-  }
-
-  if (typeof value === "object") {
-    const out = {};
-    for (const [k, v] of Object.entries(value)) {
-      const pruned = pruneNulls(v);
-      if (pruned !== undefined) out[k] = pruned;
+    // ✅ Preserve Date objects (convert to FHIR-friendly ISO string)
+    if (value instanceof Date) {
+        const t = value.getTime();
+        return Number.isFinite(t) ? value.toISOString() : undefined; // drop Invalid Date
     }
-    return Object.keys(out).length ? out : undefined;
-  }
 
-  return value; // primitives
+    if (Array.isArray(value)) {
+        const arr = value.map(pruneNulls).filter(v => v !== undefined);
+        return arr.length ? arr : undefined;
+    }
+
+    if (typeof value === "object") {
+        const out = {};
+        for (const [k, v] of Object.entries(value)) {
+            const pruned = pruneNulls(v);
+            if (pruned !== undefined) out[k] = pruned;
+        }
+        return Object.keys(out).length ? out : undefined;
+    }
+
+    return value; // primitives
 }
 
 // ---------- Narrative helpers ----------
 function escapeHtml(s) {
-  return String(s ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+    return String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
 }
 
 // FHIR requires XHTML in a div with this xmlns
 function xhtmlDiv(innerXhtml) {
-  return `<div xmlns="http://www.w3.org/1999/xhtml">${innerXhtml}</div>`;
+    return `<div xmlns="http://www.w3.org/1999/xhtml">${innerXhtml}</div>`;
 }
 
 function narrativeFromRows(title, rows) {
-  // rows: array of arrays (cells)
-  const header = `<h3>${escapeHtml(title)}</h3>`;
-  const table =
-    `<table border="1" cellpadding="4" cellspacing="0">` +
-    rows.map(r => `<tr>${r.map(c => `<td>${escapeHtml(c)}</td>`).join("")}</tr>`).join("") +
-    `</table>`;
-  return xhtmlDiv(header + table);
+    // rows: array of arrays (cells)
+    const header = `<h3>${escapeHtml(title)}</h3>`;
+    const table =
+        `<table border="1" cellpadding="4" cellspacing="0">` +
+        rows.map(r => `<tr>${r.map(c => `<td>${escapeHtml(c)}</td>`).join("")}</tr>`).join("") +
+        `</table>`;
+    return xhtmlDiv(header + table);
 }
 
 function narrativeFromList(title, items) {
-  const header = `<h3>${escapeHtml(title)}</h3>`;
-  const list = `<ul>${items.map(i => `<li>${escapeHtml(i)}</li>`).join("")}</ul>`;
-  return xhtmlDiv(header + list);
+    const header = `<h3>${escapeHtml(title)}</h3>`;
+    const list = `<ul>${items.map(i => `<li>${escapeHtml(i)}</li>`).join("")}</ul>`;
+    return xhtmlDiv(header + list);
 }
 
 /**
@@ -63,8 +67,8 @@ function narrativeFromList(title, items) {
  */
 function generateIPSBundle(ipsRecord, options = {}) {
     const {
-      includeNarrative = false,
-      includeResourceNarrative = false,
+        includeNarrative = false,
+        includeResourceNarrative = false,
     } = options;
 
     // Generate UUIDs
@@ -95,14 +99,14 @@ function generateIPSBundle(ipsRecord, options = {}) {
         };
 
         if (includeResourceNarrative) {
-          resource.text = {
-            status: "generated",
-            div: narrativeFromRows("Medication", [
-              ["Name", med.name],
-              ["System", med.system],
-              ["Code", med.code],
-            ])
-          };
+            resource.text = {
+                status: "generated",
+                div: narrativeFromRows("Medication", [
+                    ["Name", med.name],
+                    ["System", med.system],
+                    ["Code", med.code],
+                ])
+            };
         }
 
         return {
@@ -137,14 +141,14 @@ function generateIPSBundle(ipsRecord, options = {}) {
         };
 
         if (includeResourceNarrative) {
-          resource.text = {
-            status: "generated",
-            div: narrativeFromRows("Medication Statement", [
-              ["Medication", medication.resource.code.coding[0].display],
-              ["Start", med.date],
-              ["Dosage", med.dosage],
-            ])
-          };
+            resource.text = {
+                status: "generated",
+                div: narrativeFromRows("Medication Statement", [
+                    ["Medication", medication.resource.code.coding[0].display],
+                    ["Start", med.date],
+                    ["Dosage", med.dosage],
+                ])
+            };
         }
 
         return {
@@ -178,15 +182,17 @@ function generateIPSBundle(ipsRecord, options = {}) {
             "onsetDateTime": allergy.date
         };
 
+        console.log("Constructed AllergyIntolerance resource:", JSON.stringify(resource, null, 2));
+
         if (includeResourceNarrative) {
-          resource.text = {
-            status: "generated",
-            div: narrativeFromRows("Allergy / Intolerance", [
-              ["Substance", allergy.name],
-              ["Criticality", allergy.criticality],
-              ["Onset", allergy.date],
-            ])
-          };
+            resource.text = {
+                status: "generated",
+                div: narrativeFromRows("Allergy / Intolerance", [
+                    ["Substance", allergy.name],
+                    ["Criticality", allergy.criticality],
+                    ["Onset", allergy.date],
+                ])
+            };
         }
 
         return {
@@ -218,13 +224,13 @@ function generateIPSBundle(ipsRecord, options = {}) {
         };
 
         if (includeResourceNarrative) {
-          resource.text = {
-            status: "generated",
-            div: narrativeFromRows("Condition", [
-              ["Condition", condition.name],
-              ["Onset", condition.date],
-            ])
-          };
+            resource.text = {
+                status: "generated",
+                div: narrativeFromRows("Condition", [
+                    ["Condition", condition.name],
+                    ["Onset", condition.date],
+                ])
+            };
         }
 
         return {
@@ -362,16 +368,16 @@ function generateIPSBundle(ipsRecord, options = {}) {
         }
 
         if (includeResourceNarrative) {
-          const valueDisplay = observation.value ?? "";
-          resource.text = {
-            status: "generated",
-            div: narrativeFromRows("Observation", [
-              ["Observation", observation.name],
-              ["Value", valueDisplay],
-              ["Date", observation.date],
-              ...(observation.bodySite ? [["Body site", observation.bodySite]] : []),
-            ])
-          };
+            const valueDisplay = observation.value ?? "";
+            resource.text = {
+                status: "generated",
+                div: narrativeFromRows("Observation", [
+                    ["Observation", observation.name],
+                    ["Value", valueDisplay],
+                    ["Date", observation.date],
+                    ...(observation.bodySite ? [["Body site", observation.bodySite]] : []),
+                ])
+            };
         }
 
         return {
@@ -404,13 +410,13 @@ function generateIPSBundle(ipsRecord, options = {}) {
         };
 
         if (includeResourceNarrative) {
-          resource.text = {
-            status: "generated",
-            div: narrativeFromRows("Immunization", [
-              ["Vaccine", immunization.name],
-              ["Date", immunization.date],
-            ])
-          };
+            resource.text = {
+                status: "generated",
+                div: narrativeFromRows("Immunization", [
+                    ["Vaccine", immunization.name],
+                    ["Date", immunization.date],
+                ])
+            };
         }
 
         return {
@@ -421,57 +427,57 @@ function generateIPSBundle(ipsRecord, options = {}) {
 
     // Build narrative strings for Composition sections (optional)
     const medicationSectionText = includeNarrative
-      ? {
-          status: "generated",
-          div: narrativeFromList(
-            "Medication",
-            ipsRecord.medication.map(m => `${m.name}${m.dosage ? ` — ${m.dosage}` : ""}${m.date ? ` (${m.date})` : ""}`)
-          )
+        ? {
+            status: "generated",
+            div: narrativeFromList(
+                "Medication",
+                ipsRecord.medication.map(m => `${m.name}${m.dosage ? ` — ${m.dosage}` : ""}${m.date ? ` (${m.date})` : ""}`)
+            )
         }
-      : undefined;
+        : undefined;
 
     const allergiesSectionText = includeNarrative
-      ? {
-          status: "generated",
-          div: narrativeFromList(
-            "Allergies and Intolerances",
-            ipsRecord.allergies.map(a => `${a.name}${a.criticality ? ` — ${a.criticality}` : ""}${a.date ? ` (${a.date})` : ""}`)
-          )
+        ? {
+            status: "generated",
+            div: narrativeFromList(
+                "Allergies and Intolerances",
+                ipsRecord.allergies.map(a => `${a.name}${a.criticality ? ` — ${a.criticality}` : ""}${a.date ? ` (${a.date})` : ""}`)
+            )
         }
-      : undefined;
+        : undefined;
 
     const conditionsSectionText = includeNarrative
-      ? {
-          status: "generated",
-          div: narrativeFromList(
-            "Conditions",
-            ipsRecord.conditions.map(c => `${c.name}${c.date ? ` (${c.date})` : ""}`)
-          )
+        ? {
+            status: "generated",
+            div: narrativeFromList(
+                "Conditions",
+                ipsRecord.conditions.map(c => `${c.name}${c.date ? ` (${c.date})` : ""}`)
+            )
         }
-      : undefined;
+        : undefined;
 
     const observationsSectionText = includeNarrative
-      ? {
-          status: "generated",
-          div: narrativeFromRows(
-            "Observations",
-            [
-              ["Name", "Value", "Date"],
-              ...ipsRecord.observations.map(o => [o.name, o.value ?? "", o.date])
-            ]
-          )
+        ? {
+            status: "generated",
+            div: narrativeFromRows(
+                "Observations",
+                [
+                    ["Name", "Value", "Date"],
+                    ...ipsRecord.observations.map(o => [o.name, o.value ?? "", o.date])
+                ]
+            )
         }
-      : undefined;
+        : undefined;
 
     const immunizationsSectionText = includeNarrative
-      ? {
-          status: "generated",
-          div: narrativeFromList(
-            "Immunizations",
-            ipsRecord.immunizations.map(i => `${i.name}${i.date ? ` (${i.date})` : ""}`)
-          )
+        ? {
+            status: "generated",
+            div: narrativeFromList(
+                "Immunizations",
+                ipsRecord.immunizations.map(i => `${i.name}${i.date ? ` (${i.date})` : ""}`)
+            )
         }
-      : undefined;
+        : undefined;
 
     // Construct Composition resource
     const composition = {
@@ -613,15 +619,15 @@ function generateIPSBundle(ipsRecord, options = {}) {
                         }
                     ],
                     ...(includeResourceNarrative ? {
-                      text: {
-                        status: "generated",
-                        div: narrativeFromRows("Patient", [
-                          ["Name", `${ipsRecord.patient.given} ${ipsRecord.patient.name}`],
-                          ["DOB", ipsRecord.patient.dob.toISOString().split('T')[0]],
-                          ["Gender", ipsRecord.patient.gender],
-                          ["Country", ipsRecord.patient.nation],
-                        ])
-                      }
+                        text: {
+                            status: "generated",
+                            div: narrativeFromRows("Patient", [
+                                ["Name", `${ipsRecord.patient.given} ${ipsRecord.patient.name}`],
+                                ["DOB", ipsRecord.patient.dob.toISOString().split('T')[0]],
+                                ["Gender", ipsRecord.patient.gender],
+                                ["Country", ipsRecord.patient.nation],
+                            ])
+                        }
                     } : {})
                 }
             },
@@ -636,12 +642,12 @@ function generateIPSBundle(ipsRecord, options = {}) {
                         }
                     ],
                     ...(includeResourceNarrative ? {
-                      text: {
-                        status: "generated",
-                        div: narrativeFromRows("Practitioner", [
-                          ["Name", ipsRecord.patient.practitioner],
-                        ])
-                      }
+                        text: {
+                            status: "generated",
+                            div: narrativeFromRows("Practitioner", [
+                                ["Name", ipsRecord.patient.practitioner],
+                            ])
+                        }
                     } : {})
                 }
             },
@@ -652,12 +658,12 @@ function generateIPSBundle(ipsRecord, options = {}) {
                     "id": organizationUUID,
                     "name": ipsRecord.patient.organization ? ipsRecord.patient.organization : "Unknown",
                     ...(includeResourceNarrative ? {
-                      text: {
-                        status: "generated",
-                        div: narrativeFromRows("Organization", [
-                          ["Name", ipsRecord.patient.organization ? ipsRecord.patient.organization : "Unknown"],
-                        ])
-                      }
+                        text: {
+                            status: "generated",
+                            div: narrativeFromRows("Organization", [
+                                ["Name", ipsRecord.patient.organization ? ipsRecord.patient.organization : "Unknown"],
+                            ])
+                        }
                     } : {})
                 }
             },
@@ -669,6 +675,7 @@ function generateIPSBundle(ipsRecord, options = {}) {
             ...immunizations
         ]
     };
+    console.log("Constructed IPS Bundle:", JSON.stringify(ipsBundle, null, 2));
 
     return pruneNulls(ipsBundle);
 }

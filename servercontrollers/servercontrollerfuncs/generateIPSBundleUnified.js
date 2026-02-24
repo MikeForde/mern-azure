@@ -11,25 +11,29 @@ const containsNumber = (str) => /\d/.test(str);
 
 // Remove null/undefined fields recursively (and optionally empty arrays/objects)
 function pruneNulls(value) {
-  if (value === null || value === undefined) return undefined;
+    if (value === null || value === undefined) return undefined;
 
-  if (Array.isArray(value)) {
-    const arr = value
-      .map(pruneNulls)
-      .filter(v => v !== undefined);
-    return arr.length ? arr : undefined;
-  }
-
-  if (typeof value === "object") {
-    const out = {};
-    for (const [k, v] of Object.entries(value)) {
-      const pruned = pruneNulls(v);
-      if (pruned !== undefined) out[k] = pruned;
+    // ✅ Preserve Date objects (convert to FHIR-friendly ISO string)
+    if (value instanceof Date) {
+        const t = value.getTime();
+        return Number.isFinite(t) ? value.toISOString() : undefined; // drop Invalid Date
     }
-    return Object.keys(out).length ? out : undefined;
-  }
 
-  return value; // primitives
+    if (Array.isArray(value)) {
+        const arr = value.map(pruneNulls).filter(v => v !== undefined);
+        return arr.length ? arr : undefined;
+    }
+
+    if (typeof value === "object") {
+        const out = {};
+        for (const [k, v] of Object.entries(value)) {
+            const pruned = pruneNulls(v);
+            if (pruned !== undefined) out[k] = pruned;
+        }
+        return Object.keys(out).length ? out : undefined;
+    }
+
+    return value; // primitives
 }
 
 
@@ -397,7 +401,7 @@ async function protectIPSBundle(ipsBundle, protectMethod = "none") {
             patientEntry.resource = {
                 resourceType: "Patient",
                 id: patientEntry.resource.id,
-                identifier: [{system: "omitted", value: "omitted"}],
+                identifier: [{ system: "omitted", value: "omitted" }],
                 name: [{ family: "omitted", given: ["omitted"] }],
                 gender,      // may be undefined if not present; that's fine
                 birthDate,   // ditto
