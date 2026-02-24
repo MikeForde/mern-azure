@@ -675,7 +675,6 @@ function generateIPSBundle(ipsRecord, options = {}) {
             ...immunizations
         ]
     };
-    console.log("Constructed IPS Bundle:", JSON.stringify(ipsBundle, null, 2));
 
     return pruneNulls(ipsBundle);
 }
