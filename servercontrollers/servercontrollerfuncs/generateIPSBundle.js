@@ -47,6 +47,12 @@ function escapeHtml(s) {
         .replace(/'/g, "&#39;");
 }
 
+function narrativeEmptySentence(sentence, lang = "en-GB") {
+    // Keep it simple: a single XHTML div (FHIR-compliant), with language tags
+    const safe = escapeHtml(sentence);
+    return `<div xmlns="http://www.w3.org/1999/xhtml" lang="${lang}" xml:lang="${lang}">${safe}</div>`;
+}
+
 // FHIR requires XHTML in a div with this xmlns
 function xhtmlDiv(innerXhtml) {
     return `<div xmlns="http://www.w3.org/1999/xhtml">${innerXhtml}</div>`;
@@ -490,41 +496,93 @@ function generateIPSBundle(ipsRecord, options = {}) {
 
 
     // Build narrative strings for Composition sections (optional)
-    const medicationSectionText = includeNarrative
+    // ---------- Composition section builders ----------
+    function makeSection({
+        title,
+        code,
+        text,
+        entryRefs,
+        mandated = false,
+
+        // empty handling
+        emptyReasonCode = "nilknown",
+        emptyReasonDisplay = "Nil Known",
+        emptyReasonText = "No information available",
+
+        // narrative for mandated-empty sections (only used if includeNarrative)
+        emptyNarrativeSentence,
+        narrativeLang = "en-GB",
+    }) {
+        const hasEntries = Array.isArray(entryRefs) && entryRefs.length > 0;
+
+        if (!hasEntries && !mandated) return null;
+
+        const section = {
+            title,
+            code,
+            // Normal narrative text (when there are entries)
+            ...(text ? { text } : {}),
+            ...(hasEntries ? { entry: entryRefs.map(reference => ({ reference })) } : {}),
+        };
+
+        if (!hasEntries) {
+            // If narrative requested but no entries, emit a generated XHTML sentence (examples you gave)
+            if (!section.text && emptyNarrativeSentence) {
+                section.text = {
+                    status: "generated",
+                    div: narrativeEmptySentence(emptyNarrativeSentence, narrativeLang)
+                };
+            }
+
+            section.emptyReason = {
+                coding: [{
+                    system: "http://terminology.hl7.org/CodeSystem/list-empty-reason",
+                    code: emptyReasonCode,
+                    display: emptyReasonDisplay
+                }],
+                text: emptyReasonText
+            };
+        }
+
+        return section;
+    }
+
+    // Build per-section entry references (only if resources exist)
+    const medicationEntryRefs = medicationStatements.map(ms => `MedicationStatement/${ms.resource.id}`);
+    const allergiesEntryRefs = allergyIntolerances.map(ai => `AllergyIntolerance/${ai.resource.id}`);
+    const conditionsEntryRefs = conditions.map(c => `Condition/${c.resource.id}`);
+    const observationsEntryRefs = observations.map(o => `Observation/${o.resource.id}`);
+    const immunizationsEntryRefs = immunizations.map(i => `Immunization/${i.resource.id}`);
+    const proceduresEntryRefs = procedures.map(p => `Procedure/${p.resource.id}`);
+
+    // Only build narrative text if requested AND there is at least one entry
+    const medicationSectionText = (includeNarrative && medicationEntryRefs.length)
         ? {
-            status: "generated",
-            div: narrativeFromList(
-                "Medication",
+            status: "generated", div: narrativeFromList("Medication",
                 ipsRecord.medication.map(m => `${m.name}${m.dosage ? ` — ${m.dosage}` : ""}${m.date ? ` (${m.date})` : ""}`)
             )
         }
         : undefined;
 
-    const allergiesSectionText = includeNarrative
+    const allergiesSectionText = (includeNarrative && allergiesEntryRefs.length)
         ? {
-            status: "generated",
-            div: narrativeFromList(
-                "Allergies and Intolerances",
+            status: "generated", div: narrativeFromList("Allergies and Intolerances",
                 ipsRecord.allergies.map(a => `${a.name}${a.criticality ? ` — ${a.criticality}` : ""}${a.date ? ` (${a.date})` : ""}`)
             )
         }
         : undefined;
 
-    const conditionsSectionText = includeNarrative
+    const conditionsSectionText = (includeNarrative && conditionsEntryRefs.length)
         ? {
-            status: "generated",
-            div: narrativeFromList(
-                "Conditions",
+            status: "generated", div: narrativeFromList("Conditions",
                 ipsRecord.conditions.map(c => `${c.name}${c.date ? ` (${c.date})` : ""}`)
             )
         }
         : undefined;
 
-    const observationsSectionText = includeNarrative
+    const observationsSectionText = (includeNarrative && observationsEntryRefs.length)
         ? {
-            status: "generated",
-            div: narrativeFromRows(
-                "Observations",
+            status: "generated", div: narrativeFromRows("Observations",
                 [
                     ["Name", "Value", "Date"],
                     ...ipsRecord.observations.map(o => [o.name, o.value ?? "", o.date])
@@ -533,21 +591,17 @@ function generateIPSBundle(ipsRecord, options = {}) {
         }
         : undefined;
 
-    const immunizationsSectionText = includeNarrative
+    const immunizationsSectionText = (includeNarrative && immunizationsEntryRefs.length)
         ? {
-            status: "generated",
-            div: narrativeFromList(
-                "Immunizations",
+            status: "generated", div: narrativeFromList("Immunizations",
                 ipsRecord.immunizations.map(i => `${i.name}${i.date ? ` (${i.date})` : ""}`)
             )
         }
         : undefined;
 
-    const proceduresSectionText = includeNarrative
+    const proceduresSectionText = (includeNarrative && proceduresEntryRefs.length)
         ? {
-            status: "generated",
-            div: narrativeFromList(
-                "Procedures",
+            status: "generated", div: narrativeFromList("Procedures",
                 (ipsRecord.procedures ?? []).map(p => `${p.name}${p.date ? ` (${p.date})` : ""}`)
             )
         }
@@ -559,6 +613,7 @@ function generateIPSBundle(ipsRecord, options = {}) {
         "resource": {
             "resourceType": "Composition",
             "id": compositionUUID,
+            "status": "final",
             "type": {
                 "coding": [
                     {
@@ -582,103 +637,97 @@ function generateIPSBundle(ipsRecord, options = {}) {
                 "reference": `Organization/${organizationUUID}`
             },
             "section": [
-                {
-                    "title": "Medication",
-                    "code": {
-                        "coding": [
-                            {
-                                "system": "http://loinc.org",
-                                "code": "10160-0",
-                                "display": "History of Medication use Narrative"
-                            }
-                        ]
+                makeSection({
+                    title: "Medication",
+                    code: {
+                        coding: [{
+                            system: "http://loinc.org",
+                            code: "10160-0",
+                            display: "History of Medication use Narrative"
+                        }]
                     },
-                    ...(medicationSectionText ? { text: medicationSectionText } : {}),
-                    "entry": medicationStatements.map((medStatement) => ({
-                        "reference": `MedicationStatement/${medStatement.resource.id}`
-                    }))
-                },
-                {
-                    "title": "Allergies and Intolerances",
-                    "code": {
-                        "coding": [
-                            {
-                                "system": "http://loinc.org",
-                                "code": "48765-2",
-                                "display": "Allergies and adverse reactions Document"
-                            }
-                        ]
+                    text: medicationSectionText,
+                    entryRefs: medicationEntryRefs,
+                    mandated: true,
+                    emptyReasonCode: "nilknown",
+                    emptyReasonText: "No known medications",
+                    emptyNarrativeSentence: "There is no information available about the subject's medication use or administration."
+                }),
+
+                makeSection({
+                    title: "Allergies and Intolerances",
+                    code: {
+                        coding: [{
+                            system: "http://loinc.org",
+                            code: "48765-2",
+                            display: "Allergies and adverse reactions Document"
+                        }]
                     },
-                    ...(allergiesSectionText ? { text: allergiesSectionText } : {}),
-                    "entry": allergyIntolerances.map((allergyIntolerance) => ({
-                        "reference": `AllergyIntolerance/${allergyIntolerance.resource.id}`
-                    }))
-                },
-                {
-                    "title": "Conditions",
-                    "code": {
-                        "coding": [
-                            {
-                                "system": "http://loinc.org",
-                                "code": "11450-4",
-                                "display": "Problem List"
-                            }
-                        ]
+                    text: allergiesSectionText,
+                    entryRefs: allergiesEntryRefs,
+                    mandated: true,
+                    emptyReasonCode: "nilknown",
+                    emptyReasonDisplay: "Nil known",
+                    emptyReasonText: "No known allergies",
+                    emptyNarrativeSentence: "There is no information available regarding the subject's allergy conditions."
+                }),
+
+                makeSection({
+                    title: "Conditions",
+                    code: {
+                        coding: [{
+                            system: "http://loinc.org",
+                            code: "11450-4",
+                            display: "Problem List - Reported"
+                        }]
                     },
-                    ...(conditionsSectionText ? { text: conditionsSectionText } : {}),
-                    "entry": conditions.map((condition) => ({
-                        "reference": `Condition/${condition.resource.id}`
-                    }))
-                },
-                {
-                    "title": "Observations",
-                    "code": {
-                        "coding": [
-                            {
-                                "system": "http://loinc.org",
-                                "code": "61150-9",
-                                "display": "Vital signs, weight, length, head circumference, oxygen saturation and BMI Panel"
-                            }
-                        ]
+                    text: conditionsSectionText,
+                    entryRefs: conditionsEntryRefs,
+                    mandated: true,
+                    emptyReasonCode: "nilknown",
+                    emptyReasonText: "No known conditions",
+                    emptyNarrativeSentence: "There is no information available about the subject's health problems or disabilities."
+                }),
+
+                makeSection({
+                    title: "Observations",
+                    code: {
+                        coding: [{
+                            system: "http://loinc.org",
+                            code: "8716-3",
+                            display: "Vital signs note"
+                        }]
                     },
-                    ...(observationsSectionText ? { text: observationsSectionText } : {}),
-                    "entry": observations.map((observation) => ({
-                        "reference": `Observation/${observation.resource.id}`
-                    }))
-                },
-                {
-                    "title": "Immunizations",
-                    "code": {
-                        "coding": [
-                            {
-                                "system": "http://loinc.org", // (also fixed your "http://loinc .org" typo)
-                                "code": "11369-6",
-                                "display": "Immunization Activity"
-                            }
-                        ]
+                    text: observationsSectionText,
+                    entryRefs: observationsEntryRefs
+                }),
+
+                makeSection({
+                    title: "Immunizations",
+                    code: {
+                        coding: [{
+                            system: "http://loinc.org",
+                            code: "11369-6",
+                            display: "Immunization Activity"
+                        }]
                     },
-                    ...(immunizationsSectionText ? { text: immunizationsSectionText } : {}),
-                    "entry": immunizations.map((immunization) => ({
-                        "reference": `Immunization/${immunization.resource.id}`
-                    }))
-                },
-                {
+                    text: immunizationsSectionText,
+                    entryRefs: immunizationsEntryRefs
+                }),
+
+                makeSection({
                     title: "History of Procedures",
                     code: {
-                        coding: [
-                            {
-                                system: "http://loinc.org",
-                                code: "47519-4",
-                                display: "History of Procedures Document"
-                            }
-                        ]
+                        coding: [{
+                            system: "http://loinc.org",
+                            code: "47519-4",
+                            display: "History of Procedures Document"
+                        }]
                     },
-                    ...(proceduresSectionText ? { text: proceduresSectionText } : {}),
-                    entry: procedures.map((procedure) => ({
-                        reference: `Procedure/${procedure.resource.id}`
-                    }))
-                }
-            ]
+                    text: proceduresSectionText,
+                    entryRefs: proceduresEntryRefs
+                })
+            ].filter(Boolean)
         }
     };
 
