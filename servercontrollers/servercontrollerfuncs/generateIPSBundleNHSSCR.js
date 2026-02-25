@@ -166,7 +166,7 @@ function generateIPSBundleNHSSCR(ipsRecord, options = {}) {
                 },
             ],
 
-            status: "active",
+            status: med.status? med.status : "active",
 
             category: {
                 coding: [
@@ -373,7 +373,7 @@ function generateIPSBundleNHSSCR(ipsRecord, options = {}) {
         let resource = {
             "resourceType": "Observation",
             "id": observationUUID,
-            "status": "final",
+            "status": observation.status ? observation.status : "final",
             "code": {
                 "coding": [
                     {
@@ -616,7 +616,7 @@ function generateIPSBundleNHSSCR(ipsRecord, options = {}) {
                     "value": "da7b221e-15a9-49e2-b9ab-1099c6b0e821"
                 }
             ],
-            "status": "completed",
+            "status": procedure.status ? procedure.status : "completed",
             "code": {
                 "coding": [
                     {

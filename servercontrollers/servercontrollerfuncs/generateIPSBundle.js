@@ -131,6 +131,7 @@ function generateIPSBundle(ipsRecord, options = {}) {
         const resource = {
             "resourceType": "MedicationStatement",
             "id": medicationStatementUUID,
+            "status": med.status ? med.status : "active",
             "medicationReference": {
                 "reference": `Medication/${medication.resource.id}`,
                 "display": medication.resource.code.coding[0].display
@@ -172,9 +173,22 @@ function generateIPSBundle(ipsRecord, options = {}) {
         const resource = {
             "resourceType": "AllergyIntolerance",
             "id": allergyIntoleranceUUID,
-            "type": "allergy",
-            "category": ["medication"],
-            "criticality": allergy.criticality,
+            "clinicalStatus": {
+                "coding": [
+                    {
+                        "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+                        "code": "active",
+                    }
+                ]
+            },
+            "verificationStatus": {
+                "coding": [
+                    {
+                        "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-verification",
+                        "code": "confirmed",
+                    }
+                ]
+            },
             "code": {
                 "coding": [
                     {
@@ -254,6 +268,7 @@ function generateIPSBundle(ipsRecord, options = {}) {
         let resource = {
             "resourceType": "Observation",
             "id": observationUUID,
+            "status": observation.status ? observation.status : "final",
             "code": {
                 "coding": [
                     {
@@ -433,6 +448,47 @@ function generateIPSBundle(ipsRecord, options = {}) {
         };
     });
 
+    // Construct Procedure resources
+    const procedures = (ipsRecord.procedures ?? []).map((procedure) => {
+        const procedureUUID = uuidv4();
+
+        const resource = {
+            resourceType: "Procedure",
+            id: procedureUUID,
+            status: procedure.status ? procedure.status : "completed",
+            code: {
+                coding: [
+                    {
+                        display: procedure.name,
+                        system: procedure.system,
+                        code: procedure.code
+                    }
+                ]
+            },
+            subject: {
+                reference: `Patient/${patientUUID}`
+            },
+            performedDateTime: procedure.date
+        };
+
+        if (includeResourceNarrative) {
+            resource.text = {
+                status: "generated",
+                div: narrativeFromRows("Procedure", [
+                    ["Procedure", procedure.name],
+                    ["Date", procedure.date],
+                    ...(procedure.status ? [["Status", procedure.status]] : []),
+                ])
+            };
+        }
+
+        return {
+            fullUrl: `urn:uuid:${procedureUUID}`,
+            resource
+        };
+    });
+
+
     // Build narrative strings for Composition sections (optional)
     const medicationSectionText = includeNarrative
         ? {
@@ -483,6 +539,16 @@ function generateIPSBundle(ipsRecord, options = {}) {
             div: narrativeFromList(
                 "Immunizations",
                 ipsRecord.immunizations.map(i => `${i.name}${i.date ? ` (${i.date})` : ""}`)
+            )
+        }
+        : undefined;
+
+    const proceduresSectionText = includeNarrative
+        ? {
+            status: "generated",
+            div: narrativeFromList(
+                "Procedures",
+                (ipsRecord.procedures ?? []).map(p => `${p.name}${p.date ? ` (${p.date})` : ""}`)
             )
         }
         : undefined;
@@ -595,6 +661,22 @@ function generateIPSBundle(ipsRecord, options = {}) {
                     "entry": immunizations.map((immunization) => ({
                         "reference": `Immunization/${immunization.resource.id}`
                     }))
+                },
+                {
+                    title: "History of Procedures",
+                    code: {
+                        coding: [
+                            {
+                                system: "http://loinc.org",
+                                code: "47519-4",
+                                display: "History of Procedures Document"
+                            }
+                        ]
+                    },
+                    ...(proceduresSectionText ? { text: proceduresSectionText } : {}),
+                    entry: procedures.map((procedure) => ({
+                        reference: `Procedure/${procedure.resource.id}`
+                    }))
                 }
             ]
         }
@@ -680,7 +762,8 @@ function generateIPSBundle(ipsRecord, options = {}) {
             ...allergyIntolerances,
             ...conditions,
             ...observations,
-            ...immunizations
+            ...immunizations,
+            ...procedures
         ]
     };
 
