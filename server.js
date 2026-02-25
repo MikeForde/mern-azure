@@ -14,6 +14,7 @@ const { Server } = require('socket.io');
 
 // ───── Models & Controllers ─────
 const { getIPSBundle } = require('./servercontrollers/ipsBundleFormat');
+const { getIPSBundleNHSSCR } = require('./servercontrollers/ipsBundleFormatNHSSCR');
 const { getIPSBundleByName } = require('./servercontrollers/ipsBundleByName');
 const { getORABundleByName } = require('./servercontrollers/oraBundleByName');
 const { getIPSBundleGeneric } = require('./servercontrollers/fetchips');
@@ -197,6 +198,7 @@ api.get("/ips/list", getAllIPSList);
 api.get("/ipsraw/:id", getIPSRaw);
 api.get("/ipsmongo/:id", getMongoFormatted);
 api.get("/ips/:id", getIPSBundle);
+api.get("/ipsnhsscr/:id", getIPSBundleNHSSCR);
 api.get("/ipsbasic/:id", getIPSBasic);
 api.get("/ipsbeer/:id/:delim?", getIPSBEER);
 api.get("/ipshl72x/:id", getIPSHL72_x);
