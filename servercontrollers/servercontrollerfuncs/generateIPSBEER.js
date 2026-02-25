@@ -1,4 +1,7 @@
 function generateIPSBEER(ipsRecord, delimiter) {
+
+
+    console.log('Generating IPS BEER string for record:', ipsRecord);
     // Get current timestamp
     const currentTimestamp = new Date(ipsRecord.timeStamp);
     const currentTimestampString = currentTimestamp.toISOString();

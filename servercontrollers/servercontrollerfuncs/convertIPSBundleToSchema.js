@@ -58,6 +58,8 @@ function convertIPSBundleToSchema(ipsBundle) {
   for (const entryItem of entry) {
     const { resourceType, resource } = entryItem;
 
+    //console.log(`Processing resource of type: ${resource.resourceType}`);
+
     // Extract information based on resource type - change to lowercase
     switch ((resource.resourceType).toLowerCase()) {
       case "composition":
@@ -276,7 +278,7 @@ function convertIPSBundleToSchema(ipsBundle) {
 
         allergies.push({
           name: alName,
-          criticality: resource.criticality,
+          criticality: resource.criticality? resource.criticality : "high",
           date: new Date(resource.onsetDateTime).toISOString(),
           system: alSystem,
           code: alCode
@@ -428,6 +430,8 @@ function convertIPSBundleToSchema(ipsBundle) {
     delete med.medRef;
     return med;
   });
+
+  console.log("Conversion complete. Final structured data:");
 
   return { packageUUID, timeStamp, patient, medication, allergies, conditions, observations, immunizations, procedures };
 }
