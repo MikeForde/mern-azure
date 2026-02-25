@@ -373,6 +373,7 @@ function generateIPSBundleNHSSCR(ipsRecord, options = {}) {
         let resource = {
             "resourceType": "Observation",
             "id": observationUUID,
+            "status": "final",
             "code": {
                 "coding": [
                     {

@@ -27,6 +27,9 @@ function APIGETPage() {
   // IPS narrative toggle (only for mode === 'ips')
   const [useIpsNarrative, setUseIpsNarrative] = useState(false); // => narrative=1&resourceNarrative=1
 
+  // NHS SCR IPS narrative toggle (only for mode === 'ipsnhsscr')
+  const [useIpsNhsscrNarrative, setUseIpsNhsscrNarrative] = useState(false); // => narrative=1&resourceNarrative=1
+
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find((record) => record._id === recordId);
     startLoading();
@@ -52,8 +55,11 @@ function APIGETPage() {
           }
         }
 
-        // add narrative flags for IPS only
-        if (mode === 'ips' && useIpsNarrative) {
+        // add narrative flags for IPS and NHS SCR IPS
+        if (
+          (mode === 'ips' && useIpsNarrative) ||
+          (mode === 'ipsnhsscr' && useIpsNhsscrNarrative)
+        ) {
           endpoint += (endpoint.includes('?') ? '&' : '?') + 'narrative=1&resourceNarrative=1';
         }
 
@@ -106,7 +112,8 @@ function APIGETPage() {
     useIncludeKey,
     useFieldEncrypt,
     useIdOmit,
-    useIpsNarrative, 
+    useIpsNarrative,
+    useIpsNhsscrNarrative,
   ]);
 
   const handleDownloadData = () => {
@@ -157,7 +164,11 @@ function APIGETPage() {
     const ikSuffix = useIncludeKey && useCompressionAndEncryption ? '_ik' : '';
     const ceSuffix = useCompressionAndEncryption ? '_ce' : '';
     const pmSuffix = mode === 'ipsunified' ? useFieldEncrypt ? '_jwefld' : (useIdOmit ? '_omit' : '') : '';
-    const narSuffix = (mode === 'ips' && useIpsNarrative) ? '_narr' : '';
+    const narSuffix =
+      ((mode === 'ips' && useIpsNarrative) ||
+        (mode === 'ipsnhsscr' && useIpsNhsscrNarrative))
+        ? '_narr'
+        : '';
     const fileName = `${yyyymmdd}-${fam}_${giv}_${last6}_${mode}${narSuffix}${pmSuffix}${ceSuffix}${ikSuffix}.${extension}`;
 
     // 5) Create & click the download link
@@ -176,14 +187,16 @@ function APIGETPage() {
     startLoading();
     setMode(selectedMode);
 
-    // reset narrative toggle when leaving IPS mode
-    if (selectedMode !== 'ips') {
-      setUseIpsNarrative(false);
-    }
+    // reset narrative toggles when leaving their modes
+    if (selectedMode !== 'ips') setUseIpsNarrative(false);
+    if (selectedMode !== 'ipsnhsscr') setUseIpsNhsscrNarrative(false);
 
     switch (selectedMode) {
       case 'ips':
         setModeText('IPS JSON Bundle - /ips/:id or /ipsbyname/:name/:given');
+        break;
+      case 'ipsnhsscr':
+        setModeText('NHS SCR IPS JSON Bundle - /ipsnhsscr/:id');
         break;
       case 'ipsxml':
         setModeText('IPS XML Bundle - /ipsxml/:id');
@@ -320,6 +333,7 @@ function APIGETPage() {
                   variant="secondary"
                 >
                   <Dropdown.Item eventKey="ipsunified">NPS JSON Bundle - /nps/:id</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipsnhsscr">NHS SCR IPS JSON Bundle - /ipsnhsscr/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipshl72x">IPS HL7 2.3 - /ipshl72x/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipsmongo">IPS NoSQL - /ipsmongo/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipsbeer">IPS BEER - /ipsbeer/:id</Dropdown.Item>
@@ -400,6 +414,18 @@ function APIGETPage() {
                   />
                 </div>
               )}
+              {/* show only in NHS SCR IPS mode */}
+              {mode === 'ipsnhsscr' && (
+                <div className="col-auto">
+                  <Form.Check
+                    type="checkbox"
+                    id="ipsNhsscrNarrative"
+                    label="Include narrative (full)"
+                    checked={useIpsNhsscrNarrative}
+                    onChange={(e) => setUseIpsNhsscrNarrative(e.target.checked)}
+                  />
+                </div>
+              )}
             </div>
           </>
         )}
@@ -425,7 +451,7 @@ function APIGETPage() {
               </Button>
             </div>
 
-            {mode === 'ips' && (
+            {(mode === 'ips' || mode === 'ipsnhsscr') && (
               <div className="col-auto">
                 <Button
                   variant="primary"

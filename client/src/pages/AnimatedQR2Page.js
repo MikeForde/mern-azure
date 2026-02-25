@@ -103,6 +103,7 @@ function AnimatedQR2Page() {
   const [useGzipOnly, setUseGzipOnly] = useState(true);
 
   const [useIpsNarrative, setUseIpsNarrative] = useState(false);
+  const [useIpsNhsscrNarrative, setUseIpsNhsscrNarrative] = useState(false);
 
   const [payload, setPayload] = useState('');
   const [responseSize, setResponseSize] = useState(0);
@@ -125,9 +126,9 @@ function AnimatedQR2Page() {
     setMode(selectedMode);
 
     // reset narrative toggle when leaving IPS mode
-    if (selectedMode !== 'ips') {
-      setUseIpsNarrative(false);
-    }
+    // reset narrative toggles when leaving their modes
+    if (selectedMode !== 'ips') setUseIpsNarrative(false);
+    if (selectedMode !== 'ipsnhsscr') setUseIpsNhsscrNarrative(false);
   };
 
   // keep includeKey meaningful
@@ -148,7 +149,10 @@ function AnimatedQR2Page() {
       endpoint = `/${mode}/${selectedPatient._id}`;
     }
 
-    if (mode === 'ips' && useIpsNarrative) {
+    if (
+      (mode === 'ips' && useIpsNarrative) ||
+      (mode === 'ipsnhsscr' && useIpsNhsscrNarrative)
+    ) {
       endpoint += (endpoint.includes('?') ? '&' : '?') + 'narrative=1&resourceNarrative=1';
     }
 
@@ -207,7 +211,8 @@ function AnimatedQR2Page() {
     useIncludeKey,
     useGzipOnly,
     useIpsNarrative,
-    stopLoading
+    stopLoading,
+    useIpsNhsscrNarrative,
   ]);
 
   // --- helpers ---
@@ -328,7 +333,9 @@ function AnimatedQR2Page() {
 
     const flags = [];
     if (mode !== 'ipsurl') {
-      if (useIpsNarrative && mode === 'ips') flags.push('narr');
+      if ((mode === 'ips' && useIpsNarrative) || (mode === 'ipsnhsscr' && useIpsNhsscrNarrative)) {
+        flags.push('narr');
+      }
       if (useGzipOnly) flags.push('gz');
       if (useCompressionAndEncryption) flags.push('ce');
       if (useIncludeKey && useCompressionAndEncryption) flags.push('ik');
@@ -387,6 +394,7 @@ function AnimatedQR2Page() {
                 >
                   <Dropdown.Item eventKey="ipsurl">IPS URL</Dropdown.Item>
                   <Dropdown.Item eventKey="nps">NPS JSON Bundle</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipsnhsscr">NHS SCR IPS JSON Bundle</Dropdown.Item>
                   <Dropdown.Item eventKey="ips">IPS JSON Bundle</Dropdown.Item>
                   <Dropdown.Item eventKey="ipsbasic">IPS Minimal</Dropdown.Item>
                   <Dropdown.Item eventKey="ipsmongo">IPS MongoDB</Dropdown.Item>
@@ -409,6 +417,18 @@ function AnimatedQR2Page() {
                     label="Include narrative (full)"
                     checked={useIpsNarrative}
                     onChange={(e) => setUseIpsNarrative(e.target.checked)}
+                  />
+                </div>
+              )}
+
+              {mode === 'ipsnhsscr' && (
+                <div className="col-auto">
+                  <Form.Check
+                    type="checkbox"
+                    id="ipsNhsscrNarrative"
+                    label="Include narrative (full)"
+                    checked={useIpsNhsscrNarrative}
+                    onChange={(e) => setUseIpsNhsscrNarrative(e.target.checked)}
                   />
                 </div>
               )}
