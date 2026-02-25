@@ -6,14 +6,22 @@ const containsNumber = (str) => /\d/.test(str);
 function pruneNulls(value) {
     if (value === null || value === undefined) return undefined;
 
+    // ✅ Strip empty or whitespace-only strings
+    if (typeof value === "string") {
+        const trimmed = value.trim();
+        return trimmed.length ? trimmed : undefined;
+    }
+
     // ✅ Preserve Date objects (convert to FHIR-friendly ISO string)
     if (value instanceof Date) {
         const t = value.getTime();
-        return Number.isFinite(t) ? value.toISOString() : undefined; // drop Invalid Date
+        return Number.isFinite(t) ? value.toISOString() : undefined;
     }
 
     if (Array.isArray(value)) {
-        const arr = value.map(pruneNulls).filter(v => v !== undefined);
+        const arr = value
+            .map(pruneNulls)
+            .filter(v => v !== undefined);
         return arr.length ? arr : undefined;
     }
 
@@ -26,7 +34,7 @@ function pruneNulls(value) {
         return Object.keys(out).length ? out : undefined;
     }
 
-    return value; // primitives
+    return value; // numbers, booleans
 }
 
 // ---------- Narrative helpers ----------
