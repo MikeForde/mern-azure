@@ -808,6 +808,16 @@ function ChangeLogPage() {
                                 <li>Added explicit user-controlled reset ("Scan Another" / "Clear") to avoid unintended data loss during navigation.</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_81 — 25th Feb 2026</h5>
+                            <ul>
+                                <li><strong>NHS SCR–Aligned IPS Format (Backend + Frontend Support)</strong></li>
+                                <li>Introduced new <code>/ipsnhsscr/:id</code> endpoint generating IPS Bundles aligned with the NHS England SCR-IPS implementation guidance.</li>
+                                <li>Implemented SCR-compliant <strong>MedicationStatement</strong> structure using contained <code>Medication</code> resources.</li>
+                                <li>Added optional narrative generation flags (<code>?narrative=1&amp;resourceNarrative=1</code>) to both <code>/ips</code> and <code>/ipsnhsscr</code> endpoints, with Swagger and API documentation updates.</li>
+                                <li>Extended frontend support across <strong>API</strong> and <strong>Animated QR</strong> pages to allow selection and animated transfer of NHS SCR IPS Bundles, including narrative toggle integration.</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

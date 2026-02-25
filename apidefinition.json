@@ -735,6 +735,34 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "narrative",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "default": 0
+            },
+            "description": "If 1, include generated narrative in Composition.section[].text."
+          },
+          {
+            "name": "resourceNarrative",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "default": 0
+            },
+            "description": "If 1, include generated narrative in each resource.text within Bundle.entry[].resource."
           }
         ],
         "responses": {
@@ -819,6 +847,65 @@
               "text/plain": {
                 "schema": {
                   "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ipsnhsscr/{id}": {
+      "get": {
+        "tags": [
+          "IPS"
+        ],
+        "summary": "Retrieve IPS record in NHS SCR format by ID",
+        "description": "Retrieve IPS record in NHS SCR format by ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "narrative",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "default": 0
+            },
+            "description": "If 1, include generated narrative in Composition.section[].text."
+          },
+          {
+            "name": "resourceNarrative",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "default": 0
+            },
+            "description": "If 1, include generated narrative in each resource.text within Bundle.entry[].resource."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "NHS SCR format - FHIR JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
                 }
               }
             }
@@ -1251,7 +1338,7 @@
           "IPS"
         ],
         "summary": "Retrieve expanded IPS FHIR by patient name and given name",
-        "description": "Retrieve expanded IPS FHIR by patient name and given name (case-insensitive). An optional header parameter x-ips-format can be used to override the default format (e.g., 'fhir', 'beer', 'ora', 'xml', 'legacy', 'unified').",
+        "description": "Retrieve expanded IPS FHIR by patient name and given name (case-insensitive). An optional header parameter x-ips-format can be used to override the default format (e.g., 'nhsscr', 'inter', 'legacy', 'unified').",
         "parameters": [
           {
             "$ref": "#/components/parameters/XIPSFormat"
@@ -1672,7 +1759,7 @@
       "XIPSFormat": {
         "name": "x-ips-format",
         "in": "header",
-        "description": "Optional format override. Available values: 'unified' (default), 'inter', 'legacy'.",
+        "description": "Optional format override. Available values: 'unified' (default), 'inter', 'nhsscr', 'legacy'.",
         "required": false,
         "schema": {
           "type": "string"
@@ -1938,7 +2025,7 @@
                 }
               }
             }
-          }     
+          }
         },
         "required": [
           "packageUUID",

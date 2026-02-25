@@ -29,10 +29,30 @@ function APIDocumentationPage() {
     { method: 'GET', endpoint: '/ips/all', description: 'Retrieve all IPS records.', request: 'None.', response: 'Array of JSON objects representing IPS records.' },
     { method: 'GET', endpoint: '/ipsraw/:id', description: 'Retrieve raw IPS record by ID.', request: 'IPS record ID as URL parameter.', response: 'JSON object of the raw IPS record.' },
     { method: 'GET', endpoint: '/ipsmongo/:id', description: 'Retrieve IPS record in MongoDB format by ID.', request: 'IPS record ID as URL parameter.', response: 'MongoDB - JSON' },
-    { method: 'GET', endpoint: '/ips/:id', description: 'Retrieve IPS record in expanded format by ID.', request: 'IPS record ID as URL parameter.', response: 'Expanded Composition IPS format- FHiR JSON' },
+    { method: 'GET', endpoint: '/ips/:id?narrative=1&resourceNarrative=1', description: 'Retrieve IPS record in expanded format by ID (optional narratives).', request: 'IPS record ID as URL parameter.', response: 'Expanded Composition IPS format- FHiR JSON' },
+    { method: 'GET', endpoint: '/ipsnhsscr/:id?narrative=1&resourceNarrative=1', description: 'Retrieve IPS record in NHS SCR format by ID (optional narratives).', request: 'IPS record ID as URL parameter.', response: 'NHS SCR format - FHiR JSON' },
     { method: 'GET', endpoint: '/ipsbasic/:id', description: 'Retrieve IPS record in basic format by ID.', request: 'IPS record ID as URL parameter.', response: 'Basic format - Plain Text' },
     { method: 'GET', endpoint: '/ipsplaintext/:id', description: 'Retrieve IPS record in human readable format by ID.', request: 'IPS record ID as URL parameter.', response: 'Human Readable format - Plain Text' },
-    { method: 'GET', endpoint: '/ipsbeer/:id/:delim?', description: 'Retrieve IPS record in BEER format by ID with optional delimiter.', request: 'IPS record ID and optional delimiter as URL parameters.', response: 'BEER - Plain Text' },
+    {
+      method: 'GET',
+      endpoint: '/ipsbeer/:id/:delim?',
+      description: 'Retrieve IPS record in BEER format by ID with optional delimiter.',
+      request: (
+        <>
+          IPS record ID as URL parameter.
+          <br />
+          Optional <code>:delim</code> values:
+          <ul className="mb-0">
+            <li><code>newline</code> (default)</li>
+            <li><code>semi</code> → ;</li>
+            <li><code>colon</code> → :</li>
+            <li><code>pipe</code> → |</li>
+            <li><code>at</code> → @</li>
+          </ul>
+        </>
+      ),
+      response: 'BEER - Plain Text'
+    },
     { method: 'GET', endpoint: '/ipshl72x/:id', description: 'Retrieve IPS record in HL7 2.3 format by ID.', request: 'IPS record ID as URL parameter.', response: 'HL7 2.3 - Plain Text' },
     { method: 'GET', endpoint: '/ipsxml/:id', description: 'Retrieve IPS record in expanded FHiR XML format by ID.', request: 'IPS record ID as URL parameter.', response: 'IPS Bundle - FHiR XML' },
     { method: 'GET', endpoint: '/ipslegacy/:id', description: 'Retrieve IPS record in legacy format by ID.', request: 'IPS record ID as URL parameter.', response: 'Legacy format of the IPS record - FHiR JSON' },
@@ -157,7 +177,7 @@ function APIDocumentationPage() {
   return (
     <Container className="mt-5">
       <h2>API Documentation</h2>
-      
+
       {/* Added Explanation of Documentation Endpoints */}
       <Alert variant="info">
         <h4>Developer Documentation Endpoints</h4>
@@ -173,7 +193,22 @@ function APIDocumentationPage() {
           Note: These endpoints are enabled during development and may be restricted in production environments.
         </p>
       </Alert>
-      
+
+      <Alert variant="secondary">
+        <h4>Narrative flags (FHIR <code>text</code> generation)</h4>
+        <p className="mb-2">
+          The <code>/ips/:id</code> and <code>/ipsnhsscr/:id</code> GET endpoints support optional query flags to include generated XHTML narratives.
+        </p>
+        <ul className="mb-0">
+          <li>
+            <code>?narrative=1</code> — include section narratives in <code>Composition.section[].text</code>
+          </li>
+          <li>
+            <code>&amp;resourceNarrative=1</code> — include resource narratives in <code>Bundle.entry[].resource.text</code>
+          </li>
+        </ul>
+      </Alert>
+
       <Table striped bordered hover responsive>
         <thead>
           <tr>
@@ -219,7 +254,8 @@ function APIDocumentationPage() {
 
       <h3 className="mt-5">*NPS Format</h3>
       <p>
-        The more expanded composition FHiR JSON format can be obtained instead for the marked API calls by using the optional header <code>x-ips-format: inter</code>. Likewise, the legacy format with <code>x-ips-format: legacy</code> is retained for comparison.
+        The more expanded composition FHiR JSON format can be obtained instead for the marked API calls by using the optional header <code>x-ips-format: inter</code>. The NHS SCR format is also available for the same API calls with <code>x-ips-format: nhsscr</code>. These provide more detailed and structured representations of the IPS data, suitable for different use cases and integration needs.
+          Likewise, the legacy format with <code>x-ips-format: legacy</code> is retained for comparison.
       </p>
 
       <h3 className="mt-5">TAK Endpoints</h3>

@@ -1,5 +1,22 @@
 // uuid4 is a library to generate UUIDs
+const { status } = require('@grpc/grpc-js');
 const { v4: uuidv4 } = require('uuid');
+
+function normalizeReferenceId(ref) {
+  // "Medication/abc" -> "abc"
+  // "#med" -> "med"
+  // "urn:uuid:xxxx" -> "xxxx"
+  if (!ref || typeof ref !== 'string') return undefined;
+  if (ref.startsWith('#')) return ref.slice(1);
+  if (ref.startsWith('urn:uuid:')) return ref.split(':').pop();
+  if (ref.includes('/')) return ref.split('/').pop();
+  return ref;
+}
+
+function findContained(resource, containedId) {
+  if (!resource?.contained || !Array.isArray(resource.contained) || !containedId) return undefined;
+  return resource.contained.find(r => r?.id === containedId);
+}
 
 function convertIPSBundleToSchema(ipsBundle) {
   var { id: packageUUID, timestamp: timeStamp, entry } = ipsBundle;
@@ -54,19 +71,19 @@ function convertIPSBundleToSchema(ipsBundle) {
         }
         patient.dob = new Date(resource.birthDate).toISOString().split('T')[0];
         patient.gender = resource.gender !== undefined ? resource.gender : "U3450nknown";
-        
+
         // If no address is provided, set nation to Unknown
         patient.nation = resource.address !== undefined ? resource.address[0].country : "Unknown";
-        
+
         // May be no identifier, or multiple identifiers. For now, we'll capture the first two if they exist.
         if (resource.identifier !== undefined && resource.identifier.length !== 0) {
           if (resource.identifier[0] !== undefined) {
             patient.identifier = resource.identifier[0].value ? resource.identifier[0].value : "Unknown";
-            if (resource.identifier[1] !== undefined){
+            if (resource.identifier[1] !== undefined) {
               patient.identifier2 = resource.identifier[1].value ? resource.identifier[1].value : "Unknown";
             }
           }
-        } 
+        }
         //console.log("Patient = " + JSON.stringify(patient));
         break;
 
@@ -82,42 +99,69 @@ function convertIPSBundleToSchema(ipsBundle) {
         } else {
           patient.practitioner = "Unknown";
         }
+        //console.log("Practitioner = " + patient.practitioner);
         break;
 
       case "organization":
-        //console.log("Processing Org resource");
-        patient.organization = resource.name  ? resource.name : "Unknown";
+        patient.organization = resource.name ? resource.name : "Unknown";
+        //console.log("Organization = " + patient.organization);
         break;
 
-      case "medicationstatement":
-        // Try to extract dosage information
-        if (resource.dosage !== undefined && resource.dosage.length > 0) {
-          if (resource.dosage[0].text) {
-            dosage = resource.dosage[0].text;
-          } else {
-            dosage = resource.dosage[0].doseAndRate[0].doseQuantity.value + " " +
-              resource.dosage[0].doseAndRate[0].doseQuantity.unit;
-            if (resource.dosage[0].timing) {
-              dosage += " " + resource.dosage[0].timing.repeat.frequency + resource.dosage[0].timing.repeat.periodUnit;
+      case "medicationstatement": {
+        // -------- dosage --------
+        let dosage = "Unknown";
+        if (Array.isArray(resource.dosage) && resource.dosage.length > 0) {
+          const d0 = resource.dosage[0];
+          if (d0?.text) {
+            dosage = d0.text;
+          } else if (d0?.doseAndRate?.[0]?.doseQuantity) {
+            const q = d0.doseAndRate[0].doseQuantity;
+            const v = q.value;
+            const u = q.unit || q.code || "";
+            dosage = `${v} ${u}`.trim() || "Unknown";
+            if (d0?.timing?.repeat?.frequency && d0?.timing?.repeat?.periodUnit) {
+              dosage += ` ${d0.timing.repeat.frequency}${d0.timing.repeat.periodUnit}`;
             }
           }
         }
-        // Create a medication entry.
-        // If medicationReference is present and has a reference id, capture it for later matching.
-        let medRef = undefined;
-        if (resource.medicationReference && resource.medicationReference.reference) {
-          medRef = resource.medicationReference.reference;
+
+        // -------- medication resolution (supports "#med" contained + external Medication) --------
+        let name = resource?.medicationReference?.display || "Unknown";
+        let medsystem = null;
+        let medcode = null;
+
+        const medRefRaw = resource?.medicationReference?.reference; // e.g. "Medication/abc" or "#med"
+        const medRefId = normalizeReferenceId(medRefRaw);
+
+        // If reference is contained ("#med"), resolve it now from resource.contained[]
+        if (medRefRaw && medRefRaw.startsWith('#')) {
+          const containedMed = findContained(resource, medRefId);
+          if (containedMed?.resourceType?.toLowerCase() === 'medication') {
+            const coding = containedMed?.code?.coding?.[0];
+            name = coding?.display || containedMed?.code?.text || name;
+            medsystem = coding?.system || null;
+            medcode = coding?.code || null;
+          }
         }
+
+        // -------- date (supports effectiveDateTime + legacy effectivePeriod.start) --------
+        const dt =
+          resource.effectiveDateTime ||
+          resource?.effectivePeriod?.start ||
+          resource.dateAsserted || // fallback (SCR has this)
+          null;
+
         medication.push({
-          name: resource.medicationReference.display, // display name
-          date: new Date(resource.effectivePeriod.start).toISOString(),
-          dosage: dosage,
-          system: null, // to be added from Medication resource if available
-          code: null,   // to be added from Medication resource if available
-          status: "active",
-          medRef: medRef  // temporary field to aid matching
+          name,
+          date: dt ? new Date(dt).toISOString() : new Date().toISOString(),
+          dosage,
+          system: medsystem, // filled now for contained; filled later for external Medication ref
+          code: medcode,
+          status: resource.status || "active",
+          medRef: medRefRaw && !medRefRaw.startsWith('#') ? medRefId : undefined // only keep for external Medication map join
         });
         break;
+      }
 
       case "medicationrequest":
         // Process dosage
@@ -158,8 +202,8 @@ function convertIPSBundleToSchema(ipsBundle) {
           dosage: dosage,
           system: medsystem,  // if available from medicationCodeableConcept
           code: medcode,      // if available from medicationCodeableConcept
-          status: "active",
-          medRef: medReferenceId.split('/')[1]  // temporary field for matching later
+          status: resource.status || "active",
+          medRef: normalizeReferenceId(medReferenceId)  // temporary field for matching later
         });
         break;
 
@@ -265,70 +309,78 @@ function convertIPSBundleToSchema(ipsBundle) {
         break;
 
       case "observation":
-          let obName = null;
-          let obCode = null;
-          let obSystem = null;
-      
-          if (resource.code?.coding?.length > 0) {
-              const coding = resource.code.coding[0];
-              obName = coding.display || resource.code.text || null;
-              obCode = coding.code || null;
-              obSystem = coding.system || null;
+        let obName = null;
+        let obCode = null;
+        let obSystem = null;
+
+        if (resource.code?.coding?.length > 0) {
+          const coding = resource.code.coding[0];
+          obName = coding.display || resource.code.text || null;
+          obCode = coding.code || null;
+          obSystem = coding.system || null;
+        }
+
+        const observation = {
+          name: obName,
+          code: obCode,
+          system: obSystem
+        };
+
+        // get status
+        observation.status = resource.status ? resource.status : "Unknown";
+
+        // Use effectiveDateTime or issued for date
+        if (resource.effectiveDateTime) {
+          observation.date = new Date(resource.effectiveDateTime).toISOString();
+        } else if (resource.issued) {
+          observation.date = new Date(resource.issued).toISOString();
+        }
+
+        // Prefer component-based BP-style values
+        if (resource.component?.length === 2) {
+          const [firstComp, secondComp] = resource.component;
+          const val1 = firstComp?.valueQuantity?.value;
+          const val2 = secondComp?.valueQuantity?.value;
+          const unit = firstComp?.valueQuantity?.unit || '';
+
+          if (!isNaN(val1) && !isNaN(val2)) {
+            observation.value = `${val1}-${val2} ${unit}`;
           }
-      
-          const observation = {
-              name: obName,
-              code: obCode,
-              system: obSystem
-          };
-      
-          // Use effectiveDateTime or issued for date
-          if (resource.effectiveDateTime) {
-              observation.date = new Date(resource.effectiveDateTime).toISOString();
-          } else if (resource.issued) {
-              observation.date = new Date(resource.issued).toISOString();
-          }
-      
-          // Prefer component-based BP-style values
-          if (resource.component?.length === 2) {
-              const [firstComp, secondComp] = resource.component;
-              const val1 = firstComp?.valueQuantity?.value;
-              const val2 = secondComp?.valueQuantity?.value;
-              const unit = firstComp?.valueQuantity?.unit || '';
-      
-              if (!isNaN(val1) && !isNaN(val2)) {
-                  observation.value = `${val1}-${val2} ${unit}`;
-              }
-          }
-          // Fallback to valueQuantity format
-          else if (resource.valueQuantity) {
-              const val = resource.valueQuantity.value;
-              const unit = resource.valueQuantity.unit || '';
-              observation.value = `${val} ${unit}`;
-          }
-          // Optional: capture bodySite or string values
-          else if (resource.bodySite?.coding?.length > 0) {
-              observation.bodySite = resource.bodySite.coding[0].display;
-              // Fudge - but for now, we'll double-tap and use the bodySite as the value (unless it already contains a value)
-              observation.value = observation.value ? observation.value : observation.bodySite;
-          } else if (resource.valueString) {
-              observation.value = resource.valueString;
-          }
-      
-          observations.push(observation);
-          break;
-      
+        }
+        // Fallback to valueQuantity format
+        else if (resource.valueQuantity) {
+          const val = resource.valueQuantity.value;
+          const unit = resource.valueQuantity.unit || '';
+          observation.value = `${val} ${unit}`;
+        }
+        // Optional: capture bodySite or string values
+        else if (resource.bodySite?.coding?.length > 0) {
+          observation.bodySite = resource.bodySite.coding[0].display;
+          // Fudge - but for now, we'll double-tap and use the bodySite as the value (unless it already contains a value)
+          observation.value = observation.value ? observation.value : observation.bodySite;
+        } else if (resource.valueString) {
+          observation.value = resource.valueString;
+        }
+
+        observations.push(observation);
+        break;
+
 
       case "immunization":
         // Extract the first code and occurrenceDateTime
+        // name should either be in the vaccineCode.text or vaccineCode.coding[0].display
+        const immunizationName = resource.vaccineCode.text ? resource.vaccineCode.text : (resource.vaccineCode.coding[0].display ? resource.vaccineCode.coding[0].display : "Unknown");
         const immunizationCode = resource.vaccineCode.coding[0].code;
         const immunizationSystem = resource.vaccineCode.coding[0].system;
+        const immunizationStatus = resource.status ? resource.status : "Unknown";
         const immunizationDate = new Date(resource.occurrenceDateTime).toISOString();
 
         immunizations.push({
-          name: immunizationCode,
+          name: immunizationName,
+          date: immunizationDate,
           system: immunizationSystem,
-          date: immunizationDate
+          code: immunizationCode,
+          status: immunizationStatus
         });
         break;
 
@@ -337,6 +389,7 @@ function convertIPSBundleToSchema(ipsBundle) {
         let procName = null;
         let procCode = null;
         let procSystem = null;
+        const procStatus = resource.status ? resource.status : "Unknown";
         if (resource.code) {
           procName = resource.code.coding[0].display ? resource.code.coding[0].display : null;
           procCode = resource.code.coding[0].code ? resource.code.coding[0].code : null;
@@ -350,7 +403,8 @@ function convertIPSBundleToSchema(ipsBundle) {
           name: procName,
           date: new Date(resource.performedDateTime).toISOString(),
           system: procSystem,
-          code: procCode
+          code: procCode,
+          status: procStatus
         });
         break;
 
