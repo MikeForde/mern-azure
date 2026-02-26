@@ -78,6 +78,8 @@
             { "$ref": "/ipsNhsScrDef/Immunization.schema.json" },
             { "$ref": "/ipsNhsScrDef/Observation.schema.json" },
             { "$ref": "/ipsNhsScrDef/Procedure.schema.json" },
+            { "$ref": "/ipsNhsScrDef/DiagnosticReport.schema.json" },
+            { "$ref": "/ipsNhsScrDef/Device.schema.json" },
 
             {
               "type": "object",

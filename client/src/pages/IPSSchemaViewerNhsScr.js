@@ -213,6 +213,94 @@ export default function IPSchemaViewerNhsScr() {
       ]
     },
 
+        DiagnosticReport: {
+      resourceType: "DiagnosticReport",
+      id: "13fdd8df-365d-4b56-9a2b-735adf35f042",
+      contained: [
+        {
+          resourceType: "Specimen",
+          id: "specimen",
+          identifier: [
+            {
+              system: "http://api.graphnethealth.com/ID/Pathology-T-123",
+              value: "P,24.3253590.H"
+            }
+          ],
+          type: {
+            coding: [
+              {
+                system: "https://fhir.graphnethealth.com/CodeSystem-LocalSpecimenCodes-1233",
+                code: "S",
+                display: "Serum"
+              }
+            ],
+            text: "Serum"
+          },
+          receivedTime: "2025-08-13T08:29:05.6321392+01:00",
+          collection: {
+            collectedDateTime: "2025-08-11T08:29:05.6319131+01:00"
+          }
+        },
+        {
+          resourceType: "Practitioner",
+          id: "resultsInterpreter",
+          name: [
+            {
+              text: "JENNIFER ATHERTON"
+            }
+          ]
+        }
+      ],
+      identifier: [
+        {
+          system: "http://api.graphnethealth.com/ID/Pathology-T-123",
+          value: "P,24.3253590.H-CHM_SET_ISTUD2"
+        }
+      ],
+      status: "final",
+      category: [
+        {
+          coding: [
+            {
+              system: "https://fhir.graphnethealth.com/CodeSystem-DiagnosticReportCategory",
+              code: "PATH",
+              display: "Pathology"
+            }
+          ],
+          text: "Pathology"
+        }
+      ],
+      code: {
+        coding: [
+          {
+            system: "https://fhir.graphnethealth.com/CodeSystem-LocalResultCodes-1233",
+            code: "CHM_SET_ISTUD2",
+            display: "IRON STUDIES"
+          }
+        ],
+        text: "IRON STUDIES"
+      },
+      subject: {
+        reference: "urn:uuid:02a03c25-a736-477f-8bb0-323e30688db7"
+      },
+      effectiveDateTime: "2025-08-21T08:29:05.6278124+01:00",
+      resultsInterpreter: [
+        {
+          reference: "#resultsInterpreter"
+        }
+      ],
+      specimen: [
+        {
+          reference: "#specimen"
+        }
+      ],
+      result: [
+        {
+          reference: "urn:uuid:a8f0daeb-6802-4062-8d01-4fac5e23c808"
+        }
+      ]
+    },
+
     Immunization: {
       resourceType: "Immunization",
       id: "bd47fbca-b3d2-4569-b3e3-02411aeb44ec",
@@ -363,6 +451,24 @@ export default function IPSchemaViewerNhsScr() {
         {
           actor: { reference: "#prac1" },
           onBehalfOf: { reference: "#org1" }
+        }
+      ]
+    },
+
+        Device: {
+      resourceType: "Device",
+      id: "720c69ac-f629-4ad6-a4b4-74566e1dc5cc",
+      identifier: [
+        {
+          system: "http://test-nhs-scr-ips.com",
+          value: "8c60ff23-af96-4467-94ba-1387192bbc58"
+        }
+      ],
+      manufacturer: "Acme Inc",
+      deviceName: [
+        {
+          name: "Acme Inc. Shared Care Record",
+          type: "user-friendly-name"
         }
       ]
     },
@@ -536,8 +642,10 @@ export default function IPSchemaViewerNhsScr() {
           'AllergyIntolerance.schema.json',
           'Condition.schema.json',
           'Observation.schema.json',
+          'DiagnosticReport.schema.json',
           'Immunization.schema.json',
           'Procedure.schema.json',
+          'Device.schema.json',
           'Extension.schema.json'
         ];
 

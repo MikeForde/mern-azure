@@ -21,7 +21,9 @@ const schemaFiles = [
   'MedicationStatement.schema.json',
   'Immunization.schema.json',
   'Observation.schema.json',
-  'Procedure.schema.json'
+  'Procedure.schema.json',
+  'DiagnosticReport.schema.json',
+  'Device.schema.json'
 ];
 
 const FHIR_SCHEMA_KEY = 'fhirR4';
