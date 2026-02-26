@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Container, Form, Button, Alert, Row, Col, ButtonGroup } from 'react-bootstrap'
 
 export default function IPSchemaValidator() {
@@ -24,6 +24,25 @@ export default function IPSchemaValidator() {
       resultValidKey: 'validNps',
       resultErrorsKey: 'errorsNps'
     }
+
+  // Auto-load payload + mode when coming from APIGETPage
+  useEffect(() => {
+    try {
+      const savedPayload = sessionStorage.getItem('ips:lastPayload');
+      const savedMode = sessionStorage.getItem('ips:lastMode'); // "NPS" or "NHSSCR"
+
+      if (savedMode) {
+        setMode(savedMode);
+        setResult(null);
+      }
+      if (savedPayload) {
+        setInput(savedPayload);
+        setResult(null);
+      }
+    } catch (e) {
+      console.warn('Could not restore validator payload/mode:', e);
+    }
+  }, []);
 
   const jumpToPath = (path) => {
     const el = inputRef.current

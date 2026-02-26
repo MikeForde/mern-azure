@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Button, Alert, Form, DropdownButton, Dropdown, Toast, ToastContainer } from 'react-bootstrap';
 import './Page.css';
@@ -30,11 +31,13 @@ function APIGETPage() {
   // NHS SCR IPS narrative toggle (only for mode === 'ipsnhsscr')
   const [useIpsNhsscrNarrative, setUseIpsNhsscrNarrative] = useState(false); // => narrative=1
 
-    // ---------- On-page validation (NPS + NHS SCR JSON modes) ----------
+  // ---------- On-page validation (NPS + NHS SCR JSON modes) ----------
   const [valLoading, setValLoading] = useState(false);
   const [valResult, setValResult] = useState(null);   // response JSON from validator
   const [valError, setValError] = useState(null);     // network / parse error
   const [showValErrors, setShowValErrors] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find((record) => record._id === recordId);
@@ -300,7 +303,7 @@ function APIGETPage() {
     }
   };
 
-    // ---------- On-page validation helpers ----------
+  // ---------- On-page validation helpers ----------
   const isJsonModeForValidation =
     (mode === 'ipsunified' || mode === 'ipsnhsscr') &&
     !useCompressionAndEncryption; // avoid validating compressed/encrypted wrapper JSON
@@ -378,6 +381,20 @@ function APIGETPage() {
       clearTimeout(t);
     };
   }, [data, isJsonModeForValidation, mode, useCompressionAndEncryption, validatorEndpoint]); // validate whenever payload/mode changes
+
+
+  // ---------- Jump to validator (carry payload + mode via sessionStorage) ----------
+   const openValidatorPage = () => {
+    try {
+      sessionStorage.setItem('ips:lastPayload', data || '');
+      sessionStorage.setItem('ips:lastMode', mode === 'ipsnhsscr' ? 'NHSSCR' : 'NPS');
+    } catch (e) {
+      console.warn('Could not store payload for validator:', e);
+    }
+
+    // Navigate within the React app (SPA)
+    navigate('/schemavalidator');
+  };
 
   return (
     <div className="app">
@@ -514,7 +531,7 @@ function APIGETPage() {
             </div>
           </>
         )}
-                {showNotification ? (
+        {showNotification ? (
           <Alert variant="danger">Data is too large to display. Please try a different mode.</Alert>
         ) : (
           <>
@@ -545,7 +562,7 @@ function APIGETPage() {
                   </Alert>
                 ) : valResult ? (
                   <Alert variant={valResult.valid ? "success" : "danger"} className="mb-2">
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                       <div>
                         <strong>Validation ({mode === 'ipsnhsscr' ? 'NHS SCR' : 'NPS'}):</strong>{" "}
                         {valResult.valid ? "✅ Valid" : "❌ Invalid"}
@@ -554,15 +571,26 @@ function APIGETPage() {
                         )}
                       </div>
 
-                      {!valResult.valid && (
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                         <Button
                           size="sm"
-                          variant="outline-light"
-                          onClick={() => setShowValErrors(v => !v)}
+                          variant="outline-secondary"
+                          onClick={openValidatorPage}
+                          disabled={!data}
                         >
-                          {showValErrors ? 'Hide errors' : 'Show errors'}
+                          Go to Validator ({mode === 'ipsnhsscr' ? 'NHS SCR' : 'NPS'})
                         </Button>
-                      )}
+
+                        {!valResult.valid && (
+                          <Button
+                            size="sm"
+                            variant="outline-light"
+                            onClick={() => setShowValErrors(v => !v)}
+                          >
+                            {showValErrors ? 'Hide errors' : 'Show errors'}
+                          </Button>
+                        )}
+                      </div>
                     </div>
 
                     {!valResult.valid && showValErrors && (valResult.errors?.length > 0) && (
