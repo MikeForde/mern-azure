@@ -20,7 +20,8 @@
       "items": {
         "$ref": "#/definitions/HumanName"
       }
-    }
+    },
+    "text": { "$ref": "#/definitions/Narrative" }
   },
   "definitions": {
     "HumanName": {
@@ -46,6 +47,21 @@
         "suffix": {
           "type": "array",
           "items": { "type": "string" }
+        }
+      }
+    },
+    "Narrative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "div"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["generated", "extensions", "additional", "empty"]
+        },
+        "div": {
+          "type": "string",
+          "description": "XHTML string (kept as string here; full XHTML validation is out of scope)."
         }
       }
     }

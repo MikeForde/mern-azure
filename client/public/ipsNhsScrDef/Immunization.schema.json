@@ -82,7 +82,8 @@
           "description": "References the contained Organization with id='manufacturer'."
         }
       }
-    }
+    },
+    "text": { "$ref": "#/definitions/Narrative" }
   },
 
   "allOf": [
@@ -140,6 +141,21 @@
         "resourceType": { "const": "Organization" },
         "id": { "const": "manufacturer" },
         "name": { "type": "string" }
+      }
+    },
+    "Narrative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "div"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["generated", "extensions", "additional", "empty"]
+        },
+        "div": {
+          "type": "string",
+          "description": "XHTML string (kept as string here; full XHTML validation is out of scope)."
+        }
       }
     }
   }

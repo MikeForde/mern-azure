@@ -25,10 +25,16 @@ function APIGETPage() {
   const [useIdOmit, setUseIdOmit] = useState(false);             // => protect=2 (omit)
 
   // IPS narrative toggle (only for mode === 'ips')
-  const [useIpsNarrative, setUseIpsNarrative] = useState(false); // => narrative=1&resourceNarrative=1
+  const [useIpsNarrative, setUseIpsNarrative] = useState(false); // => narrative=1
 
   // NHS SCR IPS narrative toggle (only for mode === 'ipsnhsscr')
-  const [useIpsNhsscrNarrative, setUseIpsNhsscrNarrative] = useState(false); // => narrative=1&resourceNarrative=1
+  const [useIpsNhsscrNarrative, setUseIpsNhsscrNarrative] = useState(false); // => narrative=1
+
+    // ---------- On-page validation (NPS + NHS SCR JSON modes) ----------
+  const [valLoading, setValLoading] = useState(false);
+  const [valResult, setValResult] = useState(null);   // response JSON from validator
+  const [valError, setValError] = useState(null);     // network / parse error
+  const [showValErrors, setShowValErrors] = useState(false);
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find((record) => record._id === recordId);
@@ -60,7 +66,7 @@ function APIGETPage() {
           (mode === 'ips' && useIpsNarrative) ||
           (mode === 'ipsnhsscr' && useIpsNhsscrNarrative)
         ) {
-          endpoint += (endpoint.includes('?') ? '&' : '?') + 'narrative=1&resourceNarrative=1';
+          endpoint += (endpoint.includes('?') ? '&' : '?') + 'narrative=1';
         }
 
         console.log('Fetching data from:', endpoint);
@@ -294,6 +300,85 @@ function APIGETPage() {
     }
   };
 
+    // ---------- On-page validation helpers ----------
+  const isJsonModeForValidation =
+    (mode === 'ipsunified' || mode === 'ipsnhsscr') &&
+    !useCompressionAndEncryption; // avoid validating compressed/encrypted wrapper JSON
+
+  const validatorEndpoint = mode === 'ipsnhsscr' ? '/ipsNhsScrVal' : '/ipsUniVal';
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function runValidation() {
+      // reset state whenever it shouldn't validate
+      if (!isJsonModeForValidation || !data || typeof data !== 'string') {
+        setValResult(null);
+        setValError(null);
+        setValLoading(false);
+        return;
+      }
+
+      // quick sanity: must look like JSON
+      const trimmed = data.trim();
+      if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+        setValResult(null);
+        setValError('Displayed data is not JSON (cannot validate).');
+        setValLoading(false);
+        return;
+      }
+
+      // ensure it's valid JSON before POST (gives friendlier error)
+      try {
+        JSON.parse(trimmed);
+      } catch (e) {
+        setValResult(null);
+        setValError(`Displayed JSON is invalid: ${e.message}`);
+        setValLoading(false);
+        return;
+      }
+
+      setValLoading(true);
+      setValError(null);
+      setValResult(null);
+
+      try {
+        const resp = await fetch(validatorEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: trimmed
+        });
+
+        const body = await resp.json().catch(() => null);
+
+        if (cancelled) return;
+
+        if (!resp.ok) {
+          const msg =
+            body?.message ||
+            (body?.errors?.[0]?.message) ||
+            `Validator returned HTTP ${resp.status}`;
+          setValError(msg);
+          setValResult(body);
+        } else {
+          setValResult(body);
+        }
+      } catch (err) {
+        if (cancelled) return;
+        setValError('Validation request failed: ' + err.message);
+      } finally {
+        if (!cancelled) setValLoading(false);
+      }
+    }
+
+    // small debounce so we don't hammer the validator during rapid updates
+    const t = setTimeout(runValidation, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [data, isJsonModeForValidation, mode, useCompressionAndEncryption, validatorEndpoint]); // validate whenever payload/mode changes
+
   return (
     <div className="app">
       <div className="container">
@@ -408,7 +493,7 @@ function APIGETPage() {
                   <Form.Check
                     type="checkbox"
                     id="ipsNarrative"
-                    label="Include narrative (full)"
+                    label="Include narrative (composition)"
                     checked={useIpsNarrative}
                     onChange={(e) => setUseIpsNarrative(e.target.checked)}
                   />
@@ -420,7 +505,7 @@ function APIGETPage() {
                   <Form.Check
                     type="checkbox"
                     id="ipsNhsscrNarrative"
-                    label="Include narrative (full)"
+                    label="Include narrative (composition)"
                     checked={useIpsNhsscrNarrative}
                     onChange={(e) => setUseIpsNhsscrNarrative(e.target.checked)}
                   />
@@ -429,18 +514,74 @@ function APIGETPage() {
             </div>
           </>
         )}
-        {showNotification ? (
+                {showNotification ? (
           <Alert variant="danger">Data is too large to display. Please try a different mode.</Alert>
         ) : (
-          <div className="text-area">
-            <Form.Control
-              as="textarea"
-              rows={10}
-              value={data}
-              readOnly
-              className="resultTextArea"
-            />
-          </div>
+          <>
+            <div className="text-area">
+              <Form.Control
+                as="textarea"
+                rows={10}
+                value={data}
+                readOnly
+                className="resultTextArea"
+              />
+            </div>
+
+            {/* ---------- On-page validation panel ---------- */}
+            {(mode === 'ipsunified' || mode === 'ipsnhsscr') && (
+              <div className="mt-2">
+                {useCompressionAndEncryption ? (
+                  <Alert variant="secondary" className="mb-2">
+                    Validation disabled because <strong>Gzip + Encrypt</strong> is enabled (displayed JSON is a wrapper).
+                  </Alert>
+                ) : valLoading ? (
+                  <Alert variant="secondary" className="mb-2">
+                    Validating ({mode === 'ipsnhsscr' ? 'NHS SCR' : 'NPS'})…
+                  </Alert>
+                ) : valError ? (
+                  <Alert variant="warning" className="mb-2">
+                    <strong>Validation:</strong> {valError}
+                  </Alert>
+                ) : valResult ? (
+                  <Alert variant={valResult.valid ? "success" : "danger"} className="mb-2">
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <strong>Validation ({mode === 'ipsnhsscr' ? 'NHS SCR' : 'NPS'}):</strong>{" "}
+                        {valResult.valid ? "✅ Valid" : "❌ Invalid"}
+                        {!!valResult.errors?.length && (
+                          <> — {valResult.errors.length} error(s)</>
+                        )}
+                      </div>
+
+                      {!valResult.valid && (
+                        <Button
+                          size="sm"
+                          variant="outline-light"
+                          onClick={() => setShowValErrors(v => !v)}
+                        >
+                          {showValErrors ? 'Hide errors' : 'Show errors'}
+                        </Button>
+                      )}
+                    </div>
+
+                    {!valResult.valid && showValErrors && (valResult.errors?.length > 0) && (
+                      <ul className="mt-2 mb-0" style={{ cursor: 'default' }}>
+                        {valResult.errors.slice(0, 50).map((e, i) => (
+                          <li key={i}>
+                            <strong>{e.path || '/'}</strong>: {e.message}
+                          </li>
+                        ))}
+                        {valResult.errors.length > 50 && (
+                          <li>…and {valResult.errors.length - 50} more</li>
+                        )}
+                      </ul>
+                    )}
+                  </Alert>
+                ) : null}
+              </div>
+            )}
+          </>
         )}
         <br />
         <div className="container">

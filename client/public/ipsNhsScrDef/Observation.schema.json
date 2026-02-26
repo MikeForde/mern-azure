@@ -58,7 +58,8 @@
       "items": { "$ref": "#/definitions/ObservationComponent" }
     },
 
-    "bodySite": { "$ref": "#/definitions/CodeableConcept" }
+    "bodySite": { "$ref": "#/definitions/CodeableConcept" },
+    "text": { "$ref": "#/definitions/Narrative" }
   },
 
   "definitions": {
@@ -106,6 +107,21 @@
       "properties": {
         "code": { "$ref": "#/definitions/CodeableConcept" },
         "valueQuantity": { "$ref": "#/definitions/Quantity" }
+      }
+    },
+    "Narrative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "div"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["generated", "extensions", "additional", "empty"]
+        },
+        "div": {
+          "type": "string",
+          "description": "XHTML string (kept as string here; full XHTML validation is out of scope)."
+        }
       }
     }
   }

@@ -17,6 +17,24 @@
     "name": {
       "type": "string",
       "description": "Organization name (e.g., NHS org name, manufacturer name, or 'Unknown' in contained source org)."
+    },
+    "text": { "$ref": "#/definitions/Narrative" }
+  },
+  "definitions": {
+    "Narrative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "div"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["generated", "extensions", "additional", "empty"]
+        },
+        "div": {
+          "type": "string",
+          "description": "XHTML string (kept as string here; full XHTML validation is out of scope)."
+        }
+      }
     }
   }
 }
