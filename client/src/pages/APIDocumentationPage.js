@@ -26,6 +26,7 @@ function APIDocumentationPage() {
     { method: 'POST', endpoint: '/convertxml', description: 'Generic convert XML format to JSON format.', request: 'XML', response: 'JSON' },
     { method: 'POST', endpoint: '/convertfhirxml', description: 'Convert FHIR XML format to FHIR JSON format.', request: 'FHIR XML', response: 'FHIR JSON' },
     { method: 'POST', endpoint: '/npsVal', description: 'Validates NPS JSON format against schema', request: 'FHIR JSON', response: 'Validation report as JSON' },
+    { method: 'POST', endpoint: '/ipsNhsScrVal', description: 'Validates NHS SCR IPS JSON format against schema', request: 'FHIR JSON', response: 'Validation report as JSON' },
     { method: 'GET', endpoint: '/ips/all', description: 'Retrieve all IPS records.', request: 'None.', response: 'Array of JSON objects representing IPS records.' },
     { method: 'GET', endpoint: '/ipsraw/:id', description: 'Retrieve raw IPS record by ID.', request: 'IPS record ID as URL parameter.', response: 'JSON object of the raw IPS record.' },
     { method: 'GET', endpoint: '/ipsmongo/:id', description: 'Retrieve IPS record in MongoDB format by ID.', request: 'IPS record ID as URL parameter.', response: 'MongoDB - JSON' },

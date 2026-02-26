@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBeer, faCloudUploadAlt, faFileMedical, faQrcode, faTag, faUpload, faCloudDownloadAlt, faPeopleArrows, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faBeer, faCloudUploadAlt, faFileMedical, faQrcode, faTag, faUpload, faCloudDownloadAlt, faPeopleArrows, faEye, faScroll, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { PatientContext } from '../PatientContext';
 import { useLoading } from '../contexts/LoadingContext';
 import PatientSearch from './PatientSearch'; // Import the new component
@@ -70,7 +70,7 @@ function NavigationBar() {
               {' '} Local {' '}
             </>
           )}
-          0_81
+          0_82
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">
@@ -81,17 +81,17 @@ function NavigationBar() {
             <Nav.Link as={Link} to="/viewer" onClick={() => handleNavItemSelect(true)}>
               <FontAwesomeIcon icon={faEye} /> View
             </Nav.Link>
-            <NavDropdown  title={<span><FontAwesomeIcon icon={faQrcode} /> QRs</span>} id="basic-nav-dropdown">
-                    <NavDropdown.Item as={Link} to="/qr" onClick={() => handleNavItemSelect(true)}>
-                      <FontAwesomeIcon icon={faQrcode} /> Static QR
-                    </NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/animatedqr2" onClick={() => handleNavItemSelect(true)}>
-                      <FontAwesomeIcon icon={faQrcode} /> Animated QR
-                    </NavDropdown.Item>
-                    <NavDropdown.Divider />
-                    <NavDropdown.Item as={Link} to="/animatedqrreader" onClick={() => handleNavItemSelect(true)}>
-                      <FontAwesomeIcon icon={faQrcode} /> Animated QR Reader
-                    </NavDropdown.Item>
+            <NavDropdown title={<span><FontAwesomeIcon icon={faQrcode} /> QRs</span>} id="basic-nav-dropdown">
+              <NavDropdown.Item as={Link} to="/qr" onClick={() => handleNavItemSelect(true)}>
+                <FontAwesomeIcon icon={faQrcode} /> Static QR
+              </NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/animatedqr2" onClick={() => handleNavItemSelect(true)}>
+                <FontAwesomeIcon icon={faQrcode} /> Animated QR
+              </NavDropdown.Item>
+              <NavDropdown.Divider />
+              <NavDropdown.Item as={Link} to="/animatedqrreader" onClick={() => handleNavItemSelect(true)}>
+                <FontAwesomeIcon icon={faQrcode} /> Animated QR Reader
+              </NavDropdown.Item>
             </NavDropdown>
             {/* <Nav.Link as={Link} to="/qr" onClick={() => handleNavItemSelect(true)}>
               <FontAwesomeIcon icon={faQrcode} /> QR
@@ -139,31 +139,44 @@ function NavigationBar() {
                 <FontAwesomeIcon icon={faTag} /> JWE Multi-Recipient
               </NavDropdown.Item>
             </NavDropdown>
-            <NavDropdown title="Info" id="basic-nav-dropdown">
-              <NavDropdown.Item as={Link} to="/about" onClick={() => handleNavItemSelect(false)}>
-                About IPS/NPS
-              </NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/aboutwebapp" onClick={() => handleNavItemSelect(false)}>
-                About Web App
-              </NavDropdown.Item>
-              <NavDropdown.Divider />
-              <NavDropdown.Item as={Link} to="/changelog" onClick={() => handleNavItemSelect(false)}>
-                Change Log
-              </NavDropdown.Item>
-              <NavDropdown.Divider />
-              <NavDropdown.Item as={Link} to="/apidocumentation" onClick={() => handleNavItemSelect(false)}>
-                API Documentation
-              </NavDropdown.Item>
-              <NavDropdown.Divider />
+            <NavDropdown
+              title={<span><FontAwesomeIcon icon={faScroll} /> Schemas</span>}
+              id="schemas-nav-dropdown"
+            >
               <NavDropdown.Item as={Link} to="/schemaviewer" onClick={() => handleNavItemSelect(false)}>
                 NPS Schemas
               </NavDropdown.Item>
+
               <NavDropdown.Item as={Link} to="/schemaviewernhsscr" onClick={() => handleNavItemSelect(false)}>
                 NHS SCR Schemas
               </NavDropdown.Item>
+
               <NavDropdown.Divider />
+
               <NavDropdown.Item as={Link} to="/schemavalidator" onClick={() => handleNavItemSelect(false)}>
                 Schema Validators
+              </NavDropdown.Item>
+            </NavDropdown>
+
+            <NavDropdown title={<span><FontAwesomeIcon icon={faInfoCircle} /> Info</span>} id="info-nav-dropdown">
+              <NavDropdown.Item as={Link} to="/about" onClick={() => handleNavItemSelect(false)}>
+                About IPS/NPS
+              </NavDropdown.Item>
+
+              <NavDropdown.Item as={Link} to="/aboutwebapp" onClick={() => handleNavItemSelect(false)}>
+                About Web App
+              </NavDropdown.Item>
+
+              <NavDropdown.Divider />
+
+              <NavDropdown.Item as={Link} to="/changelog" onClick={() => handleNavItemSelect(false)}>
+                Change Log
+              </NavDropdown.Item>
+
+              <NavDropdown.Divider />
+
+              <NavDropdown.Item as={Link} to="/apidocumentation" onClick={() => handleNavItemSelect(false)}>
+                API Documentation
               </NavDropdown.Item>
             </NavDropdown>
           </Nav>

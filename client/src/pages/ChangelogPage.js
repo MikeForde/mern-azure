@@ -818,6 +818,17 @@ function ChangeLogPage() {
                                 <li>Extended frontend support across <strong>API</strong> and <strong>Animated QR</strong> pages to allow selection and animated transfer of NHS SCR IPS Bundles, including narrative toggle integration.</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_82 — 26th Feb 2026</h5>
+                            <ul>
+                                <li><strong>NHS SCR Schema Validation (Backend + Frontend)</strong></li>
+                                <li>Introduced dedicated <code>/ipsNhsScrVal</code> validation endpoint supporting NHS SCR–aligned IPS Bundles and individual resources.</li>
+                                <li>Implemented resource-specific JSON Schemas under <code>/ipsNhsScrDef</code> (AllergyIntolerance, Condition, MedicationStatement, Immunization, Observation, Procedure, Composition, Bundle, etc.), layered on top of FHIR R4 structural validation.</li>
+                                <li>Added NHS SCR–specific structural rules including document-type Bundle enforcement, required core Composition sections (Medication, Allergies, Problems), and SCR-conformant contained-resource patterns.</li>
+                                <li>Extended frontend Schema Validator with one-click mode toggle (NPS ↔ NHS SCR) and integrated NHS SCR validation feedback alongside FHIR R4 validation results.</li>
+                                <li>Added dedicated NHS SCR Schema Viewer page for inspection of resource definitions and example payloads.</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

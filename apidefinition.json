@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "version": "0_77",
+    "version": "0_82",
     "title": "IPS MERN API",
     "description": "OpenAPI 3.0 specification for the IPS MERN API."
   },
@@ -629,6 +629,48 @@
         "responses": {
           "200": {
             "description": "JSON object containing the validation report."
+          }
+        }
+      }
+    },
+    "/ipsNhsScrVal": {
+      "post": {
+        "tags": [
+          "Schema"
+        ],
+        "summary": "Validate NHS SCR IPS FHIR JSON against schema",
+        "description": "Validates a pasted FHIR JSON payload (Bundle or single resource) against the NHS SCR IPS (custom) schema and against the global FHIR R4 schema.",
+        "requestBody": {
+          "description": "FHIR JSON payload (Bundle or single resource).",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation report (custom schema + FHIR R4 structural validation).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (e.g. missing/unknown resourceType).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationReport"
+                }
+              }
+            }
           }
         }
       }
