@@ -305,10 +305,10 @@ router.post('/', (req, res) => {
     });
 
     // --- FHIR validation (structural) ---
-    // const bundleRef = fhirDefRef('Bundle');
-    // if (!ajvFhir.validate(bundleRef, obj)) {
-    //   (ajvFhir.errors || []).forEach(e => errorsFhir.push(prettyAjvError(e)));
-    // }
+    const bundleRef = fhirDefRef('Bundle');
+    if (!ajvFhir.validate(bundleRef, obj)) {
+      (ajvFhir.errors || []).forEach(e => errorsFhir.push(prettyAjvError(e)));
+    }
 
     obj.entry?.forEach((en, idx) => {
       const resObj = en.resource;

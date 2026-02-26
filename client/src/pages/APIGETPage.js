@@ -554,7 +554,7 @@ function APIGETPage() {
                   </Alert>
                 ) : valLoading ? (
                   <Alert variant="secondary" className="mb-2">
-                    Validating ({mode === 'ipsnhsscr' ? 'NHS SCR' : 'NPS'})…
+                    Validating ({mode === 'ipsnhsscr' ? 'NHS SCR via /ipsNhsScrVal' : 'NPS via /npsVal'})…
                   </Alert>
                 ) : valError ? (
                   <Alert variant="warning" className="mb-2">
@@ -564,7 +564,7 @@ function APIGETPage() {
                   <Alert variant={valResult.valid ? "success" : "danger"} className="mb-2">
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                       <div>
-                        <strong>Validation ({mode === 'ipsnhsscr' ? 'NHS SCR' : 'NPS'}):</strong>{" "}
+                        <strong>Validation ({mode === 'ipsnhsscr' ? 'NHS SCR via /ipsNhsScrVal' : 'NPS via /npsVal'}):</strong>{" "}
                         {valResult.valid ? "✅ Valid" : "❌ Invalid"}
                         {!!valResult.errors?.length && (
                           <> — {valResult.errors.length} error(s)</>

@@ -251,6 +251,12 @@ router.post('/', (req, res) => {
       (ajv.errors || []).forEach(e => errorsScr.push(prettyAjvError(e)));
     }
 
+    // --- FHIR validation (structural) ---
+    const bundleRef = fhirDefRef('Bundle');
+    if (!ajvFhir.validate(bundleRef, obj)) {
+      (ajvFhir.errors || []).forEach(e => errorsFhir.push(prettyAjvError(e)));
+    }
+
     // 2) Validate each entry.resource:
     //    - if we have a SCR schema for it, validate strictly with that schema
     //    - otherwise, validate structurally against FHIR R4 only
