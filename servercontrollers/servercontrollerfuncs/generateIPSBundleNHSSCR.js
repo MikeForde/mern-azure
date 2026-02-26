@@ -620,7 +620,7 @@ function generateIPSBundleNHSSCR(ipsRecord, options = {}) {
         ],
       },
       patient: {
-        reference: `Patient/${patientUUID}`,
+        reference: `urn:uuid:${patientUUID}`,
       },
       occurrenceDateTime: immunization.date,
       manufacturer: {
@@ -681,7 +681,7 @@ function generateIPSBundleNHSSCR(ipsRecord, options = {}) {
         text: procedure.name,
       },
       subject: {
-        reference: `Patient/${patientUUID}`,
+        reference: `urn:uuid:${patientUUID}`,
       },
       performedDateTime: procedure.date,
       performer: [
