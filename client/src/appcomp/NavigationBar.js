@@ -158,8 +158,12 @@ function NavigationBar() {
               <NavDropdown.Item as={Link} to="/schemaviewer" onClick={() => handleNavItemSelect(false)}>
                 NPS Schemas
               </NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/schemaviewernhsscr" onClick={() => handleNavItemSelect(false)}>
+                NHS SCR Schemas
+              </NavDropdown.Item>
+              <NavDropdown.Divider />
               <NavDropdown.Item as={Link} to="/schemavalidator" onClick={() => handleNavItemSelect(false)}>
-                NPS Schema Validator
+                Schema Validators
               </NavDropdown.Item>
             </NavDropdown>
           </Nav>

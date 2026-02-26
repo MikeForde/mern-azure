@@ -1,10 +1,29 @@
 import React, { useState, useRef } from 'react'
-import { Container, Form, Button, Alert } from 'react-bootstrap'
+import { Container, Form, Button, Alert, Row, Col, ButtonGroup } from 'react-bootstrap'
 
 export default function IPSchemaValidator() {
   const [input, setInput] = useState('')
   const [result, setResult] = useState(null)
+  const [mode, setMode] = useState('NPS') // 'NPS' | 'NHSSCR'
   const inputRef = useRef(null)
+
+  const endpoint = mode === 'NHSSCR' ? '/ipsNhsScrVal' : '/ipsUniVal'
+
+  const labels = mode === 'NHSSCR'
+    ? {
+      title: 'NHS SCR JSON Validator',
+      helper: 'Paste your NHS SCR IPS Bundle here (you can also paste a single resource e.g. Patient)',
+      schemaLabel: 'NHS SCR',
+      resultValidKey: 'validNhsScr',
+      resultErrorsKey: 'errorsNhsScr'
+    }
+    : {
+      title: 'NPS JSON Validator',
+      helper: 'Paste your NPS Bundle here (note, you can also paste a single resource e.g. Patient)',
+      schemaLabel: 'NPS',
+      resultValidKey: 'validNps',
+      resultErrorsKey: 'errorsNps'
+    }
 
   const jumpToPath = (path) => {
     const el = inputRef.current
@@ -46,13 +65,13 @@ export default function IPSchemaValidator() {
   const validate = async () => {
     setResult(null)
     try {
-      // send raw JSON text directly
-      const resp = await fetch('/ipsUniVal', {
+      const resp = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: input
       })
       const body = await resp.json()
+
       if (resp.ok) {
         setResult(body)
       } else {
@@ -60,8 +79,11 @@ export default function IPSchemaValidator() {
         setResult({
           valid: false,
           errors: body.errors || [{ path: '', message: body.message || 'Validation failed' }],
+          // provide both possible result shapes so UI doesn't crash
           validNps: false,
           errorsNps: body.errors || [],
+          validNhsScr: false,
+          errorsNhsScr: body.errors || [],
           validFhirR4: false,
           errorsFhirR4: []
         })
@@ -72,17 +94,50 @@ export default function IPSchemaValidator() {
         errors: [{ path: '', message: 'Validation request failed: ' + err.message }],
         validNps: false,
         errorsNps: [],
+        validNhsScr: false,
+        errorsNhsScr: [],
         validFhirR4: false,
         errorsFhirR4: []
       })
     }
   }
 
+  const schemaValid = result ? !!result[labels.resultValidKey] : false
+  const schemaErrors = result ? (result[labels.resultErrorsKey] || []) : []
+
   return (
     <Container className="mt-4">
-      <h4>NPS JSON Validator</h4>
-      <Form.Group controlId="jsonInput">
-        <Form.Label>Paste your NPS Bundle here (note, you can also paste a single resource e.g. Patient)</Form.Label>
+      <Row className="align-items-center">
+        <Col>
+          <h4 className="mb-0">{labels.title}</h4>
+        </Col>
+        <Col xs="auto">
+          <ButtonGroup aria-label="Validator mode">
+            <Button
+              variant={mode === 'NPS' ? 'primary' : 'outline-primary'}
+              onClick={() => {
+                setMode('NPS')
+                setResult(null)
+              }}
+            >
+              NPS
+            </Button>
+
+            <Button
+              variant={mode === 'NHSSCR' ? 'primary' : 'outline-primary'}
+              onClick={() => {
+                setMode('NHSSCR')
+                setResult(null)
+              }}
+            >
+              NHS SCR
+            </Button>
+          </ButtonGroup>
+        </Col>
+      </Row>
+
+      <Form.Group controlId="jsonInput" className="mt-3">
+        <Form.Label>{labels.helper}</Form.Label>
         <Form.Control
           as="textarea"
           rows={20}
@@ -93,28 +148,31 @@ export default function IPSchemaValidator() {
           className="resultTextArea"
         />
       </Form.Group>
-      <Button className="mt-2" onClick={validate}>Validate</Button>
+
+      <div className="mt-2 d-flex gap-2">
+        <Button onClick={validate}>Validate</Button>
+      </div>
 
       {result && (
         <>
           <Alert variant="secondary" className="mt-3">
-            <div><strong>NPS:</strong> {result.validNps ? '✅ Valid' : '❌ Invalid'}</div>
+            <div><strong>{labels.schemaLabel}:</strong> {schemaValid ? '✅ Valid' : '❌ Invalid'}</div>
             <div><strong>FHIR R4:</strong> {result.validFhirR4 ? '✅ Valid' : '❌ Invalid'}</div>
           </Alert>
 
-          {(result.validNps && result.validFhirR4) ? (
-            <Alert variant="success" className="mt-3">✅ Valid (NPS + FHIR R4)!</Alert>
+          {(schemaValid && result.validFhirR4) ? (
+            <Alert variant="success" className="mt-3">✅ Valid ({labels.schemaLabel} + FHIR R4)!</Alert>
           ) : (
             <Alert variant="danger" className="mt-3">
               <h5>Validation Errors</h5>
 
-              {!result.validNps && (result.errorsNps?.length > 0) && (
+              {!schemaValid && (schemaErrors.length > 0) && (
                 <>
-                  <h6 className="mt-2">NPS</h6>
+                  <h6 className="mt-2">{labels.schemaLabel}</h6>
                   <ul>
-                    {result.errorsNps.map((err, i) => (
+                    {schemaErrors.map((err, i) => (
                       <li
-                        key={`nps-${i}`}
+                        key={`schema-${i}`}
                         style={{ cursor: 'pointer' }}
                         onClick={() => jumpToPath(err.path)}
                       >

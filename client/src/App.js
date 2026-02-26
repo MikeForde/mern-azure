@@ -20,6 +20,7 @@ import NFCReaderPage from './pages/NFCReaderPage';
 import BEERGardenPage from './pages/BEERGardenPage';
 import APIDocumentationPage from './pages/APIDocumentationPage';
 import IPSchemaViewer from './pages/IPSSchemaViewerPage';
+import IPSchemaViewerNhsScr from './pages/IPSSchemaViewerNhsScr';
 import IPSchemaValidator from './pages/IPSSchemaValidatorPage';
 import JWEDecryptPage from './pages/JWEDecryptPage';
 import JWEMultiRecipientPage from './pages/JWEMultiRecipientPage';
@@ -81,6 +82,7 @@ function App() {
               <Route path="/puships" element={<UnifiedPostPage />} />
               <Route path="/fetchips" element={<UnifiedIPSGetPage />} />
               <Route path="/schemaviewer" element={<IPSchemaViewer />} />
+              <Route path="/schemaviewernhsscr" element={<IPSchemaViewerNhsScr />} />
               <Route path="/schemavalidator" element={<IPSchemaValidator />} />
               <Route path="/cwix/payload" element={<PayloadPage />} />
               <Route path="/viewer" element={<PayloadPage />} />

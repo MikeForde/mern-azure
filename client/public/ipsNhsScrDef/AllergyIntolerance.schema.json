@@ -3,7 +3,7 @@
   "$id": "/ipsNhsScrDef/AllergyIntolerance.schema.json",
   "title": "NHS SCR IPS AllergyIntolerance",
   "type": "object",
-  "additionalProperties": false,
+  "additionalProperties": true,
   "required": [
     "resourceType",
     "id",
@@ -52,6 +52,11 @@
       }
     },
     "onsetDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "description": "SCR IPS example uses date-time."
+    },
+    "recordedDate": {
       "type": "string",
       "format": "date-time",
       "description": "SCR IPS example uses date-time."

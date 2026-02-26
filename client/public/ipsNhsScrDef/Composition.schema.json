@@ -15,7 +15,6 @@
     "author",
     "title",
     "event",
-    "custodian",
     "section"
   ],
   "properties": {
@@ -25,6 +24,8 @@
       "type": "string",
       "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$"
     },
+
+    "text": { "$ref": "#/definitions/Narrative" },
 
     "identifier": { "$ref": "#/definitions/IdentifierSingle" },
 
@@ -117,7 +118,7 @@
     "Coding": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["system", "code", "display"],
+      "required": ["system", "code"],
       "properties": {
         "system": { "type": "string" },
         "code": { "type": "string" },

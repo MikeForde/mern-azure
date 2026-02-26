@@ -3,7 +3,7 @@
   "$id": "/ipsNhsScrDef/Condition.schema.json",
   "title": "NHS SCR IPS Condition",
   "type": "object",
-  "additionalProperties": false,
+  "additionalProperties": true,
   "required": [
     "resourceType",
     "id",
@@ -52,6 +52,10 @@
       }
     },
     "onsetDateTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "recordedDate": {
       "type": "string",
       "format": "date-time"
     }

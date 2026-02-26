@@ -3,7 +3,7 @@
   "$id": "/ipsNhsScrDef/Bundle.schema.json",
   "title": "NHS SCR IPS Bundle",
   "type": "object",
-  "required": ["resourceType", "id", "timestamp", "type", "entry"],
+  "required": ["resourceType", "id", "identifier", "type", "timestamp", "entry"],
   "properties": {
     "resourceType": { "const": "Bundle" },
 
@@ -13,16 +13,13 @@
       "description": "UUID recommended"
     },
 
+    "identifier": { "$ref": "#/definitions/IdentifierSingle" },
+
+    "type": { "const": "document" },
+
     "timestamp": {
       "type": "string",
       "format": "date-time"
-    },
-
-    "type": { "const": "collection" },
-
-    "total": {
-      "type": "integer",
-      "minimum": 0
     },
 
     "entry": {
@@ -34,7 +31,30 @@
 
   "additionalProperties": true,
 
+  "allOf": [
+    {
+      "description": "Document bundles must start with a Composition resource in entry[0].",
+      "properties": {
+        "entry": {
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/BundleEntry" }
+        }
+      },
+      "required": ["entry"]
+    }
+  ],
+
   "definitions": {
+    "IdentifierSingle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "value"],
+      "properties": {
+        "system": { "type": "string" },
+        "value": { "type": "string" }
+      }
+    },
+
     "BundleEntry": {
       "type": "object",
       "additionalProperties": false,

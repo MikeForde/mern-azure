@@ -3,7 +3,7 @@
   "$id": "/ipsNhsScrDef/Observation.schema.json",
   "title": "NHS SCR IPS Observation",
   "type": "object",
-  "additionalProperties": false,
+  "additionalProperties": true,
   "required": [
     "resourceType",
     "id",
@@ -60,19 +60,6 @@
 
     "bodySite": { "$ref": "#/definitions/CodeableConcept" }
   },
-
-  "oneOf": [
-    {
-      "description": "Simple result observation (e.g., Ferritin): has valueQuantity and no components.",
-      "required": ["valueQuantity"],
-      "not": { "required": ["component"] }
-    },
-    {
-      "description": "Panel-style observation (e.g., Blood Pressure): has component[] and no valueQuantity.",
-      "required": ["component"],
-      "not": { "required": ["valueQuantity"] }
-    }
-  ],
 
   "definitions": {
     "CodeableConcept": {
