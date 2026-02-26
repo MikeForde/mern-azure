@@ -1,0 +1,223 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/ipsNhsScrDef/Procedure.schema.json",
+  "title": "NHS SCR IPS Procedure",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "resourceType",
+    "id",
+    "contained",
+    "identifier",
+    "status",
+    "code",
+    "subject",
+    "performedDateTime",
+    "performer"
+  ],
+  "properties": {
+    "resourceType": { "const": "Procedure" },
+
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$"
+    },
+
+    "contained": {
+      "type": "array",
+      "minItems": 2,
+      "description": "NHS SCR example: contained Practitioner (#prac1) and Organization (#org1).",
+      "items": {
+        "oneOf": [
+          { "$ref": "#/definitions/ContainedPractitioner" },
+          { "$ref": "#/definitions/ContainedOrganization" }
+        ]
+      }
+    },
+
+    "identifier": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/Identifier" }
+    },
+
+    "status": {
+      "type": "string",
+      "enum": [
+        "preparation",
+        "in-progress",
+        "not-done",
+        "on-hold",
+        "stopped",
+        "completed",
+        "entered-in-error",
+        "unknown"
+      ]
+    },
+
+    "code": { "$ref": "#/definitions/CodeableConcept" },
+
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference"],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "pattern": "^Patient\\/[A-Za-z0-9\\-\\.]+$"
+        }
+      }
+    },
+
+    "performedDateTime": { "type": "string", "format": "date-time" },
+
+    "performer": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/Performer" }
+    }
+  },
+
+  "allOf": [
+    {
+      "description": "Tighten the example contained-resource pattern: must include Practitioner(id='prac1') and Organization(id='org1').",
+      "properties": {
+        "contained": {
+          "allOf": [
+            { "contains": { "$ref": "#/definitions/ContainedPractitioner" } },
+            { "contains": { "$ref": "#/definitions/ContainedOrganization" } }
+          ]
+        }
+      }
+    },
+    {
+      "description": "Performer references must point at the contained resources in this pattern.",
+      "properties": {
+        "performer": {
+          "items": {
+            "properties": {
+              "actor": {
+                "properties": {
+                  "reference": { "const": "#prac1" }
+                }
+              },
+              "onBehalfOf": {
+                "properties": {
+                  "reference": { "const": "#org1" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+
+  "definitions": {
+    "Identifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "value"],
+      "properties": {
+        "system": { "type": "string" },
+        "value": { "type": "string" }
+      }
+    },
+
+    "CodeableConcept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coding"],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/Coding" }
+        },
+        "text": { "type": "string" }
+      }
+    },
+
+    "Coding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "code", "display"],
+      "properties": {
+        "system": { "type": "string" },
+        "code": { "type": "string" },
+        "display": { "type": "string" }
+      }
+    },
+
+    "ContainedPractitioner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "id", "name"],
+      "properties": {
+        "resourceType": { "const": "Practitioner" },
+        "id": { "const": "prac1" },
+        "name": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/HumanName" }
+        }
+      }
+    },
+
+    "HumanName": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text"],
+      "properties": {
+        "text": { "type": "string" },
+        "family": { "type": "string" },
+        "given": { "type": "array", "items": { "type": "string" } },
+        "prefix": { "type": "array", "items": { "type": "string" } },
+        "suffix": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "ContainedOrganization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "id", "name"],
+      "properties": {
+        "resourceType": { "const": "Organization" },
+        "id": { "const": "org1" },
+        "name": { "type": "string" }
+      }
+    },
+
+    "Performer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor", "onBehalfOf"],
+      "properties": {
+        "actor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reference"],
+          "properties": {
+            "reference": {
+              "type": "string",
+              "description": "Reference to contained Practitioner.",
+              "pattern": "^#.+$"
+            }
+          }
+        },
+        "onBehalfOf": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reference"],
+          "properties": {
+            "reference": {
+              "type": "string",
+              "description": "Reference to contained Organization.",
+              "pattern": "^#.+$"
+            }
+          }
+        }
+      }
+    }
+  }
+}

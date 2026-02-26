@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/ipsNhsScrDef/Observation.schema.json",
+  "title": "NHS SCR IPS Observation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "resourceType",
+    "id",
+    "status",
+    "code",
+    "subject",
+    "effectiveDateTime"
+  ],
+  "properties": {
+    "resourceType": { "const": "Observation" },
+
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$"
+    },
+
+    "status": {
+      "type": "string",
+      "enum": [
+        "registered",
+        "preliminary",
+        "final",
+        "amended",
+        "corrected",
+        "cancelled",
+        "unknown"
+      ]
+    },
+
+    "code": { "$ref": "#/definitions/CodeableConcept" },
+
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference"],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "description": "NHS SCR examples use URN UUID references for the Patient.",
+          "pattern": "^urn:uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        }
+      }
+    },
+
+    "effectiveDateTime": { "type": "string", "format": "date-time" },
+
+    "valueQuantity": { "$ref": "#/definitions/Quantity" },
+
+    "component": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/ObservationComponent" }
+    },
+
+    "bodySite": { "$ref": "#/definitions/CodeableConcept" }
+  },
+
+  "oneOf": [
+    {
+      "description": "Simple result observation (e.g., Ferritin): has valueQuantity and no components.",
+      "required": ["valueQuantity"],
+      "not": { "required": ["component"] }
+    },
+    {
+      "description": "Panel-style observation (e.g., Blood Pressure): has component[] and no valueQuantity.",
+      "required": ["component"],
+      "not": { "required": ["valueQuantity"] }
+    }
+  ],
+
+  "definitions": {
+    "CodeableConcept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coding"],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/Coding" }
+        },
+        "text": { "type": ["string", "null"] }
+      }
+    },
+
+    "Coding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "code", "display"],
+      "properties": {
+        "system": { "type": "string" },
+        "code": { "type": "string" },
+        "display": { "type": "string" }
+      }
+    },
+
+    "Quantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "unit", "system", "code"],
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" },
+        "system": { "type": "string" },
+        "code": { "type": "string" }
+      }
+    },
+
+    "ObservationComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "valueQuantity"],
+      "properties": {
+        "code": { "$ref": "#/definitions/CodeableConcept" },
+        "valueQuantity": { "$ref": "#/definitions/Quantity" }
+      }
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/ipsNhsScrDef/Bundle.schema.json",
+  "title": "NHS SCR IPS Bundle",
+  "type": "object",
+  "required": ["resourceType", "id", "timestamp", "type", "entry"],
+  "properties": {
+    "resourceType": { "const": "Bundle" },
+
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$",
+      "description": "UUID recommended"
+    },
+
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "type": { "const": "collection" },
+
+    "total": {
+      "type": "integer",
+      "minimum": 0
+    },
+
+    "entry": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/BundleEntry" }
+    }
+  },
+
+  "additionalProperties": true,
+
+  "definitions": {
+    "BundleEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resource"],
+      "properties": {
+        "fullUrl": {
+          "type": "string",
+          "format": "uri",
+          "examples": ["urn:uuid:381238c4-1f92-43a4-8734-4eb05de12bf0"]
+        },
+        "resource": {
+          "description": "Prefer NHS SCR IPS resource-specific schemas where available; otherwise allow any valid FHIR resource (validated by the global FHIR schema in a higher-level pass).",
+          "anyOf": [
+            { "$ref": "/ipsNhsScrDef/Patient.schema.json" },
+            { "$ref": "/ipsNhsScrDef/Organization.schema.json" },
+            { "$ref": "/ipsNhsScrDef/Practitioner.schema.json" },
+            { "$ref": "/ipsNhsScrDef/Composition.schema.json" },
+            { "$ref": "/ipsNhsScrDef/AllergyIntolerance.schema.json" },
+            { "$ref": "/ipsNhsScrDef/Condition.schema.json" },
+            { "$ref": "/ipsNhsScrDef/MedicationStatement.schema.json" },
+            { "$ref": "/ipsNhsScrDef/Immunization.schema.json" },
+            { "$ref": "/ipsNhsScrDef/Observation.schema.json" },
+            { "$ref": "/ipsNhsScrDef/Procedure.schema.json" },
+
+            {
+              "type": "object",
+              "description": "Fallback: allow other FHIR resources not yet modelled here.",
+              "required": ["resourceType"],
+              "properties": {
+                "resourceType": { "type": "string", "minLength": 1 }
+              },
+              "additionalProperties": true
+            }
+          ]
+        }
+      }
+    }
+  }
+}

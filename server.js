@@ -53,6 +53,7 @@ const { convertCDAToMongo } = require('./servercontrollers/convertCDAToMongo');
 const { convertHL72_xToMongo } = require('./servercontrollers/convertHL72_xToMongo');
 const { convertHL72_xToIPS } = require("./servercontrollers/convertHL72_xToIPS");
 const ipsUniValRouter = require('./schema/ipsUniVal');
+const ipsNhsScrValRouter = require('./schema/ipsNhsScrVal');
 
 // ----- Middleware ---------
 const binaryDecryptMiddleware = require('./middlewares/binaryDecryptMiddleware');
@@ -191,6 +192,7 @@ api.post('/test', (req, res) => {
 // Schema validation endpoint
 api.use('/ipsUniVal', ipsUniValRouter);
 api.use('/npsVal', ipsUniValRouter);
+api.use('/ipsNhsScrVal', ipsNhsScrValRouter);
 
 // API GET - CRUD Read
 api.get("/ips/all", getAllIPS);

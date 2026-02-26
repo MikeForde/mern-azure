@@ -1,0 +1,144 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/ipsNhsScrDef/Immunization.schema.json",
+  "title": "NHS SCR IPS Immunization",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "resourceType",
+    "id",
+    "contained",
+    "extension",
+    "identifier",
+    "status",
+    "vaccineCode",
+    "patient",
+    "occurrenceDateTime",
+    "manufacturer"
+  ],
+  "properties": {
+    "resourceType": { "const": "Immunization" },
+
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$"
+    },
+
+    "contained": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/ContainedManufacturerOrg" }
+    },
+
+    "extension": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "/ipsNhsScrDef/Extension.schema.json" },
+      "description": "UK Core / NHS SCR extensions (e.g., Vaccination Procedure)."
+    },
+
+    "identifier": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/Identifier" }
+    },
+
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "entered-in-error",
+        "not-done"
+      ]
+    },
+
+    "vaccineCode": { "$ref": "#/definitions/CodeableConcept" },
+
+    "patient": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference"],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "description": "NHS SCR example uses Patient/<id> here (not URN UUID).",
+          "pattern": "^Patient\\/[A-Za-z0-9\\-\\.]+$"
+        }
+      }
+    },
+
+    "occurrenceDateTime": { "type": "string", "format": "date-time" },
+
+    "manufacturer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference"],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "const": "#manufacturer",
+          "description": "References the contained Organization with id='manufacturer'."
+        }
+      }
+    }
+  },
+
+  "allOf": [
+    {
+      "description": "Tighten the NHS SCR contained-resource pattern: must include Organization(id='manufacturer').",
+      "properties": {
+        "contained": {
+          "contains": { "$ref": "#/definitions/ContainedManufacturerOrg" }
+        }
+      }
+    }
+  ],
+
+  "definitions": {
+    "Identifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "value"],
+      "properties": {
+        "system": { "type": "string" },
+        "value": { "type": "string" }
+      }
+    },
+
+    "CodeableConcept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coding"],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/Coding" }
+        },
+        "text": { "type": "string" }
+      }
+    },
+
+    "Coding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "code", "display"],
+      "properties": {
+        "system": { "type": "string" },
+        "code": { "type": "string" },
+        "display": { "type": "string" }
+      }
+    },
+
+    "ContainedManufacturerOrg": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "id", "name"],
+      "properties": {
+        "resourceType": { "const": "Organization" },
+        "id": { "const": "manufacturer" },
+        "name": { "type": "string" }
+      }
+    }
+  }
+}

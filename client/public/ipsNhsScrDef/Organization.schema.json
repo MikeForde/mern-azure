@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/ipsNhsScrDef/Organization.schema.json",
+  "title": "NHS SCR IPS Organization",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["resourceType", "id", "name"],
+  "properties": {
+    "resourceType": {
+      "const": "Organization"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$",
+      "description": "Simple ids preferred (UUIDs are fine if you keep them in the id field)."
+    },
+    "name": {
+      "type": "string",
+      "description": "Organization name (e.g., NHS org name, manufacturer name, or 'Unknown' in contained source org)."
+    }
+  }
+}

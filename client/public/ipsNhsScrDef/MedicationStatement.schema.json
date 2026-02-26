@@ -1,0 +1,218 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/ipsNhsScrDef/MedicationStatement.schema.json",
+  "title": "NHS SCR IPS MedicationStatement",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "resourceType",
+    "id",
+    "contained",
+    "identifier",
+    "status",
+    "category",
+    "medicationReference",
+    "subject",
+    "effectiveDateTime",
+    "dateAsserted",
+    "informationSource",
+    "dosage"
+  ],
+  "properties": {
+    "resourceType": { "const": "MedicationStatement" },
+
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$"
+    },
+
+    "contained": {
+      "type": "array",
+      "minItems": 2,
+      "description": "NHS SCR pattern: a contained Medication (#med) and contained Organization (#source).",
+      "items": {
+        "oneOf": [
+          { "$ref": "#/definitions/ContainedMedication" },
+          { "$ref": "#/definitions/ContainedOrganizationSource" }
+        ]
+      }
+    },
+
+    "identifier": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/Identifier" }
+    },
+
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed",
+        "entered-in-error",
+        "intended",
+        "stopped",
+        "on-hold",
+        "unknown",
+        "not-taken"
+      ]
+    },
+
+    "category": { "$ref": "#/definitions/CodeableConcept" },
+
+    "medicationReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference"],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "const": "#med",
+          "description": "NHS SCR example references the contained Medication with '#med'."
+        }
+      }
+    },
+
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference"],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "pattern": "^urn:uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        }
+      }
+    },
+
+    "effectiveDateTime": { "type": "string", "format": "date-time" },
+    "dateAsserted": { "type": "string", "format": "date-time" },
+
+    "informationSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference"],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "const": "#source",
+          "description": "NHS SCR example references the contained Organization with '#source'."
+        }
+      }
+    },
+
+    "dosage": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/Dosage" }
+    }
+  },
+
+  "allOf": [
+    {
+      "description": "Tighten the NHS SCR contained-resource pattern: must include Medication(id='med') and Organization(id='source').",
+      "properties": {
+        "contained": {
+          "allOf": [
+            { "contains": { "$ref": "#/definitions/ContainedMedication" } },
+            { "contains": { "$ref": "#/definitions/ContainedOrganizationSource" } }
+          ]
+        }
+      }
+    }
+  ],
+
+  "definitions": {
+    "Identifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "value"],
+      "properties": {
+        "system": { "type": "string" },
+        "value": { "type": "string" }
+      }
+    },
+
+    "CodeableConcept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coding"],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/Coding" }
+        },
+        "text": { "type": "string" }
+      }
+    },
+
+    "Coding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "code", "display"],
+      "properties": {
+        "system": { "type": "string" },
+        "code": { "type": "string" },
+        "display": { "type": "string" }
+      }
+    },
+
+    "ContainedMedication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "id", "code"],
+      "properties": {
+        "resourceType": { "const": "Medication" },
+        "id": { "const": "med" },
+        "code": { "$ref": "#/definitions/CodeableConcept" }
+      }
+    },
+
+    "ContainedOrganizationSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "id", "name"],
+      "properties": {
+        "resourceType": { "const": "Organization" },
+        "id": { "const": "source" },
+        "name": { "type": "string" }
+      }
+    },
+
+    "Dosage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "doseAndRate"],
+      "properties": {
+        "text": { "type": "string" },
+        "doseAndRate": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/DoseAndRate" }
+        }
+      }
+    },
+
+    "DoseAndRate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["doseQuantity"],
+      "properties": {
+        "doseQuantity": { "$ref": "#/definitions/Quantity" }
+      }
+    },
+
+    "Quantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "unit", "system", "code"],
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" },
+        "system": { "type": "string" },
+        "code": { "type": "string" }
+      }
+    }
+  }
+}
