@@ -584,7 +584,7 @@ function APIGETPage() {
                         {!valResult.valid && (
                           <Button
                             size="sm"
-                            variant="outline-light"
+                            variant="outline-danger"
                             onClick={() => setShowValErrors(v => !v)}
                           >
                             {showValErrors ? 'Hide errors' : 'Show errors'}
