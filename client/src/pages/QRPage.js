@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import QRCode from 'qrcode.react';
 import axios from 'axios';
 import { Button, Alert, DropdownButton, Dropdown, Form } from 'react-bootstrap';

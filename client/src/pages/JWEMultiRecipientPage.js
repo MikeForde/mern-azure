@@ -1,5 +1,5 @@
 // src/pages/JWEMultiRecipientPage.js
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Form, Button, Row, Col, Card, Alert } from 'react-bootstrap';
 import {
     GeneralEncrypt,

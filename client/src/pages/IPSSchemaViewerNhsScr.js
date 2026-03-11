@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Spinner, Tab, Nav, Button, ButtonGroup } from 'react-bootstrap';
 import ReactJson from 'react-json-view';
 

@@ -1,5 +1,5 @@
 // Single recipient and multi-recipient JWE encrypt/decrypt lab page
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button, Form, Row, Col, Alert, Spinner } from 'react-bootstrap';
 import {
     importJWK,

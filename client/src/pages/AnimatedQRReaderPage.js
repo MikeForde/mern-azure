@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { Button, ProgressBar, Alert, Form, Toast, ToastContainer } from 'react-bootstrap';
 import axios from 'axios';
