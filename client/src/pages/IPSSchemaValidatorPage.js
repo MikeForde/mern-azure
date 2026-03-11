@@ -14,6 +14,7 @@ export default function IPSchemaValidator() {
   const [showAllErrors, setShowAllErrors] = useState(false)
   const [submitResult, setSubmitResult] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [nhsScrLenient, setNhsScrLenient] = useState(false)
 
   const inputRef = useRef(null)
 
@@ -21,19 +22,19 @@ export default function IPSchemaValidator() {
 
   const labels = mode === 'NHSSCR'
     ? {
-        title: 'NHS SCR JSON Validator',
-        helper: 'Paste your NHS SCR IPS Bundle here (you can also paste a single resource e.g. Patient)',
-        schemaLabel: 'NHS SCR',
-        resultValidKey: 'validNhsScr',
-        resultErrorsKey: 'errorsNhsScr'
-      }
+      title: 'NHS SCR JSON Validator',
+      helper: 'Paste your NHS SCR IPS Bundle here (you can also paste a single resource e.g. Patient)',
+      schemaLabel: 'NHS SCR',
+      resultValidKey: 'validNhsScr',
+      resultErrorsKey: 'errorsNhsScr'
+    }
     : {
-        title: 'NPS JSON Validator',
-        helper: 'Paste your NPS Bundle here (note, you can also paste a single resource e.g. Patient)',
-        schemaLabel: 'NPS',
-        resultValidKey: 'validNps',
-        resultErrorsKey: 'errorsNps'
-      }
+      title: 'NPS JSON Validator',
+      helper: 'Paste your NPS Bundle here (note, you can also paste a single resource e.g. Patient)',
+      schemaLabel: 'NPS',
+      resultValidKey: 'validNps',
+      resultErrorsKey: 'errorsNps'
+    }
 
   const safeParseJson = (text) => {
     try {
@@ -162,8 +163,13 @@ export default function IPSchemaValidator() {
       return
     }
 
+    const validationUrl =
+      mode === 'NHSSCR' && nhsScrLenient
+        ? `${endpoint}?lenient=true`
+        : endpoint
+
     try {
-      const resp = await fetch(endpoint, {
+      const resp = await fetch(validationUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: input
@@ -315,6 +321,20 @@ export default function IPSchemaValidator() {
               NHS SCR
             </Button>
           </ButtonGroup>
+          {mode === 'NHSSCR' && (
+            <Form.Check
+              className="mt-3"
+              type="switch"
+              id="nhsscr-lenient-mode"
+              label="Lenient NHS SCR validation (allow additional properties outside schema)"
+              checked={nhsScrLenient}
+              onChange={(e) => {
+                setNhsScrLenient(e.target.checked)
+                setResult(null)
+                setSubmitResult(null)
+              }}
+            />
+          )}
         </Col>
       </Row>
 
@@ -371,6 +391,9 @@ export default function IPSchemaValidator() {
           <Alert variant="secondary" className="mt-3">
             <div><strong>{labels.schemaLabel}:</strong> {schemaValid ? '✅ Valid' : '❌ Invalid'}</div>
             <div><strong>FHIR R4:</strong> {result.validFhirR4 ? '✅ Valid' : '❌ Invalid'}</div>
+            {mode === 'NHSSCR' && (
+              <div><strong>Mode:</strong> {result.validationMode === 'lenient' ? 'Lenient' : 'Strict'}</div>
+            )}
           </Alert>
 
           {(schemaValid && result.validFhirR4) ? (

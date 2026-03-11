@@ -1,4 +1,3 @@
-// server/ipsNhsScrVal.js
 const express = require('express');
 const Ajv = require('ajv');
 const addFormats = require('ajv-formats');
@@ -37,16 +36,15 @@ convertSchemaIdKeyword(fhirSchema);
 if (!fhirSchema.$id && typeof fhirSchema.id === 'string') {
   fhirSchema.$id = fhirSchema.id;
 }
-// Remove unsupported OpenAPI-style discriminator
 if (fhirSchema && typeof fhirSchema === 'object') {
   delete fhirSchema.discriminator;
 }
 
-const schemas = {};
+const strictSchemas = {};
 schemaFiles.forEach(file => {
   const name = file.replace('.schema.json', '');
   const raw = fs.readFileSync(path.join(schemaDir, file), 'utf8');
-  schemas[name] = JSON.parse(raw);
+  strictSchemas[name] = JSON.parse(raw);
 });
 
 function fhirDefRef(resourceType) {
@@ -66,6 +64,59 @@ function convertSchemaIdKeyword(node) {
   }
 
   for (const v of Object.values(node)) convertSchemaIdKeyword(v);
+}
+
+function deepClone(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+function makeSchemaLenient(node) {
+  if (Array.isArray(node)) {
+    node.forEach(makeSchemaLenient);
+    return;
+  }
+  if (!node || typeof node !== 'object') return;
+
+  if (Object.prototype.hasOwnProperty.call(node, 'additionalProperties')) {
+    node.additionalProperties = true;
+  }
+
+  // Also add it where object schemas define properties but omitted it
+  if (
+    (node.type === 'object' || node.properties || node.patternProperties) &&
+    !Object.prototype.hasOwnProperty.call(node, 'additionalProperties')
+  ) {
+    node.additionalProperties = true;
+  }
+
+  for (const v of Object.values(node)) {
+    makeSchemaLenient(v);
+  }
+}
+
+function buildRuntimeSchemas(lenient = false) {
+  const runtimeSchemas = deepClone(strictSchemas);
+
+  if (lenient) {
+    Object.values(runtimeSchemas).forEach(schema => makeSchemaLenient(schema));
+  }
+
+  return runtimeSchemas;
+}
+
+function parseBooleanFlag(value) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value !== 'string') return false;
+
+  const v = value.trim().toLowerCase();
+  return v === 'true' || v === '1' || v === 'yes' || v === 'y' || v === 'on';
+}
+
+function isLenientRequest(req) {
+  return (
+    parseBooleanFlag(req.query?.lenient) ||
+    parseBooleanFlag(req.headers['x-validator-lenient'])
+  );
 }
 
 function prettyAjvError(e, prefix = '') {
@@ -93,6 +144,9 @@ function prettyAjvError(e, prefix = '') {
 
 // POST /ipsNhsScrVal
 router.post('/', (req, res) => {
+  const lenient = isLenientRequest(req);
+  const schemas = buildRuntimeSchemas(lenient);
+
   const ajv = new Ajv({ allErrors: true, strict: false });
 
   // FHIR Ajv (draft-06 schema)
@@ -106,14 +160,13 @@ router.post('/', (req, res) => {
   ajvFhir.addSchema(fhirSchema, FHIR_SCHEMA_KEY);
 
   // ---- Bundle cross-resource reference resolution ----
-  // NOTE: for NHS SCR we *do not* enforce "req per med" like NPS did.
   ajv.addKeyword({
     keyword: 'bundleRefsResolve',
-    type: 'array', // entry array
+    type: 'array',
     errors: true,
     validate: function bundleRefsResolve(schema, entries) {
-      const byTypeId = new Map(); // "Patient/pt1" -> true
-      const byId = new Map();     // "pt1" -> Set(["Patient", ...])
+      const byTypeId = new Map();
+      const byId = new Map();
 
       (entries || []).forEach(en => {
         const r = en && en.resource;
@@ -129,9 +182,9 @@ router.post('/', (req, res) => {
 
       function isSkippableReference(ref) {
         if (!ref || typeof ref !== 'string') return true;
-        if (ref.startsWith('#')) return true;                 // contained
-        if (/^https?:\/\//i.test(ref)) return true;           // external
-        if (/^urn:(uuid|oid):/i.test(ref)) return true;       // logical/URN (common in SCR)
+        if (ref.startsWith('#')) return true;
+        if (/^https?:\/\//i.test(ref)) return true;
+        if (/^urn:(uuid|oid):/i.test(ref)) return true;
         return false;
       }
 
@@ -213,16 +266,14 @@ router.post('/', (req, res) => {
 
   addFormats(ajv);
 
-  // Register SCR schemas under their resourceType name (Bundle, Patient, etc.)
   Object.entries(schemas).forEach(([name, schema]) => ajv.addSchema(schema, name));
 
   let obj = req.body;
-  // unwrap entry-wrapper (if caller posted {fullUrl, resource})
   if (!obj.resourceType && obj.resource?.resourceType) {
     obj = obj.resource;
   }
 
-  const topType = obj.resourceType;
+  const topType = obj?.resourceType;
   if (!topType || !schemas[topType]) {
     return res.status(400).json({
       valid: false,
@@ -234,34 +285,27 @@ router.post('/', (req, res) => {
   const errorsFhir = [];
 
   if (topType === 'Bundle') {
-    // 1) Envelope validation (allow unknown entry resource types at this stage)
     const bundleSchema = schemas.Bundle;
-    const envelopeSchema = JSON.parse(JSON.stringify(bundleSchema));
+    const envelopeSchema = deepClone(bundleSchema);
     delete envelopeSchema.$id;
 
-    // Force the envelope phase to not care about per-resource shape
     if (envelopeSchema.definitions?.BundleEntry?.properties?.resource) {
       envelopeSchema.definitions.BundleEntry.properties.resource = { type: 'object' };
     }
 
-    // Add cross-resource reference check (but skip URN + contained + external refs)
     envelopeSchema.properties.entry.bundleRefsResolve = true;
 
     if (!ajv.validate(envelopeSchema, obj)) {
       (ajv.errors || []).forEach(e => errorsScr.push(prettyAjvError(e)));
     }
 
-    // --- FHIR validation (structural) ---
     const bundleRef = fhirDefRef('Bundle');
     if (!ajvFhir.validate(bundleRef, obj)) {
       (ajvFhir.errors || []).forEach(e => errorsFhir.push(prettyAjvError(e)));
     }
 
-    // 2) Validate each entry.resource:
-    //    - if we have a SCR schema for it, validate strictly with that schema
-    //    - otherwise, validate structurally against FHIR R4 only
     obj.entry?.forEach((en, idx) => {
-      const resObj = en.resource;
+      const resObj = en?.resource;
       const rt = resObj?.resourceType;
 
       if (!rt) {
@@ -277,7 +321,6 @@ router.post('/', (req, res) => {
         }
       }
 
-      // Always do FHIR structural validation for any resourceType (defined or not)
       const ref = fhirDefRef(rt);
       if (!ajvFhir.validate(ref, resObj)) {
         (ajvFhir.errors || []).forEach(e =>
@@ -286,11 +329,9 @@ router.post('/', (req, res) => {
       }
     });
   } else {
-    // Single resource validation
     ajv.validate(topType, obj);
     (ajv.errors || []).forEach(e => errorsScr.push(prettyAjvError(e)));
 
-    // FHIR structural validation
     const ref = fhirDefRef(topType);
     if (!ajvFhir.validate(ref, obj)) {
       (ajvFhir.errors || []).forEach(e => errorsFhir.push(prettyAjvError(e)));
@@ -305,7 +346,9 @@ router.post('/', (req, res) => {
     errorsNhsScr: errorsScr,
 
     validFhirR4: errorsFhir.length === 0,
-    errorsFhirR4: errorsFhir
+    errorsFhirR4: errorsFhir,
+
+    validationMode: lenient ? 'lenient' : 'strict'
   });
 });
 
