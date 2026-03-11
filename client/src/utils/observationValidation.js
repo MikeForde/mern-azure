@@ -22,7 +22,7 @@ export function isValidObservationValue(rawValue) {
   // - optional "-secondnumber"
   // - optional " space + unit text"
   // - unit text may include letters, digits, %, /, *, ., ^, -, parentheses
-  const obsPattern = /^\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)?(?:\s+[A-Za-z0-9%/.*^()\-]+)?$/;
+  const obsPattern = /^\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)?(?:\s+[A-Za-z0-9%/.*^()[\]-]+)?$/;
 
   return obsPattern.test(value);
 }
