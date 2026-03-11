@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button, Form, Toast } from "react-bootstrap";
 import { v4 as uuidv4 } from 'uuid';
 import "./components.css";
+import { isValidObservationValue, getObservationValueError } from "../../utils/observationValidation";
 
 const formatDate = (dateString) => {
   if (!dateString) return "";
@@ -153,13 +154,9 @@ export function FormIPS({ add }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // enforce “number + space + unit”
-    const obsPattern = /^(?:\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)?)\s+[a-zA-Z%/]+$/;
     for (let { value } of formData.observations) {
-      if (value && /^\d/.test(value) && !obsPattern.test(value)) {
-        setAlertMessage(
-          'Numerical Ob value must be “val(-val) + space + units”, e.g. "60 bpm or 120-80 mmHg or 37.5 C"'
-        );
+      if (!isValidObservationValue(value)) {
+        setAlertMessage(getObservationValueError(value));
         setShowAlert(true);
         return;
       }
@@ -587,7 +584,8 @@ export function FormIPS({ add }) {
                     placeholder="Val Unit"
                   />
                   <Form.Text className="text-muted">
-                    If numerical then must be val[-val], a space, then units (e.g. <code>78 kg</code> or <code>120-80 mmHg</code>)
+                    If numeric, value may be a plain number, a range, or include units
+                    (e.g. <code>0.44</code>, <code>78 kg</code>, <code>120-80 mmHg</code>, <code>4.8 10*12/L</code>)
                   </Form.Text>
                 </div>
               </Form.Group>

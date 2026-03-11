@@ -9,6 +9,7 @@ import { useLoading } from '../../contexts/LoadingContext';
 import "./components.css";
 import { generatePDF } from './generatePDF';
 import { Toast, ToastContainer } from 'react-bootstrap';
+import { isValidObservationValue, getObservationValueError } from "../../utils/observationValidation";
 //import { set } from "mongoose";
 
 
@@ -100,12 +101,9 @@ export function IPS({ ips, remove, update }) {
   const handleSaveEdit = () => {
     // Validate the form data before sending it to the server
     // enforce “number + space + unit” for observations
-    const obsPattern = /^(?:\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)?)\s+[a-zA-Z%/]+$/;
     for (let { value } of editIPS.observations) {
-      if (value && /^\d/.test(value) && !obsPattern.test(value)) {
-        setEditAlertMessage(
-          'If numerical, Observation value must be num[-num] + space + units, e.g. "60 bpm or 120-80 mmHg or 37.5 C"'
-        );
+      if (!isValidObservationValue(value)) {
+        setEditAlertMessage(getObservationValueError(value));
         setShowEditAlert(true);
         return;
       }
@@ -968,7 +966,8 @@ export function IPS({ ips, remove, update }) {
 
             {/* Observations Table */}
             <h4 className="ipsedit">Observations: <span style={{ fontSize: '0.7em', color: '#666' }}>
-              If numerical then val[-val] + space + unit (e.g. <code>60 bpm</code> or <code>120-80 mmHg</code>)
+              Numeric values may be plain numbers, ranges, or include units
+              (e.g. <code>0.44</code>, <code>60 bpm</code>, <code>120-80 mmHg</code>, <code>4.8 10*12/L</code>)
             </span></h4>
             <div className="table-responsive">
               <table className="table table-bordered table-sm">
