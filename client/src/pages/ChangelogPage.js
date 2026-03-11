@@ -829,6 +829,18 @@ function ChangeLogPage() {
                                 <li>Added dedicated NHS SCR Schema Viewer page for inspection of resource definitions and example payloads.</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_83 — 11th Mar 2026</h5>
+                            <ul>
+                                <li><strong>Robust IPS Bundle Parsing & Large Payload Handling</strong></li>
+                                <li>Hardened the <code>/ipsbundle</code> ingestion pipeline with defensive parsing to safely process IPS Bundles where optional elements may be absent or partially populated.</li>
+                                <li>Improved resilience of the IPS Bundle converter to support multiple medication reference patterns (external Medication resources, contained resources, and CodeableConcept-based medications).</li>
+                                <li>Added additional safeguards when reading FHIR structures (arrays, codings, nested elements) to prevent runtime failures when fields are missing or malformed.</li>
+                                <li>Increased backend request size limits to support validation and ingestion of larger IPS/NHS SCR Bundles.</li>
+                                <li>Enhanced frontend JSON Validator to better handle large payloads by reducing rendering overhead and improving error-display performance.</li>
+                                <li>Improved stability of validator error navigation and response handling for large validation result sets.</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>
