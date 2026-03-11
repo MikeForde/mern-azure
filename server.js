@@ -12,6 +12,8 @@ const { Server } = require('socket.io');
 //const xmlparser = require("express-xml-bodyparser");
 //const getRawBody = require('raw-body');
 
+const BODY_LIMIT = '5mb';
+
 // ───── Models & Controllers ─────
 const { getIPSBundle } = require('./servercontrollers/ipsBundleFormat');
 const { getIPSBundleNHSSCR } = require('./servercontrollers/ipsBundleFormatNHSSCR');
@@ -125,15 +127,14 @@ api.use(jsonDecryptDezipMiddleware);
 // ──────────────────────────────────────────────────────────
 api.use((req, res, next) => {
     if (req.headers['x-encrypted'] === 'true') {
-        // Already decrypted in prior middleware
         next();
     } else {
-        // Not encrypted; apply express.json()
-        express.json()(req, res, next);
+        express.json({ limit: BODY_LIMIT })(req, res, next);
     }
 });
-api.use(express.urlencoded({ extended: false }));
-api.use(express.text());
+
+api.use(express.urlencoded({ extended: false, limit: BODY_LIMIT }));
+api.use(express.text({ limit: BODY_LIMIT }));
 
 // ──────────────────────────────────────────────────────────
 //   4. XML Parser for Non-/test Endpoints
@@ -239,7 +240,7 @@ api.get('/playground', playground({ endpoint: '/graphql' }));
 async function startApolloServer() {
     const apolloServer = new ApolloServer({ typeDefs, resolvers, introspection: true, playground: true });
     await apolloServer.start();
-    api.use('/graphql', express.json(), expressMiddleware(apolloServer));
+    api.use('/graphql', express.json({ limit: BODY_LIMIT }), expressMiddleware(apolloServer));
 }
 
 startApolloServer();

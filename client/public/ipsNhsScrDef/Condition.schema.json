@@ -28,6 +28,14 @@
       "minItems": 1,
       "items": { "$ref": "#/definitions/Identifier" }
     },
+    "extension": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "$ref": "/ipsNhsScrDef/Extension.schema.json"
+      },
+      "description": "Primarily included for optional religion field, but can be used for other extensions as well"
+    },
     "clinicalStatus": {
       "$ref": "#/definitions/CodeableConcept"
     },

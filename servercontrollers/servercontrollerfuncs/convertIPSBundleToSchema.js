@@ -1,11 +1,32 @@
-// uuid4 is a library to generate UUIDs
-const { status } = require('@grpc/grpc-js');
 const { v4: uuidv4 } = require('uuid');
 
+const ZERO_ISO_DATETIME = '1970-01-01T00:00:00.000Z';
+const ZERO_ISO_DATE = '1970-01-01';
+
+function safeToISOString(value, fallback = ZERO_ISO_DATETIME) {
+  if (value === undefined || value === null || value === '') return fallback;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? fallback : d.toISOString();
+}
+
+function safeToISODate(value, fallback = ZERO_ISO_DATE) {
+  const iso = safeToISOString(value, `${fallback}T00:00:00.000Z`);
+  return iso.split('T')[0];
+}
+
+function asArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function first(value) {
+  return Array.isArray(value) && value.length > 0 ? value[0] : undefined;
+}
+
+function cleanString(value, fallback = undefined) {
+  return typeof value === 'string' && value.trim() !== '' ? value.trim() : fallback;
+}
+
 function normalizeReferenceId(ref) {
-  // "Medication/abc" -> "abc"
-  // "#med" -> "med"
-  // "urn:uuid:xxxx" -> "xxxx"
   if (!ref || typeof ref !== 'string') return undefined;
   if (ref.startsWith('#')) return ref.slice(1);
   if (ref.startsWith('urn:uuid:')) return ref.split(':').pop();
@@ -14,36 +35,80 @@ function normalizeReferenceId(ref) {
 }
 
 function findContained(resource, containedId) {
-  if (!resource?.contained || !Array.isArray(resource.contained) || !containedId) return undefined;
-  return resource.contained.find(r => r?.id === containedId);
+  if (!resource || !containedId) return undefined;
+  return asArray(resource.contained).find(r => r?.id === containedId);
+}
+
+function getFirstCoding(codeableConcept) {
+  return first(codeableConcept?.coding);
+}
+
+function getCodeableConceptDisplay(codeableConcept, fallback = null) {
+  const coding = getFirstCoding(codeableConcept);
+  return (
+    cleanString(coding?.display) ||
+    cleanString(codeableConcept?.text) ||
+    fallback
+  );
+}
+
+function getCodeableConceptCode(codeableConcept, fallback = null) {
+  const coding = getFirstCoding(codeableConcept);
+  return cleanString(coding?.code) || fallback;
+}
+
+function getCodeableConceptSystem(codeableConcept, fallback = null) {
+  const coding = getFirstCoding(codeableConcept);
+  return cleanString(coding?.system) || fallback;
+}
+
+function getHumanNameDisplay(humanName, fallback = 'Unknown') {
+  if (!humanName) return fallback;
+
+  const text = cleanString(humanName.text);
+  if (text) return text;
+
+  const family = cleanString(humanName.family);
+  const given = cleanString(first(humanName.given));
+
+  if (family && given) return `${family}, ${given}`;
+  if (family) return family;
+  if (given) return given;
+
+  return fallback;
+}
+
+function getPatientName(patientResource) {
+  const name0 = first(patientResource?.name);
+  return {
+    family: cleanString(name0?.family, 'Unknown'),
+    given: cleanString(first(name0?.given), 'Unknown')
+  };
+}
+
+function getBestDateTime(resource, fields, fallback = ZERO_ISO_DATETIME) {
+  for (const field of fields) {
+    const value = resource?.[field];
+    if (value !== undefined && value !== null && value !== '') {
+      return safeToISOString(value, fallback);
+    }
+  }
+  return fallback;
 }
 
 function convertIPSBundleToSchema(ipsBundle) {
-  var { id: packageUUID, timestamp: timeStamp, entry } = ipsBundle;
+  const bundle = ipsBundle && typeof ipsBundle === 'object' ? ipsBundle : {};
+  let packageUUID = cleanString(bundle.id) || uuidv4();
+  let timeStamp = cleanString(bundle.timestamp)
+    ? safeToISOString(bundle.timestamp)
+    : new Date().toISOString();
 
-  console.log("Starting conversion of IPS Bundle to schema...");
+  console.log('Starting conversion of IPS Bundle to schema...');
 
-  // if no id is provided then generate UUID
-  if (!packageUUID) {
-    packageUUID = uuidv4();
-    console.log("No packageUUID provided. Generated UUID: " + packageUUID);
-  }
+  const patient = {
+    practitioner: 'Unknown'
+  };
 
-  // if timestamp is not provided, use the current date
-  if (!timeStamp) {
-    timeStamp = new Date().toISOString();
-    console.log("No timestamp provided. Using current date.");
-  }
-
-  // Initialize variables to store patient and practitioner information
-  let patient = {};
-  patient.practitioner = "Unknown";
-  let dosage = "";
-  let name = "";
-  let medcode = null;
-  let medsystem = null;
-
-  // Initialize arrays to store medication, allergy, condition, observation, and immunization information
   let medication = [];
   let allergies = [];
   let conditions = [];
@@ -51,389 +116,338 @@ function convertIPSBundleToSchema(ipsBundle) {
   let immunizations = [];
   let procedures = [];
 
-  // Create a map for Medication resources (keyed by resource.id)
-  let medicationResourceMap = {};
+  const medicationResourceMap = {};
+  const entries = asArray(bundle.entry);
 
-  // Iterate over each entry in the IPS Bundle
-  for (const entryItem of entry) {
-    const { resourceType, resource } = entryItem;
+  for (const entryItem of entries) {
+    const resource = entryItem?.resource;
+    if (!resource || typeof resource !== 'object') continue;
 
-    //console.log(`Processing resource of type: ${resource.resourceType}`);
+    const resourceType = cleanString(resource.resourceType, '').toLowerCase();
+    if (!resourceType) continue;
 
-    // Extract information based on resource type - change to lowercase
-    switch ((resource.resourceType).toLowerCase()) {
-      case "composition":
+    switch (resourceType) {
+      case 'composition':
         break;
-      case "patient":
-        patient.name = resource.name[0].family;
-        patient.given = resource.name[0].given ? resource.name[0].given[0] : "Unknown";
-        // check if patient given is just empty string
-        if (patient.given === "") {
-          patient.given = "Unknown";
+
+      case 'patient': {
+        const patientName = getPatientName(resource);
+        patient.name = patientName.family;
+        patient.given = patientName.given;
+        patient.dob = safeToISODate(resource.birthDate);
+        patient.gender = cleanString(resource.gender, 'Unknown');
+
+        const address0 = first(resource.address);
+        patient.nation = cleanString(address0?.country, 'Unknown');
+
+        const identifiers = asArray(resource.identifier);
+        const id0 = first(identifiers);
+        const id1 = identifiers.length > 1 ? identifiers[1] : undefined;
+
+        if (id0) {
+          patient.identifier = cleanString(id0.value, 'Unknown');
         }
-        patient.dob = new Date(resource.birthDate).toISOString().split('T')[0];
-        patient.gender = resource.gender !== undefined ? resource.gender : "U3450nknown";
-
-        // If no address is provided, set nation to Unknown
-        patient.nation = resource.address !== undefined ? resource.address[0].country : "Unknown";
-
-        // May be no identifier, or multiple identifiers. For now, we'll capture the first two if they exist.
-        if (resource.identifier !== undefined && resource.identifier.length !== 0) {
-          if (resource.identifier[0] !== undefined) {
-            patient.identifier = resource.identifier[0].value ? resource.identifier[0].value : "Unknown";
-            if (resource.identifier[1] !== undefined) {
-              patient.identifier2 = resource.identifier[1].value ? resource.identifier[1].value : "Unknown";
-            }
-          }
+        if (id1) {
+          patient.identifier2 = cleanString(id1.value, 'Unknown');
         }
-        //console.log("Patient = " + JSON.stringify(patient));
         break;
+      }
 
-      case "practitioner":
-        if (resource.name) {
-          if (resource.name[0].text) {
-            patient.practitioner = resource.name[0].text;
-          } else if (resource.name[0].family) {
-            patient.practitioner = resource.name[0].family + ", " + resource.name[0].given[0];
-          } else {
-            patient.practitioner = "Unknown";
-          }
-        } else {
-          patient.practitioner = "Unknown";
-        }
-        //console.log("Practitioner = " + patient.practitioner);
+      case 'practitioner': {
+        patient.practitioner = getHumanNameDisplay(first(resource.name), 'Unknown');
         break;
+      }
 
-      case "organization":
-        patient.organization = resource.name ? resource.name : "Unknown";
-        //console.log("Organization = " + patient.organization);
+      case 'organization': {
+        patient.organization = cleanString(resource.name, 'Unknown');
         break;
+      }
 
-      case "medicationstatement": {
-        // -------- dosage --------
-        let dosage = "Unknown";
-        if (Array.isArray(resource.dosage) && resource.dosage.length > 0) {
-          const d0 = resource.dosage[0];
-          if (d0?.text) {
-            dosage = d0.text;
-          } else if (d0?.doseAndRate?.[0]?.doseQuantity) {
-            const q = d0.doseAndRate[0].doseQuantity;
-            const v = q.value;
-            const u = q.unit || q.code || "";
-            dosage = `${v} ${u}`.trim() || "Unknown";
-            if (d0?.timing?.repeat?.frequency && d0?.timing?.repeat?.periodUnit) {
-              dosage += ` ${d0.timing.repeat.frequency}${d0.timing.repeat.periodUnit}`;
-            }
+      case 'medicationstatement': {
+        let dosage = 'Unknown';
+        const d0 = first(resource.dosage);
+
+        if (cleanString(d0?.text)) {
+          dosage = d0.text.trim();
+        } else if (d0?.doseAndRate?.[0]?.doseQuantity) {
+          const q = d0.doseAndRate[0].doseQuantity;
+          const v = q?.value;
+          const u = cleanString(q?.unit) || cleanString(q?.code) || '';
+          dosage = `${v ?? ''} ${u}`.trim() || 'Unknown';
+
+          const freq = d0?.timing?.repeat?.frequency;
+          const unit = cleanString(d0?.timing?.repeat?.periodUnit);
+          if (freq !== undefined && unit) {
+            dosage += ` ${freq}${unit}`;
           }
         }
 
-        // -------- medication resolution (supports "#med" contained + external Medication) --------
-        let name = resource?.medicationReference?.display || "Unknown";
+        let name = cleanString(resource?.medicationReference?.display, 'Unknown');
         let medsystem = null;
         let medcode = null;
 
-        const medRefRaw = resource?.medicationReference?.reference; // e.g. "Medication/abc" or "#med"
+        const medRefRaw = cleanString(resource?.medicationReference?.reference);
         const medRefId = normalizeReferenceId(medRefRaw);
 
-        // If reference is contained ("#med"), resolve it now from resource.contained[]
-        if (medRefRaw && medRefRaw.startsWith('#')) {
+        if (medRefRaw?.startsWith('#')) {
           const containedMed = findContained(resource, medRefId);
           if (containedMed?.resourceType?.toLowerCase() === 'medication') {
-            const coding = containedMed?.code?.coding?.[0];
-            name = coding?.display || containedMed?.code?.text || name;
-            medsystem = coding?.system || null;
-            medcode = coding?.code || null;
+            name = getCodeableConceptDisplay(containedMed.code, name);
+            medsystem = getCodeableConceptSystem(containedMed.code, null);
+            medcode = getCodeableConceptCode(containedMed.code, null);
           }
         }
 
-        // -------- date (supports effectiveDateTime + legacy effectivePeriod.start) --------
         const dt =
-          resource.effectiveDateTime ||
+          resource?.effectiveDateTime ||
           resource?.effectivePeriod?.start ||
-          resource.dateAsserted || // fallback (SCR has this)
+          resource?.dateAsserted ||
           null;
 
         medication.push({
           name,
-          date: dt ? new Date(dt).toISOString() : new Date().toISOString(),
+          date: dt ? safeToISOString(dt) : ZERO_ISO_DATETIME,
           dosage,
-          system: medsystem, // filled now for contained; filled later for external Medication ref
+          system: medsystem,
           code: medcode,
-          status: resource.status || "active",
-          medRef: medRefRaw && !medRefRaw.startsWith('#') ? medRefId : undefined // only keep for external Medication map join
+          status: cleanString(resource.status, 'active'),
+          medRef: medRefRaw && !medRefRaw.startsWith('#') ? medRefId : undefined
         });
         break;
       }
 
-      case "medicationrequest":
-        // Process dosage
-        if (resource.dosageInstruction[0].text) {
-          dosage = resource.dosageInstruction[0].text;
-        } else if (resource.dosageInstruction[0].timing) {
-          dosage = resource.dosageInstruction[0].timing.code.text;
-        } else {
-          dosage = "Unknown";
+      case 'medicationrequest': {
+        let dosage = 'Unknown';
+        const di0 = first(resource.dosageInstruction);
+
+        if (cleanString(di0?.text)) {
+          dosage = di0.text.trim();
+        } else if (cleanString(di0?.timing?.code?.text)) {
+          dosage = di0.timing.code.text.trim();
         }
-        // Initialize variables for medication name and reference
-        medsystem = null;
-        medcode = null;
+
+        let name = 'Unknown';
+        let medsystem = null;
+        let medcode = null;
         let medReferenceId = undefined;
+
         if (resource.medicationReference) {
-          // medicationReference contains a reference id and a display value.
-          name = resource.medicationReference.display;
-          if (resource.medicationReference.reference) {
-            medReferenceId = resource.medicationReference.reference;
-          }
+          name = cleanString(resource.medicationReference.display, 'Unknown');
+          medReferenceId = cleanString(resource.medicationReference.reference);
         } else if (resource.medicationCodeableConcept) {
-          name = resource.medicationCodeableConcept.text;
-          medsystem = (resource.medicationCodeableConcept.coding[0].system)
-            ? resource.medicationCodeableConcept.coding[0].system
-            : null;
-          medcode = (resource.medicationCodeableConcept.coding[0].code)
-            ? resource.medicationCodeableConcept.coding[0].code
-            : null;
-        } else if (resource.contained) {
-          name = resource.contained[0].code.text;
+          name = getCodeableConceptDisplay(resource.medicationCodeableConcept, 'Unknown');
+          medsystem = getCodeableConceptSystem(resource.medicationCodeableConcept, null);
+          medcode = getCodeableConceptCode(resource.medicationCodeableConcept, null);
         } else {
-          name = "Unknown";
-        }
-
-        medication.push({
-          name: name,
-          date: new Date(resource.authoredOn).toISOString(),
-          dosage: dosage,
-          system: medsystem,  // if available from medicationCodeableConcept
-          code: medcode,      // if available from medicationCodeableConcept
-          status: resource.status || "active",
-          medRef: normalizeReferenceId(medReferenceId)  // temporary field for matching later
-        });
-        break;
-
-      case "medication":
-        //console.log("Processing  Med resource");
-        // Store the Medication resource data in the map so that it can later be applied to any
-        // medication entries referencing it.
-        if (resource.code && resource.code.coding && resource.code.coding[0]) {
-          medicationResourceMap[resource.id] = {
-            name: resource.code.coding[0].display,
-            system: resource.code.coding[0].system,
-            code: resource.code.coding[0].code
-          };
-        }
-        break;
-
-      case "medicationadministration":
-        let medDate = resource.effectivePeriod ? new Date(resource.effectivePeriod.start).toISOString() : new Date().toISOString();
-        if (resource.medicationCodeableConcept) {
-          name = resource.medicationCodeableConcept.coding[0].display ? resource.medicationCodeableConcept.coding[0].display : null;
-          medcode = resource.medicationCodeableConcept.coding[0].code ? resource.medicationCodeableConcept.coding[0].code : null;
-          medsystem = resource.medicationCodeableConcept.coding[0].system ? resource.medicationCodeableConcept.coding[0].system : null;
-          if (name === null) {
-            name = resource.medicationCodeableConcept.text ? resource.medicationCodeableConcept.text : null;
+          const containedMed = asArray(resource.contained).find(
+            r => r?.resourceType?.toLowerCase() === 'medication'
+          );
+          if (containedMed) {
+            name = getCodeableConceptDisplay(containedMed.code, 'Unknown');
+            medsystem = getCodeableConceptSystem(containedMed.code, null);
+            medcode = getCodeableConceptCode(containedMed.code, null);
           }
         }
 
-        if (resource.dosage) {
-          dosage = resource.dosage.text ? resource.dosage.text : "";
-          if (dosage === "" && resource.dosage.dose) {
-            dosage = resource.dosage.dose.value + " " + resource.dosage.dose.unit;
-          }
-        }
-
-        if (dosage === "") {
-          dosage = "Unknown";
-        }
-
         medication.push({
-          name: name,
-          date: medDate,
-          dosage: dosage,
+          name,
+          date: safeToISOString(resource.authoredOn),
+          dosage,
           system: medsystem,
           code: medcode,
-          status: "active"
+          status: cleanString(resource.status, 'active'),
+          medRef: normalizeReferenceId(medReferenceId)
         });
         break;
+      }
 
+      case 'medication': {
+        if (!cleanString(resource.id)) break;
 
-      case "allergyintolerance":
-        //console.log("Processing Allergy resource");
+        medicationResourceMap[resource.id] = {
+          name: getCodeableConceptDisplay(resource.code, null),
+          system: getCodeableConceptSystem(resource.code, null),
+          code: getCodeableConceptCode(resource.code, null)
+        };
+        break;
+      }
+
+      case 'medicationadministration': {
+        const medDate = resource?.effectivePeriod?.start
+          ? safeToISOString(resource.effectivePeriod.start)
+          : resource?.effectiveDateTime
+            ? safeToISOString(resource.effectiveDateTime)
+            : ZERO_ISO_DATETIME;
+
+        let name = null;
+        let medcode = null;
+        let medsystem = null;
+
+        if (resource.medicationCodeableConcept) {
+          name = getCodeableConceptDisplay(resource.medicationCodeableConcept, null);
+          medcode = getCodeableConceptCode(resource.medicationCodeableConcept, null);
+          medsystem = getCodeableConceptSystem(resource.medicationCodeableConcept, null);
+        } else if (resource.medicationReference) {
+          name = cleanString(resource.medicationReference.display, 'Unknown');
+        }
+
+        let dosage = 'Unknown';
+        if (resource.dosage) {
+          if (cleanString(resource.dosage.text)) {
+            dosage = resource.dosage.text.trim();
+          } else if (resource.dosage.dose) {
+            const value = resource.dosage.dose.value;
+            const unit = cleanString(resource.dosage.dose.unit, '');
+            dosage = `${value ?? ''} ${unit}`.trim() || 'Unknown';
+          }
+        }
+
+        medication.push({
+          name: name || 'Unknown',
+          date: medDate,
+          dosage,
+          system: medsystem,
+          code: medcode,
+          status: cleanString(resource.status, 'active')
+        });
+        break;
+      }
+
+      case 'allergyintolerance': {
+        console.log('Processing Allergy resource');
+
         let alName = null;
         let alCode = null;
         let alSystem = null;
+
         if (resource.code) {
-          alName = resource.code.coding[0].display ? resource.code.coding[0].display : null;
-          alCode = resource.code.coding[0].code ? resource.code.coding[0].code : null;
-          alSystem = resource.code.coding[0].system ? resource.code.coding[0].system : null;
-          if (alName === null) {
-            alName = resource.code.text ? resource.code.text : null;
-          }
-        } else if (resource.reaction.substance) {
-          alName = resource.reaction.substance.coding[0].display ? resource.reaction.substance.coding[0].display : null;
-          alCode = resource.reaction.substance.coding[0].code ? resource.reaction.substance.coding[0].code : null;
-          alSystem = resource.reaction.substance.coding[0].system ? resource.reaction.substance.coding[0].system : null;
-          if (alName === null) {
-            alName = resource.reaction.substance.text ? resource.reaction.substance.text : null;
+          alName = getCodeableConceptDisplay(resource.code, null);
+          alCode = getCodeableConceptCode(resource.code, null);
+          alSystem = getCodeableConceptSystem(resource.code, null);
+        } else {
+          const reaction0 = first(resource.reaction);
+          const substance = reaction0?.substance;
+          if (substance) {
+            alName = getCodeableConceptDisplay(substance, null);
+            alCode = getCodeableConceptCode(substance, null);
+            alSystem = getCodeableConceptSystem(substance, null);
           }
         }
 
         allergies.push({
           name: alName,
-          criticality: resource.criticality? resource.criticality : "high",
-          date: new Date(resource.onsetDateTime).toISOString(),
+          criticality: cleanString(resource.criticality, 'high'),
+          date: safeToISOString(resource.onsetDateTime),
           system: alSystem,
           code: alCode
         });
-        //console.log("Allergies = " + JSON.stringify(allergies));
         break;
+      }
 
-      case "condition":
-        //console.log("Processing Condition resource");
-        let condCode = null;
-        let condSystem = null;
-        let condDisplay = null;
-        if (resource.code) {
-          condCode = resource.code.coding[0].code ? resource.code.coding[0].code : null;
-          condSystem = resource.code.coding[0].system ? resource.code.coding[0].system : null;
-          condDisplay = resource.code.coding[0].display ? resource.code.coding[0].display : null;
-          if (condDisplay === null) {
-            condDisplay = resource.code.text ? resource.code.text : null;
-          }
-        }
+      case 'condition': {
+        const condDisplay = getCodeableConceptDisplay(resource.code, null);
+        const condCode = getCodeableConceptCode(resource.code, null);
+        const condSystem = getCodeableConceptSystem(resource.code, null);
 
         conditions.push({
           name: condDisplay,
-          date: resource.onsetDateTime !== undefined
-            ? new Date(resource.onsetDateTime).toISOString()
-            : new Date().toISOString(),
+          date: getBestDateTime(resource, ['onsetDateTime', 'recordedDate']),
           system: condSystem,
           code: condCode
         });
         break;
+      }
 
-      case "observation":
-        let obName = null;
-        let obCode = null;
-        let obSystem = null;
-
-        if (resource.code?.coding?.length > 0) {
-          const coding = resource.code.coding[0];
-          obName = coding.display || resource.code.text || null;
-          obCode = coding.code || null;
-          obSystem = coding.system || null;
-        }
-
+      case 'observation': {
         const observation = {
-          name: obName,
-          code: obCode,
-          system: obSystem
+          name: getCodeableConceptDisplay(resource.code, null),
+          code: getCodeableConceptCode(resource.code, null),
+          system: getCodeableConceptSystem(resource.code, null),
+          status: cleanString(resource.status, 'Unknown'),
+          date: getBestDateTime(resource, ['effectiveDateTime', 'issued'])
         };
 
-        // get status
-        observation.status = resource.status ? resource.status : "Unknown";
-
-        // Use effectiveDateTime or issued for date
-        if (resource.effectiveDateTime) {
-          observation.date = new Date(resource.effectiveDateTime).toISOString();
-        } else if (resource.issued) {
-          observation.date = new Date(resource.issued).toISOString();
-        }
-
-        // Prefer component-based BP-style values
-        if (resource.component?.length === 2) {
-          const [firstComp, secondComp] = resource.component;
+        if (Array.isArray(resource.component) && resource.component.length >= 2) {
+          const firstComp = resource.component[0];
+          const secondComp = resource.component[1];
           const val1 = firstComp?.valueQuantity?.value;
           const val2 = secondComp?.valueQuantity?.value;
-          const unit = firstComp?.valueQuantity?.unit || '';
+          const unit = cleanString(firstComp?.valueQuantity?.unit, '');
 
-          if (!isNaN(val1) && !isNaN(val2)) {
-            observation.value = `${val1}-${val2} ${unit}`;
+          if (!Number.isNaN(Number(val1)) && !Number.isNaN(Number(val2))) {
+            observation.value = `${val1}-${val2} ${unit}`.trim();
           }
-        }
-        // Fallback to valueQuantity format
-        else if (resource.valueQuantity) {
+        } else if (resource.valueQuantity) {
           const val = resource.valueQuantity.value;
-          const unit = resource.valueQuantity.unit || '';
-          observation.value = `${val} ${unit}`;
-        }
-        // Optional: capture bodySite or string values
-        else if (resource.bodySite?.coding?.length > 0) {
-          observation.bodySite = resource.bodySite.coding[0].display;
-          // Fudge - but for now, we'll double-tap and use the bodySite as the value (unless it already contains a value)
-          observation.value = observation.value ? observation.value : observation.bodySite;
-        } else if (resource.valueString) {
-          observation.value = resource.valueString;
+          const unit = cleanString(resource.valueQuantity.unit, '');
+          observation.value = `${val ?? ''} ${unit}`.trim();
+        } else if (resource.bodySite?.coding?.length > 0) {
+          observation.bodySite = cleanString(resource.bodySite.coding[0]?.display);
+          observation.value = observation.value || observation.bodySite;
+        } else if (cleanString(resource.valueString)) {
+          observation.value = resource.valueString.trim();
         }
 
         observations.push(observation);
         break;
+      }
 
-
-      case "immunization":
-        // Extract the first code and occurrenceDateTime
-        // name should either be in the vaccineCode.text or vaccineCode.coding[0].display
-        const immunizationName = resource.vaccineCode.text ? resource.vaccineCode.text : (resource.vaccineCode.coding[0].display ? resource.vaccineCode.coding[0].display : "Unknown");
-        const immunizationCode = resource.vaccineCode.coding[0].code;
-        const immunizationSystem = resource.vaccineCode.coding[0].system;
-        const immunizationStatus = resource.status ? resource.status : "Unknown";
-        const immunizationDate = new Date(resource.occurrenceDateTime).toISOString();
-
+      case 'immunization': {
         immunizations.push({
-          name: immunizationName,
-          date: immunizationDate,
-          system: immunizationSystem,
-          code: immunizationCode,
-          status: immunizationStatus
+          name: getCodeableConceptDisplay(resource.vaccineCode, 'Unknown'),
+          date: safeToISOString(resource.occurrenceDateTime),
+          system: getCodeableConceptSystem(resource.vaccineCode, null),
+          code: getCodeableConceptCode(resource.vaccineCode, null),
+          status: cleanString(resource.status, 'Unknown')
         });
         break;
+      }
 
-      case "procedure":
-        //console.log("Processing Procedure resource");
-        let procName = null;
-        let procCode = null;
-        let procSystem = null;
-        const procStatus = resource.status ? resource.status : "Unknown";
-        if (resource.code) {
-          procName = resource.code.coding[0].display ? resource.code.coding[0].display : null;
-          procCode = resource.code.coding[0].code ? resource.code.coding[0].code : null;
-          procSystem = resource.code.coding[0].system ? resource.code.coding[0].system : null;
-          if (procName === null) {
-            procName = resource.code.text ? resource.code.text : null;
-          }
-        }
-
+      case 'procedure': {
         procedures.push({
-          name: procName,
-          date: new Date(resource.performedDateTime).toISOString(),
-          system: procSystem,
-          code: procCode,
-          status: procStatus
+          name: getCodeableConceptDisplay(resource.code, null),
+          date: getBestDateTime(resource, [
+            'performedDateTime',
+            'occurrenceDateTime',
+            'recordedDate'
+          ]),
+          system: getCodeableConceptSystem(resource.code, null),
+          code: getCodeableConceptCode(resource.code, null),
+          status: cleanString(resource.status, 'Unknown')
         });
         break;
+      }
 
       default:
         break;
     }
   }
 
-  // Post-process the medication array:
-  // For any medication entry that has a medication reference (medRef) and there is a corresponding
-  // Medication resource in our map, update the entry with system and code.
   medication = medication.map((med) => {
     if (med.medRef && medicationResourceMap[med.medRef]) {
-      // Update with the data from the Medication resource
-      med.system = medicationResourceMap[med.medRef].system;
-      med.code = medicationResourceMap[med.medRef].code;
-      // Optionally, you could also override the name if needed:
-      // med.name = medicationResourceMap[med.medRef].name;
+      med.system = med.system || medicationResourceMap[med.medRef].system;
+      med.code = med.code || medicationResourceMap[med.medRef].code;
+      med.name = med.name === 'Unknown'
+        ? (medicationResourceMap[med.medRef].name || med.name)
+        : med.name;
     }
-    // Remove the temporary medRef field before returning the final object.
     delete med.medRef;
     return med;
   });
 
-  console.log("Conversion complete. Final structured data:");
+  console.log('Conversion complete. Final structured data:');
 
-  return { packageUUID, timeStamp, patient, medication, allergies, conditions, observations, immunizations, procedures };
+  return {
+    packageUUID,
+    timeStamp,
+    patient,
+    medication,
+    allergies,
+    conditions,
+    observations,
+    immunizations,
+    procedures
+  };
 }
 
 module.exports = { convertIPSBundleToSchema };

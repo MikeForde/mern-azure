@@ -35,6 +35,13 @@
       }
     },
 
+    "extension": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "/ipsNhsScrDef/Extension.schema.json" },
+      "description": "UK Core / NHS SCR extensions."
+    },
+
     "identifier": {
       "type": "array",
       "minItems": 1,

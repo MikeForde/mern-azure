@@ -20,6 +20,13 @@
       "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$"
     },
 
+    "extension": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "/ipsNhsScrDef/Extension.schema.json" },
+      "description": "UK Core / NHS SCR extensions."
+    },
+
     "status": {
       "type": "string",
       "enum": [

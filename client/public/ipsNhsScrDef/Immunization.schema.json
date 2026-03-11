@@ -34,7 +34,7 @@
       "type": "array",
       "minItems": 1,
       "items": { "$ref": "/ipsNhsScrDef/Extension.schema.json" },
-      "description": "UK Core / NHS SCR extensions (e.g., Vaccination Procedure)."
+      "description": "UK Core / NHS SCR extensions."
     },
 
     "identifier": {

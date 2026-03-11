@@ -1,128 +1,212 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Container, Form, Button, Alert, Row, Col, ButtonGroup } from 'react-bootstrap'
 
+const MAX_RESTORE_CHARS = 300000
+const MAX_VISIBLE_ERRORS = 100
+
 export default function IPSchemaValidator() {
-  const [input, setInput] = useState('')
   const [result, setResult] = useState(null)
   const [mode, setMode] = useState('NPS') // 'NPS' | 'NHSSCR'
+  const [inputSize, setInputSize] = useState(0)
+  const [showAllErrors, setShowAllErrors] = useState(false)
+
   const inputRef = useRef(null)
 
   const endpoint = mode === 'NHSSCR' ? '/ipsNhsScrVal' : '/ipsUniVal'
 
   const labels = mode === 'NHSSCR'
     ? {
-      title: 'NHS SCR JSON Validator',
-      helper: 'Paste your NHS SCR IPS Bundle here (you can also paste a single resource e.g. Patient)',
-      schemaLabel: 'NHS SCR',
-      resultValidKey: 'validNhsScr',
-      resultErrorsKey: 'errorsNhsScr'
-    }
+        title: 'NHS SCR JSON Validator',
+        helper: 'Paste your NHS SCR IPS Bundle here (you can also paste a single resource e.g. Patient)',
+        schemaLabel: 'NHS SCR',
+        resultValidKey: 'validNhsScr',
+        resultErrorsKey: 'errorsNhsScr'
+      }
     : {
-      title: 'NPS JSON Validator',
-      helper: 'Paste your NPS Bundle here (note, you can also paste a single resource e.g. Patient)',
-      schemaLabel: 'NPS',
-      resultValidKey: 'validNps',
-      resultErrorsKey: 'errorsNps'
+        title: 'NPS JSON Validator',
+        helper: 'Paste your NPS Bundle here (note, you can also paste a single resource e.g. Patient)',
+        schemaLabel: 'NPS',
+        resultValidKey: 'validNps',
+        resultErrorsKey: 'errorsNps'
+      }
+
+  const safeParseJson = (text) => {
+    try {
+      return JSON.parse(text)
+    } catch {
+      return null
     }
+  }
+
+  const normalizeErrorResult = (body, fallbackMessage = 'Validation failed') => ({
+    valid: false,
+    errors: body?.errors || [{ path: '', message: body?.message || fallbackMessage }],
+    validNps: false,
+    errorsNps: body?.errorsNps || body?.errors || [],
+    validNhsScr: false,
+    errorsNhsScr: body?.errorsNhsScr || body?.errors || [],
+    validFhirR4: body?.validFhirR4 || false,
+    errorsFhirR4: body?.errorsFhirR4 || []
+  })
+
+  const getInputValue = () => {
+    return inputRef.current?.value || ''
+  }
 
   // Auto-load payload + mode when coming from APIGETPage
   useEffect(() => {
     try {
-      const savedPayload = sessionStorage.getItem('ips:lastPayload');
-      const savedMode = sessionStorage.getItem('ips:lastMode'); // "NPS" or "NHSSCR"
+      const savedPayload = sessionStorage.getItem('ips:lastPayload')
+      const savedMode = sessionStorage.getItem('ips:lastMode')
 
-      if (savedMode) {
-        setMode(savedMode);
-        setResult(null);
+      if (savedMode === 'NPS' || savedMode === 'NHSSCR') {
+        setMode(savedMode)
+        setResult(null)
       }
+
       if (savedPayload) {
-        setInput(savedPayload);
-        setResult(null);
+        if (savedPayload.length <= MAX_RESTORE_CHARS) {
+          if (inputRef.current) {
+            inputRef.current.value = savedPayload
+          }
+          setInputSize(savedPayload.length)
+        } else {
+          console.warn(`Skipped restoring validator payload: too large (${savedPayload.length} chars)`)
+        }
+        setResult(null)
       }
     } catch (e) {
-      console.warn('Could not restore validator payload/mode:', e);
+      console.warn('Could not restore validator payload/mode:', e)
     }
-  }, []);
+  }, [])
 
   const jumpToPath = (path) => {
     const el = inputRef.current
     if (!el || !path) return
-    const text = el.value
-    const segments = path.split('/').filter(Boolean)
 
-    let pos = 0
-    if (segments[0] === 'entry') {
-      const entryIdx = parseInt(segments[1], 10)
-      let matchPos = -1, start = 0
-      for (let i = 0; i <= entryIdx; i++) {
-        matchPos = text.indexOf('"resource":', start)
-        if (matchPos === -1) return
-        start = matchPos + 1
+    try {
+      const text = el.value || ''
+      const segments = path.split('/').filter(Boolean)
+
+      let pos = 0
+
+      if (segments[0] === 'entry') {
+        const entryIdx = parseInt(segments[1], 10)
+        if (!Number.isInteger(entryIdx) || entryIdx < 0) return
+
+        let matchPos = -1
+        let start = 0
+
+        for (let i = 0; i <= entryIdx; i++) {
+          matchPos = text.indexOf('"resource":', start)
+          if (matchPos === -1) return
+          start = matchPos + 10
+        }
+
+        pos = matchPos
+
+        for (let i = 3; i < segments.length; i++) {
+          const look = `"${segments[i]}"`
+          const nextPos = text.indexOf(look, pos)
+          if (nextPos === -1) break
+          pos = nextPos
+        }
+      } else {
+        const last = segments[segments.length - 1]
+        if (!last) return
+        const idx = text.indexOf(`"${last}"`)
+        if (idx === -1) return
+        pos = idx
       }
-      pos = matchPos
-      for (let i = 3; i < segments.length; i++) {
-        const look = `"${segments[i]}"`
-        const nextPos = text.indexOf(look, pos)
-        if (nextPos === -1) break
-        pos = nextPos
-      }
-    } else {
-      const last = segments[segments.length - 1]
-      const idx = text.indexOf(`"${last}"`)
-      if (idx === -1) return
-      pos = idx
+
+      el.focus()
+      el.setSelectionRange(pos, Math.min(pos + 1, text.length))
+
+      const before = text.substring(0, pos)
+      const lineNumber = before.split('\n').length
+      const lh = parseInt(window.getComputedStyle(el).lineHeight, 10) || 18
+      el.scrollTop = Math.max(0, (lineNumber - 3) * lh)
+    } catch (e) {
+      console.warn('jumpToPath failed:', e)
     }
-
-    el.focus()
-    el.setSelectionRange(pos, pos + 1)
-    const before = text.substring(0, pos)
-    const lineNumber = before.split('\n').length
-    const lh = parseInt(window.getComputedStyle(el).lineHeight, 10) || 18
-    el.scrollTop = (lineNumber - 1) * lh
   }
 
   const validate = async () => {
     setResult(null)
+    setShowAllErrors(false)
+
+    const input = getInputValue()
+    setInputSize(input.length)
+
+    if (!input.trim()) {
+      setResult(
+        normalizeErrorResult(
+          { message: 'Please paste some JSON before validating.' },
+          'Please paste some JSON before validating.'
+        )
+      )
+      return
+    }
+
+    const parsed = safeParseJson(input)
+    if (!parsed) {
+      setResult(
+        normalizeErrorResult(
+          { message: 'Input is not valid JSON.' },
+          'Input is not valid JSON.'
+        )
+      )
+      return
+    }
+
     try {
       const resp = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: input
       })
-      const body = await resp.json()
+
+      const rawText = await resp.text()
+      const body = safeParseJson(rawText)
 
       if (resp.ok) {
-        setResult(body)
+        if (body) {
+          setResult(body)
+        } else {
+          setResult(
+            normalizeErrorResult(
+              { message: 'Validator returned a non-JSON success response.' },
+              'Validator returned a non-JSON success response.'
+            )
+          )
+        }
       } else {
-        // backend returned 400 for missing resourceType, etc
-        setResult({
-          valid: false,
-          errors: body.errors || [{ path: '', message: body.message || 'Validation failed' }],
-          // provide both possible result shapes so UI doesn't crash
-          validNps: false,
-          errorsNps: body.errors || [],
-          validNhsScr: false,
-          errorsNhsScr: body.errors || [],
-          validFhirR4: false,
-          errorsFhirR4: []
-        })
+        setResult(
+          normalizeErrorResult(
+            body || { message: rawText || `Validation failed (${resp.status})` },
+            body?.message || rawText || `Validation failed (${resp.status})`
+          )
+        )
       }
     } catch (err) {
-      setResult({
-        valid: false,
-        errors: [{ path: '', message: 'Validation request failed: ' + err.message }],
-        validNps: false,
-        errorsNps: [],
-        validNhsScr: false,
-        errorsNhsScr: [],
-        validFhirR4: false,
-        errorsFhirR4: []
-      })
+      setResult(
+        normalizeErrorResult(
+          { message: 'Validation request failed: ' + (err?.message || 'Unknown error') },
+          'Validation request failed'
+        )
+      )
     }
   }
 
   const schemaValid = result ? !!result[labels.resultValidKey] : false
   const schemaErrors = result ? (result[labels.resultErrorsKey] || []) : []
+  const fhirErrors = result ? (result.errorsFhirR4 || []) : []
+
+  const visibleSchemaErrors = showAllErrors ? schemaErrors : schemaErrors.slice(0, MAX_VISIBLE_ERRORS)
+  const visibleFhirErrors = showAllErrors ? fhirErrors : fhirErrors.slice(0, MAX_VISIBLE_ERRORS)
+
+  const hiddenSchemaCount = Math.max(0, schemaErrors.length - visibleSchemaErrors.length)
+  const hiddenFhirCount = Math.max(0, fhirErrors.length - visibleFhirErrors.length)
 
   return (
     <Container className="mt-4">
@@ -156,15 +240,22 @@ export default function IPSchemaValidator() {
       </Row>
 
       <Form.Group controlId="jsonInput" className="mt-3">
-        <Form.Label>{labels.helper}</Form.Label>
+        <Form.Label>
+          {labels.helper}
+          <div className="text-muted small mt-1">
+            Size: {inputSize.toLocaleString()} characters
+          </div>
+        </Form.Label>
+
         <Form.Control
           as="textarea"
           rows={20}
           ref={inputRef}
-          value={input}
-          onChange={e => setInput(e.target.value)}
+          defaultValue=""
+          onChange={(e) => setInputSize(e.target.value.length)}
           placeholder='{ "resourceType": "Bundle", ... }'
           className="resultTextArea"
+          spellCheck={false}
         />
       </Form.Group>
 
@@ -180,16 +271,18 @@ export default function IPSchemaValidator() {
           </Alert>
 
           {(schemaValid && result.validFhirR4) ? (
-            <Alert variant="success" className="mt-3">✅ Valid ({labels.schemaLabel} + FHIR R4)!</Alert>
+            <Alert variant="success" className="mt-3">
+              ✅ Valid ({labels.schemaLabel} + FHIR R4)!
+            </Alert>
           ) : (
             <Alert variant="danger" className="mt-3">
               <h5>Validation Errors</h5>
 
-              {!schemaValid && (schemaErrors.length > 0) && (
+              {!schemaValid && schemaErrors.length > 0 && (
                 <>
                   <h6 className="mt-2">{labels.schemaLabel}</h6>
                   <ul>
-                    {schemaErrors.map((err, i) => (
+                    {visibleSchemaErrors.map((err, i) => (
                       <li
                         key={`schema-${i}`}
                         style={{ cursor: 'pointer' }}
@@ -199,14 +292,19 @@ export default function IPSchemaValidator() {
                       </li>
                     ))}
                   </ul>
+                  {hiddenSchemaCount > 0 && (
+                    <div className="mb-2">
+                      <em>{hiddenSchemaCount} more {labels.schemaLabel} errors hidden.</em>
+                    </div>
+                  )}
                 </>
               )}
 
-              {!result.validFhirR4 && (result.errorsFhirR4?.length > 0) && (
+              {!result.validFhirR4 && fhirErrors.length > 0 && (
                 <>
                   <h6 className="mt-2">FHIR R4</h6>
                   <ul>
-                    {result.errorsFhirR4.map((err, i) => (
+                    {visibleFhirErrors.map((err, i) => (
                       <li
                         key={`fhir-${i}`}
                         style={{ cursor: 'pointer' }}
@@ -216,7 +314,22 @@ export default function IPSchemaValidator() {
                       </li>
                     ))}
                   </ul>
+                  {hiddenFhirCount > 0 && (
+                    <div className="mb-2">
+                      <em>{hiddenFhirCount} more FHIR R4 errors hidden.</em>
+                    </div>
+                  )}
                 </>
+              )}
+
+              {(hiddenSchemaCount > 0 || hiddenFhirCount > 0) && (
+                <Button
+                  variant="outline-light"
+                  size="sm"
+                  onClick={() => setShowAllErrors(true)}
+                >
+                  Show all errors
+                </Button>
               )}
             </Alert>
           )}
