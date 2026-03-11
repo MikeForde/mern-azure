@@ -1,14 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useContext } from 'react'
 import { Container, Form, Button, Alert, Row, Col, ButtonGroup } from 'react-bootstrap'
+import { PatientContext } from '../PatientContext'
 
 const MAX_RESTORE_CHARS = 300000
 const MAX_VISIBLE_ERRORS = 100
 
 export default function IPSchemaValidator() {
+  const { setSelectedPatient } = useContext(PatientContext)
+
   const [result, setResult] = useState(null)
   const [mode, setMode] = useState('NPS') // 'NPS' | 'NHSSCR'
   const [inputSize, setInputSize] = useState(0)
   const [showAllErrors, setShowAllErrors] = useState(false)
+  const [submitResult, setSubmitResult] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const inputRef = useRef(null)
 
@@ -49,11 +54,8 @@ export default function IPSchemaValidator() {
     errorsFhirR4: body?.errorsFhirR4 || []
   })
 
-  const getInputValue = () => {
-    return inputRef.current?.value || ''
-  }
+  const getInputValue = () => inputRef.current?.value || ''
 
-  // Auto-load payload + mode when coming from APIGETPage
   useEffect(() => {
     try {
       const savedPayload = sessionStorage.getItem('ips:lastPayload')
@@ -133,6 +135,7 @@ export default function IPSchemaValidator() {
 
   const validate = async () => {
     setResult(null)
+    setSubmitResult(null)
     setShowAllErrors(false)
 
     const input = getInputValue()
@@ -198,6 +201,80 @@ export default function IPSchemaValidator() {
     }
   }
 
+  const addAsRecord = async () => {
+    setSubmitResult(null)
+
+    const input = getInputValue()
+    setInputSize(input.length)
+
+    if (!input.trim()) {
+      setSubmitResult({
+        ok: false,
+        message: 'Please paste some JSON before submitting.'
+      })
+      return
+    }
+
+    const parsed = safeParseJson(input)
+    if (!parsed) {
+      setSubmitResult({
+        ok: false,
+        message: 'Input is not valid JSON.'
+      })
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+
+      const resp = await fetch('/ipsbundle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: input
+      })
+
+      const rawText = await resp.text()
+      const body = safeParseJson(rawText)
+
+      if (!resp.ok) {
+        setSubmitResult({
+          ok: false,
+          message: body?.message || rawText || `Failed to add record (${resp.status})`
+        })
+        return
+      }
+
+      if (!body || typeof body !== 'object') {
+        setSubmitResult({
+          ok: false,
+          message: 'Record was submitted, but the server response was not valid JSON.'
+        })
+        return
+      }
+
+      setSelectedPatient(body)
+
+      try {
+        sessionStorage.setItem('selectedPatient', JSON.stringify(body))
+      } catch (e) {
+        console.warn('Could not persist selected patient:', e)
+      }
+
+      setSubmitResult({
+        ok: true,
+        message: `Record added successfully${body?._id ? ` (ID: ${body._id})` : ''}. Current patient set to ${body?.patient?.given || ''} ${body?.patient?.name || ''}`.trim(),
+        record: body
+      })
+    } catch (err) {
+      setSubmitResult({
+        ok: false,
+        message: 'Submission failed: ' + (err?.message || 'Unknown error')
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   const schemaValid = result ? !!result[labels.resultValidKey] : false
   const schemaErrors = result ? (result[labels.resultErrorsKey] || []) : []
   const fhirErrors = result ? (result.errorsFhirR4 || []) : []
@@ -221,6 +298,7 @@ export default function IPSchemaValidator() {
               onClick={() => {
                 setMode('NPS')
                 setResult(null)
+                setSubmitResult(null)
               }}
             >
               NPS
@@ -231,6 +309,7 @@ export default function IPSchemaValidator() {
               onClick={() => {
                 setMode('NHSSCR')
                 setResult(null)
+                setSubmitResult(null)
               }}
             >
               NHS SCR
@@ -261,7 +340,31 @@ export default function IPSchemaValidator() {
 
       <div className="mt-2 d-flex gap-2">
         <Button onClick={validate}>Validate</Button>
+        <Button
+          variant="success"
+          onClick={addAsRecord}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Adding...' : 'Add as Record'}
+        </Button>
       </div>
+
+      {submitResult && (
+        <Alert variant={submitResult.ok ? 'success' : 'warning'} className="mt-3">
+          <div><strong>{submitResult.ok ? 'Record Added' : 'Record Not Added'}</strong></div>
+          <div>{submitResult.message}</div>
+          {submitResult.ok && submitResult.record?._id && (
+            <div className="mt-1">
+              <strong>Mongo ID:</strong> {submitResult.record._id}
+            </div>
+          )}
+          {submitResult.ok && submitResult.record?.packageUUID && (
+            <div>
+              <strong>Package UUID:</strong> {submitResult.record.packageUUID}
+            </div>
+          )}
+        </Alert>
+      )}
 
       {result && (
         <>
