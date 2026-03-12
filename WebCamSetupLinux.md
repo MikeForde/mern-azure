@@ -3,6 +3,14 @@
 This guide configures a Logitech C920 (or similar UVC webcam) for
 **stable, sharp QR code scanning** on Linux (Pop!\_OS / Ubuntu).
 
+------------------------------------------------------------------------
+
+Note, this may not work for a particular Logitech C920 as - for reasons better known to the manafacturers - some are malformed for focus distance:
+- larger numbers mean closer e.g. 200 (rather than 40)
+- after being turned off, reactivation resets the value to a low number which means the close focus is lost.
+
+------------------------------------------------------------------------
+
 Out-of-the-box settings often cause:
 
 -   Autofocus hunting
