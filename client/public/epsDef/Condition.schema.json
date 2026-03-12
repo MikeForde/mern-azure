@@ -1,0 +1,171 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/epsDef/Condition.schema.json",
+  "title": "EPS Condition",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "resourceType",
+    "id",
+    "clinicalStatus",
+    "category",
+    "code",
+    "subject",
+    "onsetDateTime"
+  ],
+  "properties": {
+    "resourceType": {
+      "const": "Condition"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$",
+      "description": "Simple ids preferred (UUIDs are fine if you keep them in the id field)."
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "profile": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+    "identifier": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/Identifier" }
+    },
+    "extension": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "$ref": "/epsDef/Extension.schema.json"
+      }
+    },
+    "clinicalStatus": {
+      "$ref": "#/definitions/CodeableConceptNoDisplay"
+    },
+    "category": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/CodeableConcept" }
+    },
+    "code": {
+      "$ref": "#/definitions/CodeableConcept"
+    },
+    "subject": {
+      "$ref": "#/definitions/ReferenceUrnUuidWithDisplay"
+    },
+    "onsetDateTime": {
+      "type": "string",
+      "description": "EPS examples may use either a date or a full date-time.",
+      "anyOf": [
+        { "format": "date" },
+        { "format": "date-time" }
+      ]
+    },
+    "recordedDate": {
+      "type": "string",
+      "anyOf": [
+        { "format": "date" },
+        { "format": "date-time" }
+      ]
+    },
+    "asserter": {
+      "$ref": "#/definitions/ReferenceUrnUuidWithDisplay"
+    },
+    "text": { "$ref": "#/definitions/Narrative" }
+  },
+  "definitions": {
+    "Identifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "value"],
+      "properties": {
+        "system": { "type": "string" },
+        "value": { "type": "string" }
+      }
+    },
+    "ReferenceUrnUuidWithDisplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference"],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "pattern": "^urn:uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
+    "CodeableConcept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coding"],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/Coding" }
+        },
+        "text": { "type": "string" }
+      }
+    },
+    "CodeableConceptNoDisplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coding"],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/CodingNoDisplay" }
+        },
+        "text": { "type": "string" }
+      }
+    },
+    "Coding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "code", "display"],
+      "properties": {
+        "system": { "type": "string" },
+        "code": { "type": "string" },
+        "display": { "type": "string" }
+      }
+    },
+    "CodingNoDisplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "code"],
+      "properties": {
+        "system": { "type": "string" },
+        "code": { "type": "string" },
+        "display": { "type": "string" }
+      }
+    },
+    "Narrative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "div"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["generated", "extensions", "additional", "empty"]
+        },
+        "div": {
+          "type": "string",
+          "description": "XHTML string (kept as string here; full XHTML validation is out of scope)."
+        }
+      }
+    }
+  }
+}

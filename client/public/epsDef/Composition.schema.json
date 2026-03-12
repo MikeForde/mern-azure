@@ -1,0 +1,377 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/epsDef/Composition.schema.json",
+  "title": "EPS Composition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "resourceType",
+    "id",
+    "status",
+    "type",
+    "subject",
+    "date",
+    "author",
+    "title",
+    "section"
+  ],
+  "properties": {
+    "resourceType": { "const": "Composition" },
+
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$"
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "profile": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+
+    "text": { "$ref": "#/definitions/Narrative" },
+
+    "identifier": { "$ref": "#/definitions/IdentifierSingle" },
+
+    "status": {
+      "type": "string",
+      "enum": ["preliminary", "final", "amended", "entered-in-error"]
+    },
+
+    "type": { "$ref": "#/definitions/CodeableConcept" },
+
+    "subject": { "$ref": "#/definitions/ReferenceUrnUuidWithDisplay" },
+
+    "date": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "author": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/ReferenceUrnUuidWithDisplay" }
+    },
+
+    "title": { "type": "string" },
+
+    "event": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/CompositionEvent" }
+    },
+
+    "confidentiality": {
+      "type": "string",
+      "enum": ["U", "L", "M", "N", "R", "V"]
+    },
+
+    "custodian": { "$ref": "#/definitions/ReferenceUrnUuidWithDisplay" },
+
+    "section": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/definitions/Section" }
+    }
+  },
+
+  "allOf": [
+    {
+      "description": "Must include Medication, Allergies, Problems, Procedures, and Devices sections even if empty.",
+      "properties": {
+        "section": {
+          "allOf": [
+            { "contains": { "$ref": "#/definitions/SectionMedicationList" } },
+            { "contains": { "$ref": "#/definitions/SectionAllergies" } },
+            { "contains": { "$ref": "#/definitions/SectionProblems" } },
+            { "contains": { "$ref": "#/definitions/SectionProcedures" } },
+            { "contains": { "$ref": "#/definitions/SectionDevices" } }
+          ]
+        }
+      }
+    }
+  ],
+
+  "definitions": {
+    "IdentifierSingle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "value"],
+      "properties": {
+        "system": { "type": "string" },
+        "value": { "type": "string" },
+        "assigner": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "display": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "ReferenceUrnUuidWithDisplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference"],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "pattern": "^urn:uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
+
+    "CodeableConcept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coding"],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/Coding" }
+        },
+        "text": { "type": "string" }
+      }
+    },
+
+    "Coding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "code"],
+      "properties": {
+        "system": { "type": "string" },
+        "code": { "type": "string" },
+        "display": { "type": "string" }
+      }
+    },
+
+    "CompositionEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "period"],
+      "properties": {
+        "code": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/CodeableConcept" }
+        },
+        "period": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "start": { "type": "string", "format": "date-time" },
+            "end": { "type": "string", "format": "date-time" }
+          },
+          "required": ["end"]
+        }
+      }
+    },
+
+    "Narrative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "div"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["generated", "extensions", "additional", "empty"]
+        },
+        "div": {
+          "type": "string",
+          "description": "XHTML string (kept as string here; full XHTML validation is out of scope)."
+        }
+      }
+    },
+
+    "EmptyReason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coding"],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/Coding" }
+        },
+        "text": { "type": "string" }
+      }
+    },
+
+    "EntryReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference"],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "pattern": "^urn:uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        }
+      }
+    },
+
+    "Section": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "code"],
+      "properties": {
+        "title": { "type": "string" },
+        "code": { "$ref": "#/definitions/CodeableConcept" },
+        "text": { "$ref": "#/definitions/Narrative" },
+        "emptyReason": { "$ref": "#/definitions/EmptyReason" },
+        "entry": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/EntryReference" }
+        }
+      },
+      "allOf": [
+        {
+          "description": "Either entry[] is present OR (text + emptyReason) for empty sections.",
+          "oneOf": [
+            { "required": ["entry"] },
+            { "required": ["text", "emptyReason"], "not": { "required": ["entry"] } }
+          ]
+        }
+      ]
+    },
+
+    "SectionMedicationList": {
+      "allOf": [
+        { "$ref": "#/definitions/Section" },
+        {
+          "properties": {
+            "code": {
+              "properties": {
+                "coding": {
+                  "contains": {
+                    "type": "object",
+                    "required": ["system", "code"],
+                    "properties": {
+                      "system": { "const": "http://loinc.org" },
+                      "code": { "const": "10160-0" }
+                    },
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+
+    "SectionAllergies": {
+      "allOf": [
+        { "$ref": "#/definitions/Section" },
+        {
+          "properties": {
+            "code": {
+              "properties": {
+                "coding": {
+                  "contains": {
+                    "type": "object",
+                    "required": ["system", "code"],
+                    "properties": {
+                      "system": { "const": "http://loinc.org" },
+                      "code": { "const": "48765-2" }
+                    },
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+
+    "SectionProblems": {
+      "allOf": [
+        { "$ref": "#/definitions/Section" },
+        {
+          "properties": {
+            "code": {
+              "properties": {
+                "coding": {
+                  "contains": {
+                    "type": "object",
+                    "required": ["system", "code"],
+                    "properties": {
+                      "system": { "const": "http://loinc.org" },
+                      "code": { "const": "11450-4" }
+                    },
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+
+    "SectionProcedures": {
+      "allOf": [
+        { "$ref": "#/definitions/Section" },
+        {
+          "properties": {
+            "code": {
+              "properties": {
+                "coding": {
+                  "contains": {
+                    "type": "object",
+                    "required": ["system", "code"],
+                    "properties": {
+                      "system": { "const": "http://loinc.org" },
+                      "code": { "const": "47519-4" }
+                    },
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+
+    "SectionDevices": {
+      "allOf": [
+        { "$ref": "#/definitions/Section" },
+        {
+          "properties": {
+            "code": {
+              "properties": {
+                "coding": {
+                  "contains": {
+                    "type": "object",
+                    "required": ["system", "code"],
+                    "properties": {
+                      "system": { "const": "http://loinc.org" },
+                      "code": { "const": "46264-8" }
+                    },
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

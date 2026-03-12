@@ -33,7 +33,7 @@
 
   "allOf": [
     {
-      "description": "Document bundles must start with a Composition resource in entry[0].",
+      "description": "Document bundles must contain a Composition resource.",
       "properties": {
         "entry": {
           "minItems": 1,

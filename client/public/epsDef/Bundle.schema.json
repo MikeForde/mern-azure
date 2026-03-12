@@ -1,0 +1,151 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/epsDef/Bundle.schema.json",
+  "title": "EPS Bundle",
+  "type": "object",
+  "required": [
+    "resourceType",
+    "id",
+    "identifier",
+    "type",
+    "timestamp",
+    "entry"
+  ],
+  "properties": {
+    "resourceType": {
+      "const": "Bundle"
+    },
+
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$",
+      "description": "UUID or bundle-specific id recommended"
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "profile": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+
+    "identifier": {
+      "$ref": "#/definitions/IdentifierSingle"
+    },
+
+    "type": {
+      "const": "document"
+    },
+
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "entry": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/BundleEntry"
+      }
+    }
+  },
+
+  "additionalProperties": true,
+
+  "allOf": [
+    {
+      "description": "Document bundles must contain a Composition resource.",
+      "properties": {
+        "entry": {
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/BundleEntry"
+          }
+        }
+      },
+      "required": ["entry"]
+    }
+  ],
+
+  "definitions": {
+    "IdentifierSingle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "value"],
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "assigner": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "display": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+
+    "BundleEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resource"],
+      "properties": {
+        "fullUrl": {
+          "type": "string",
+          "format": "uri",
+          "examples": [
+            "urn:uuid:381238c4-1f92-43a4-8734-4eb05de12bf0"
+          ]
+        },
+        "resource": {
+          "description": "Prefer EPS resource-specific schemas where available; otherwise allow any valid FHIR resource in a higher-level pass.",
+          "anyOf": [
+            { "$ref": "/epsDef/Patient.schema.json" },
+            { "$ref": "/epsDef/Organization.schema.json" },
+            { "$ref": "/epsDef/Practitioner.schema.json" },
+            { "$ref": "/epsDef/PractitionerRole.schema.json" },
+            { "$ref": "/epsDef/Composition.schema.json" },
+            { "$ref": "/epsDef/AllergyIntolerance.schema.json" },
+            { "$ref": "/epsDef/Condition.schema.json" },
+            { "$ref": "/epsDef/Medication.schema.json" },
+            { "$ref": "/epsDef/MedicationStatement.schema.json" },
+            { "$ref": "/epsDef/Immunization.schema.json" },
+            { "$ref": "/epsDef/Observation.schema.json" },
+            { "$ref": "/epsDef/Procedure.schema.json" },
+            { "$ref": "/epsDef/Device.schema.json" },
+            { "$ref": "/epsDef/DeviceUseStatement.schema.json" },
+            { "$ref": "/epsDef/CarePlan.schema.json" },
+
+            {
+              "type": "object",
+              "description": "Fallback: allow other FHIR resources not yet modelled here.",
+              "required": ["resourceType"],
+              "properties": {
+                "resourceType": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": true
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -702,7 +702,7 @@ export default function IPSchemaViewerNhsScr() {
 
   return (
     <Container className="mt-5">
-      <h3>NHS SCR JSON Schemas</h3>
+      <h3>UK NHS SCR (Shared Care) JSON Schemas</h3>
       <p>Toggle between default view, expanded view, raw schema, or example formats.</p>
 
       <Tab.Container activeKey={activeKey} onSelect={setActiveKey}>

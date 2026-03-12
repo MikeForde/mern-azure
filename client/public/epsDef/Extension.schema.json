@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/epsDef/Extension.schema.json",
+  "title": "EPS Extension",
+  "type": "object",
+  "required": ["url"],
+  "additionalProperties": false,
+  "properties": {
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "FHIR 'uri' identifying the extension (often canonical URL)."
+    },
+    "extension": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "/epsDef/Extension.schema.json" },
+      "description": "Nested extensions (used when there is no value[x] at this level)."
+    },
+    "valueCodeableConcept": { "$ref": "#/definitions/CodeableConcept" },
+    "valueString": { "type": "string" },
+    "valueBoolean": { "type": "boolean" },
+    "valueDate": { "type": "string", "format": "date" },
+    "valueDateTime": { "type": "string", "format": "date-time" },
+    "valueUri": { "type": "string", "format": "uri" }
+  },
+  "oneOf": [
+    {
+      "description": "Complex extension: url + nested extension[] (no value[x])",
+      "required": ["extension"],
+      "not": {
+        "anyOf": [
+          { "required": ["valueCodeableConcept"] },
+          { "required": ["valueString"] },
+          { "required": ["valueBoolean"] },
+          { "required": ["valueDate"] },
+          { "required": ["valueDateTime"] },
+          { "required": ["valueUri"] }
+        ]
+      }
+    },
+    {
+      "description": "Simple extension: url + exactly one value[x] (no nested extension[])",
+      "not": { "required": ["extension"] },
+      "oneOf": [
+        { "required": ["valueCodeableConcept"] },
+        { "required": ["valueString"] },
+        { "required": ["valueBoolean"] },
+        { "required": ["valueDate"] },
+        { "required": ["valueDateTime"] },
+        { "required": ["valueUri"] }
+      ]
+    }
+  ],
+  "definitions": {
+    "Coding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "system": { "type": "string" },
+        "code": { "type": "string" },
+        "display": { "type": "string" }
+      },
+      "anyOf": [
+        { "required": ["code"] },
+        { "required": ["display"] }
+      ]
+    },
+    "CodeableConcept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coding"],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/Coding" }
+        },
+        "text": { "type": "string" }
+      }
+    }
+  }
+}

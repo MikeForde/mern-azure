@@ -1,0 +1,308 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/epsDef/Observation.schema.json",
+  "title": "EPS Observation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "resourceType",
+    "id",
+    "status",
+    "code",
+    "subject",
+    "effectiveDateTime"
+  ],
+  "properties": {
+    "resourceType": {
+      "const": "Observation"
+    },
+
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$",
+      "description": "Simple ids preferred; UUIDs are fine."
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "profile": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+
+    "text": {
+      "$ref": "#/definitions/Narrative"
+    },
+
+    "status": {
+      "type": "string",
+      "enum": [
+        "registered",
+        "preliminary",
+        "final",
+        "amended",
+        "corrected",
+        "cancelled",
+        "entered-in-error",
+        "unknown"
+      ]
+    },
+
+    "category": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/CodeableConceptNoDisplay"
+      }
+    },
+
+    "code": {
+      "$ref": "#/definitions/CodeableConcept"
+    },
+
+    "subject": {
+      "$ref": "#/definitions/ReferenceUrnUuidWithOptionalDisplay"
+    },
+
+    "effectiveDateTime": {
+      "type": "string",
+      "anyOf": [
+        { "format": "date" },
+        { "format": "date-time" }
+      ]
+    },
+
+    "valueQuantity": {
+      "$ref": "#/definitions/Quantity"
+    },
+
+    "component": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/ObservationComponent"
+      }
+    },
+
+    "bodySite": {
+      "$ref": "#/definitions/CodeableConcept"
+    },
+
+    "performer": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/PerformerReference"
+      }
+    },
+
+    "interpretation": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/CodeableConceptNoDisplay"
+      }
+    },
+
+    "referenceRange": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/ReferenceRange"
+      }
+    }
+  },
+
+  "allOf": [
+    {
+      "description": "An EPS Observation should have either a direct valueQuantity or component array.",
+      "oneOf": [
+        { "required": ["valueQuantity"] },
+        { "required": ["component"] }
+      ]
+    }
+  ],
+
+  "definitions": {
+    "ReferenceUrnUuidWithOptionalDisplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference"],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "pattern": "^urn:uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
+
+    "PerformerReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reference": {
+          "type": "string"
+        },
+        "display": {
+          "type": "string"
+        }
+      },
+      "anyOf": [
+        { "required": ["reference"] },
+        { "required": ["display"] }
+      ]
+    },
+
+    "CodeableConcept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coding"],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/Coding"
+          }
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+
+    "CodeableConceptNoDisplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coding"],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/CodingNoDisplay"
+          }
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+
+    "Coding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "code"],
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
+
+    "CodingNoDisplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "code"],
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
+
+    "Quantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value"],
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "system": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        }
+      }
+    },
+
+    "ObservationComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "valueQuantity"],
+      "properties": {
+        "code": {
+          "$ref": "#/definitions/CodeableConcept"
+        },
+        "valueQuantity": {
+          "$ref": "#/definitions/Quantity"
+        }
+      }
+    },
+
+    "ReferenceRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "low": {
+          "$ref": "#/definitions/Quantity"
+        },
+        "high": {
+          "$ref": "#/definitions/Quantity"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "anyOf": [
+        { "required": ["low"] },
+        { "required": ["high"] },
+        { "required": ["text"] }
+      ]
+    },
+
+    "Narrative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "div"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["generated", "extensions", "additional", "empty"]
+        },
+        "div": {
+          "type": "string",
+          "description": "XHTML string (kept as string here; full XHTML validation is out of scope)."
+        }
+      }
+    }
+  }
+}

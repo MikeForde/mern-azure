@@ -223,7 +223,7 @@ const extensionExamples = [
 
   return (
     <Container className="mt-5">
-      <h3>NPS JSON Schemas</h3>
+      <h3>NPS (NATO) JSON Schemas</h3>
       <p>Toggle between default view, expanded view, raw schema, or example formats.</p>
 
       <Tab.Container activeKey={activeKey} onSelect={setActiveKey}>

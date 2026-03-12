@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/epsDef/Medication.schema.json",
+  "title": "EPS Medication",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "resourceType",
+    "id",
+    "code"
+  ],
+  "properties": {
+    "resourceType": {
+      "const": "Medication"
+    },
+
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$"
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "profile": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+
+    "text": {
+      "$ref": "#/definitions/Narrative"
+    },
+
+    "code": {
+      "$ref": "#/definitions/CodeableConcept"
+    },
+
+    "form": {
+      "$ref": "#/definitions/CodeableConcept"
+    },
+
+    "ingredient": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/Ingredient"
+      }
+    }
+  },
+
+  "definitions": {
+    "CodeableConcept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coding"],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/Coding"
+          }
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+
+    "Coding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "code"],
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
+
+    "Ingredient": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["itemCodeableConcept", "isActive"],
+      "properties": {
+        "itemCodeableConcept": {
+          "$ref": "#/definitions/CodeableConcept"
+        },
+        "isActive": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "Narrative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "div"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["generated", "extensions", "additional", "empty"]
+        },
+        "div": {
+          "type": "string",
+          "description": "XHTML string (kept as string here; full XHTML validation is out of scope)."
+        }
+      }
+    }
+  }
+}

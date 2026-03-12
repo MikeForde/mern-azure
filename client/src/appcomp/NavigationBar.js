@@ -151,6 +151,10 @@ function NavigationBar() {
                 NHS SCR Schemas
               </NavDropdown.Item>
 
+              <NavDropdown.Item as={Link} to="/schemaviewereps" onClick={() => handleNavItemSelect(false)}>
+                EPS Schemas
+              </NavDropdown.Item>
+
               <NavDropdown.Divider />
 
               <NavDropdown.Item as={Link} to="/schemavalidator" onClick={() => handleNavItemSelect(false)}>

@@ -9,7 +9,7 @@ export default function IPSchemaValidator() {
   const { setSelectedPatient } = useContext(PatientContext)
 
   const [result, setResult] = useState(null)
-  const [mode, setMode] = useState('NPS') // 'NPS' | 'NHSSCR'
+  const [mode, setMode] = useState('NPS') // 'NPS' | 'NHSSCR' | 'EPS'
   const [inputSize, setInputSize] = useState(0)
   const [showAllErrors, setShowAllErrors] = useState(false)
   const [submitResult, setSubmitResult] = useState(null)
@@ -18,23 +18,37 @@ export default function IPSchemaValidator() {
 
   const inputRef = useRef(null)
 
-  const endpoint = mode === 'NHSSCR' ? '/ipsNhsScrVal' : '/ipsUniVal'
+  const endpoint =
+    mode === 'NHSSCR'
+      ? '/ipsNhsScrVal'
+      : mode === 'EPS'
+        ? '/epsVal'
+        : '/ipsUniVal'
 
-  const labels = mode === 'NHSSCR'
-    ? {
-      title: 'NHS SCR JSON Validator',
-      helper: 'Paste your NHS SCR IPS Bundle here (you can also paste a single resource e.g. Patient)',
-      schemaLabel: 'NHS SCR',
-      resultValidKey: 'validNhsScr',
-      resultErrorsKey: 'errorsNhsScr'
-    }
-    : {
-      title: 'NPS JSON Validator',
-      helper: 'Paste your NPS Bundle here (note, you can also paste a single resource e.g. Patient)',
-      schemaLabel: 'NPS',
-      resultValidKey: 'validNps',
-      resultErrorsKey: 'errorsNps'
-    }
+  const labels =
+    mode === 'NHSSCR'
+      ? {
+        title: 'NHS SCR JSON Validator',
+        helper: 'Paste your NHS SCR IPS Bundle here (you can also paste a single resource e.g. Patient)',
+        schemaLabel: 'NHS SCR',
+        resultValidKey: 'validNhsScr',
+        resultErrorsKey: 'errorsNhsScr'
+      }
+      : mode === 'EPS'
+        ? {
+          title: 'EPS JSON Validator',
+          helper: 'Paste your EPS Bundle here (you can also paste a single resource e.g. Patient)',
+          schemaLabel: 'EPS',
+          resultValidKey: 'validEps',
+          resultErrorsKey: 'errorsEps'
+        }
+        : {
+          title: 'NPS JSON Validator',
+          helper: 'Paste your NPS Bundle here (note, you can also paste a single resource e.g. Patient)',
+          schemaLabel: 'NPS',
+          resultValidKey: 'validNps',
+          resultErrorsKey: 'errorsNps'
+        }
 
   const safeParseJson = (text) => {
     try {
@@ -51,6 +65,8 @@ export default function IPSchemaValidator() {
     errorsNps: body?.errorsNps || body?.errors || [],
     validNhsScr: false,
     errorsNhsScr: body?.errorsNhsScr || body?.errors || [],
+    validEps: false,
+    errorsEps: body?.errorsEps || body?.errors || [],
     validFhirR4: body?.validFhirR4 || false,
     errorsFhirR4: body?.errorsFhirR4 || []
   })
@@ -62,7 +78,7 @@ export default function IPSchemaValidator() {
       const savedPayload = sessionStorage.getItem('ips:lastPayload')
       const savedMode = sessionStorage.getItem('ips:lastMode')
 
-      if (savedMode === 'NPS' || savedMode === 'NHSSCR') {
+      if (savedMode === 'NPS' || savedMode === 'NHSSCR' || savedMode === 'EPS') {
         setMode(savedMode)
         setResult(null)
       }
@@ -261,9 +277,10 @@ export default function IPSchemaValidator() {
       setSelectedPatient(body)
 
       try {
-        sessionStorage.setItem('selectedPatient', JSON.stringify(body))
+        sessionStorage.setItem('ips:lastPayload', input)
+        sessionStorage.setItem('ips:lastMode', mode)
       } catch (e) {
-        console.warn('Could not persist selected patient:', e)
+        console.warn('Could not persist validator payload/mode:', e)
       }
 
       setSubmitResult({
@@ -319,6 +336,17 @@ export default function IPSchemaValidator() {
               }}
             >
               NHS SCR
+            </Button>
+
+            <Button
+              variant={mode === 'EPS' ? 'primary' : 'outline-primary'}
+              onClick={() => {
+                setMode('EPS')
+                setResult(null)
+                setSubmitResult(null)
+              }}
+            >
+              EPS
             </Button>
           </ButtonGroup>
           {mode === 'NHSSCR' && (

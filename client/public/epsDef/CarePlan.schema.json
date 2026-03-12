@@ -1,0 +1,241 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/epsDef/CarePlan.schema.json",
+  "title": "EPS CarePlan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "resourceType",
+    "id",
+    "status",
+    "intent",
+    "subject",
+    "activity"
+  ],
+  "properties": {
+    "resourceType": {
+      "const": "CarePlan"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$"
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "profile": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+    "text": {
+      "$ref": "#/definitions/Narrative"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "on-hold",
+        "revoked",
+        "completed",
+        "entered-in-error",
+        "unknown"
+      ]
+    },
+    "intent": {
+      "type": "string",
+      "enum": [
+        "proposal",
+        "plan",
+        "order",
+        "option"
+      ]
+    },
+    "category": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/CodeableConcept"
+      }
+    },
+    "subject": {
+      "$ref": "#/definitions/ReferenceUrnUuidWithOptionalDisplay"
+    },
+    "period": {
+      "$ref": "#/definitions/Period"
+    },
+    "activity": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/Activity"
+      }
+    }
+  },
+  "definitions": {
+    "ReferenceUrnUuidWithOptionalDisplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference"
+      ],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "pattern": "^urn:uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
+    "CodeableConcept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coding"
+      ],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/Coding"
+          }
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "Coding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "system",
+        "code"
+      ],
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
+    "Period": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "type": "string",
+          "anyOf": [
+            {
+              "format": "date"
+            },
+            {
+              "format": "date-time"
+            }
+          ]
+        },
+        "end": {
+          "type": "string",
+          "anyOf": [
+            {
+              "format": "date"
+            },
+            {
+              "format": "date-time"
+            }
+          ]
+        }
+      },
+      "minProperties": 1
+    },
+    "Activity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "detail"
+      ],
+      "properties": {
+        "detail": {
+          "$ref": "#/definitions/ActivityDetail"
+        }
+      }
+    },
+    "ActivityDetail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "code": {
+          "$ref": "#/definitions/CodeableConcept"
+        },
+        "reasonCode": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/CodeableConcept"
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "not-started",
+            "scheduled",
+            "in-progress",
+            "on-hold",
+            "completed",
+            "cancelled",
+            "stopped",
+            "unknown",
+            "entered-in-error"
+          ]
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "Narrative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "div"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "generated",
+            "extensions",
+            "additional",
+            "empty"
+          ]
+        },
+        "div": {
+          "type": "string",
+          "description": "XHTML string (kept as string here; full XHTML validation is out of scope)."
+        }
+      }
+    }
+  }
+}

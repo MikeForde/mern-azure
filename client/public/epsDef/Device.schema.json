@@ -1,0 +1,182 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/epsDef/Device.schema.json",
+  "title": "EPS Device",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "resourceType",
+    "id",
+    "type"
+  ],
+  "properties": {
+    "resourceType": {
+      "const": "Device"
+    },
+
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$"
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "profile": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+
+    "extension": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "$ref": "/epsDef/Extension.schema.json"
+      }
+    },
+
+    "udiCarrier": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/UdiCarrier"
+      }
+    },
+
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "entered-in-error",
+        "unknown"
+      ]
+    },
+
+    "type": {
+      "$ref": "#/definitions/CodeableConcept"
+    },
+
+    "patient": {
+      "$ref": "#/definitions/ReferenceUrnUuidWithDisplay"
+    },
+
+    "text": {
+      "$ref": "#/definitions/Narrative"
+    }
+  },
+
+  "definitions": {
+    "ReferenceUrnUuidWithDisplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference"],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "pattern": "^urn:uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
+
+    "CodeableConcept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coding"],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/Coding"
+          }
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+
+    "Coding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "code"],
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
+
+    "UdiCarrier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "deviceIdentifier": {
+          "type": "string"
+        },
+        "issuer": {
+          "type": "string",
+          "format": "uri"
+        },
+        "jurisdiction": {
+          "type": "string",
+          "format": "uri"
+        },
+        "carrierAIDC": {
+          "type": "string"
+        },
+        "carrierHRF": {
+          "type": "string"
+        },
+        "entryType": {
+          "type": "string",
+          "enum": [
+            "barcode",
+            "rfid",
+            "manual",
+            "card",
+            "self-reported",
+            "unknown"
+          ]
+        }
+      }
+    },
+
+    "Narrative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "div"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["generated", "extensions", "additional", "empty"]
+        },
+        "div": {
+          "type": "string",
+          "description": "XHTML string (kept as string here; full XHTML validation is out of scope)."
+        }
+      }
+    }
+  }
+}

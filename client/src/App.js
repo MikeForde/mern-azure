@@ -21,6 +21,7 @@ import BEERGardenPage from './pages/BEERGardenPage';
 import APIDocumentationPage from './pages/APIDocumentationPage';
 import IPSchemaViewer from './pages/IPSSchemaViewerPage';
 import IPSchemaViewerNhsScr from './pages/IPSSchemaViewerNhsScr';
+import IPSSchemaViewerEps from './pages/IPSSchemaViewerEps';
 import IPSchemaValidator from './pages/IPSSchemaValidatorPage';
 import JWEDecryptPage from './pages/JWEDecryptPage';
 import JWEMultiRecipientPage from './pages/JWEMultiRecipientPage';
@@ -83,6 +84,7 @@ function App() {
               <Route path="/fetchips" element={<UnifiedIPSGetPage />} />
               <Route path="/schemaviewer" element={<IPSchemaViewer />} />
               <Route path="/schemaviewernhsscr" element={<IPSchemaViewerNhsScr />} />
+              <Route path="/schemaviewereps" element={<IPSSchemaViewerEps />} />
               <Route path="/schemavalidator" element={<IPSchemaValidator />} />
               <Route path="/cwix/payload" element={<PayloadPage />} />
               <Route path="/viewer" element={<PayloadPage />} />

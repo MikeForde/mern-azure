@@ -1,0 +1,257 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/epsDef/MedicationStatement.schema.json",
+  "title": "EPS MedicationStatement",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "resourceType",
+    "id",
+    "status",
+    "medicationReference",
+    "subject",
+    "dosage"
+  ],
+  "properties": {
+    "resourceType": {
+      "const": "MedicationStatement"
+    },
+
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$"
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "profile": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+
+    "text": {
+      "$ref": "#/definitions/Narrative"
+    },
+
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed",
+        "entered-in-error",
+        "intended",
+        "stopped",
+        "on-hold",
+        "unknown",
+        "not-taken"
+      ]
+    },
+
+    "medicationReference": {
+      "$ref": "#/definitions/ReferenceUrnUuidWithDisplay"
+    },
+
+    "subject": {
+      "$ref": "#/definitions/ReferenceUrnUuidWithDisplay"
+    },
+
+    "effectivePeriod": {
+      "$ref": "#/definitions/Period"
+    },
+
+    "reasonCode": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/CodeableConcept"
+      }
+    },
+
+    "dosage": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/Dosage"
+      }
+    }
+  },
+
+  "definitions": {
+    "ReferenceUrnUuidWithDisplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference"],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "pattern": "^urn:uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
+
+    "CodeableConcept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coding"],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/Coding"
+          }
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+
+    "Coding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "code"],
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
+
+    "Period": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "type": "string",
+          "anyOf": [
+            { "format": "date" },
+            { "format": "date-time" }
+          ]
+        },
+        "end": {
+          "type": "string",
+          "anyOf": [
+            { "format": "date" },
+            { "format": "date-time" }
+          ]
+        }
+      },
+      "minProperties": 1
+    },
+
+    "Dosage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text"],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "timing": {
+          "$ref": "#/definitions/Timing"
+        },
+        "asNeededBoolean": {
+          "type": "boolean"
+        },
+        "doseAndRate": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/DoseAndRate"
+          }
+        }
+      }
+    },
+
+    "Timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "repeat": {
+          "$ref": "#/definitions/TimingRepeat"
+        }
+      }
+    },
+
+    "TimingRepeat": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "frequency": {
+          "type": "number"
+        },
+        "period": {
+          "type": "number"
+        },
+        "periodUnit": {
+          "type": "string",
+          "enum": ["s", "min", "h", "d", "wk", "mo", "a"]
+        }
+      }
+    },
+
+    "DoseAndRate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "doseQuantity": {
+          "$ref": "#/definitions/Quantity"
+        }
+      }
+    },
+
+    "Quantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "unit", "system", "code"],
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "system": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        }
+      }
+    },
+
+    "Narrative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "div"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["generated", "extensions", "additional", "empty"]
+        },
+        "div": {
+          "type": "string",
+          "description": "XHTML string (kept as string here; full XHTML validation is out of scope)."
+        }
+      }
+    }
+  }
+}

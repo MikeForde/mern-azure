@@ -1,0 +1,248 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/epsDef/Patient.schema.json",
+  "title": "EPS Patient",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "resourceType",
+    "id",
+    "name",
+    "gender",
+    "birthDate",
+    "address"
+  ],
+  "properties": {
+    "resourceType": { "const": "Patient" },
+
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$"
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "profile": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+
+    "identifier": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/Identifier" }
+    },
+
+    "extension": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "$ref": "/epsDef/Extension.schema.json"
+      }
+    },
+
+    "name": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/HumanName" }
+    },
+
+    "telecom": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/ContactPoint" }
+    },
+
+    "gender": {
+      "type": "string",
+      "enum": ["male", "female", "other", "unknown"]
+    },
+
+    "birthDate": {
+      "type": "string",
+      "format": "date"
+    },
+
+    "address": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/Address" }
+    },
+
+    "text": { "$ref": "#/definitions/Narrative" }
+  },
+
+  "definitions": {
+    "Identifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "value"],
+      "properties": {
+        "extension": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "/epsDef/Extension.schema.json" }
+        },
+        "type": {
+          "$ref": "#/definitions/CodeableConceptNoDisplay"
+        },
+        "system": { "type": "string" },
+        "value": { "type": "string" }
+      }
+    },
+
+    "CodeableConceptNoDisplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coding"],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/CodingNoDisplay" }
+        },
+        "text": { "type": "string" }
+      }
+    },
+
+    "CodingNoDisplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "code"],
+      "properties": {
+        "system": { "type": "string" },
+        "code": { "type": "string" },
+        "display": { "type": "string" }
+      }
+    },
+
+    "HumanName": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "use": {
+          "type": "string",
+          "enum": [
+            "usual",
+            "official",
+            "temp",
+            "nickname",
+            "anonymous",
+            "old",
+            "maiden"
+          ]
+        },
+        "text": { "type": "string" },
+        "family": { "type": "string" },
+        "given": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "prefix": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "suffix": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "period": { "$ref": "#/definitions/Period" }
+      }
+    },
+
+    "ContactPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "value"],
+      "properties": {
+        "system": {
+          "type": "string",
+          "enum": ["phone", "fax", "email", "pager", "url", "sms", "other"]
+        },
+        "value": { "type": "string" },
+        "use": {
+          "type": "string",
+          "enum": ["home", "work", "temp", "old", "mobile"]
+        },
+        "rank": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "period": { "$ref": "#/definitions/Period" }
+      }
+    },
+
+    "Address": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "use": {
+          "type": "string",
+          "enum": ["home", "work", "temp", "old", "billing"]
+        },
+        "type": {
+          "type": "string",
+          "enum": ["postal", "physical", "both"]
+        },
+        "text": {
+          "type": "string"
+        },
+        "line": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "city": { "type": "string" },
+        "district": { "type": "string" },
+        "state": { "type": "string" },
+        "postalCode": { "type": "string" },
+        "country": { "type": "string" },
+        "period": { "$ref": "#/definitions/Period" }
+      }
+    },
+
+    "Period": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "type": "string",
+          "anyOf": [
+            { "format": "date" },
+            { "format": "date-time" }
+          ]
+        },
+        "end": {
+          "type": "string",
+          "anyOf": [
+            { "format": "date" },
+            { "format": "date-time" }
+          ]
+        }
+      }
+    },
+
+    "Narrative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "div"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["generated", "extensions", "additional", "empty"]
+        },
+        "div": {
+          "type": "string",
+          "description": "XHTML string (kept as string here; full XHTML validation is out of scope)."
+        }
+      }
+    }
+  }
+}

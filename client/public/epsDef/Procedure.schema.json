@@ -1,0 +1,252 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/epsDef/Procedure.schema.json",
+  "title": "EPS Procedure",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "resourceType",
+    "id",
+    "status",
+    "code",
+    "subject"
+  ],
+  "properties": {
+    "resourceType": {
+      "const": "Procedure"
+    },
+
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9\\-\\.]{1,64}$"
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "profile": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+
+    "text": {
+      "$ref": "#/definitions/Narrative"
+    },
+
+    "extension": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "/epsDef/Extension.schema.json"
+      }
+    },
+
+    "identifier": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/Identifier"
+      }
+    },
+
+    "status": {
+      "type": "string",
+      "enum": [
+        "preparation",
+        "in-progress",
+        "not-done",
+        "on-hold",
+        "stopped",
+        "completed",
+        "entered-in-error",
+        "unknown"
+      ]
+    },
+
+    "code": {
+      "$ref": "#/definitions/CodeableConcept"
+    },
+
+    "subject": {
+      "$ref": "#/definitions/ReferenceUrnUuidWithOptionalDisplay"
+    },
+
+    "performedDateTime": {
+      "type": "string",
+      "anyOf": [
+        { "format": "date" },
+        { "format": "date-time" }
+      ]
+    },
+
+    "performedPeriod": {
+      "$ref": "#/definitions/Period"
+    },
+
+    "performer": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/Performer"
+      }
+    },
+
+    "reasonCode": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/CodeableConcept"
+      }
+    },
+
+    "bodySite": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/CodeableConcept"
+      }
+    },
+
+    "outcome": {
+      "$ref": "#/definitions/CodeableConcept"
+    }
+  },
+
+  "allOf": [
+    {
+      "description": "A procedure should normally have either performedDateTime or performedPeriod.",
+      "oneOf": [
+        { "required": ["performedDateTime"] },
+        { "required": ["performedPeriod"] }
+      ]
+    }
+  ],
+
+  "definitions": {
+    "Identifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "value"],
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+
+    "ReferenceUrnUuidWithOptionalDisplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference"],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "pattern": "^urn:uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
+
+    "Performer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "$ref": "#/definitions/ReferenceUrnUuidWithOptionalDisplay"
+        },
+        "onBehalfOf": {
+          "$ref": "#/definitions/ReferenceUrnUuidWithOptionalDisplay"
+        }
+      },
+      "anyOf": [
+        { "required": ["actor"] },
+        { "required": ["onBehalfOf"] }
+      ]
+    },
+
+    "CodeableConcept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coding"],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/Coding"
+          }
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+
+    "Coding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "code"],
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
+
+    "Period": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "type": "string",
+          "anyOf": [
+            { "format": "date" },
+            { "format": "date-time" }
+          ]
+        },
+        "end": {
+          "type": "string",
+          "anyOf": [
+            { "format": "date" },
+            { "format": "date-time" }
+          ]
+        }
+      },
+      "minProperties": 1
+    },
+
+    "Narrative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "div"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["generated", "extensions", "additional", "empty"]
+        },
+        "div": {
+          "type": "string",
+          "description": "XHTML string (kept as string here; full XHTML validation is out of scope)."
+        }
+      }
+    }
+  }
+}
