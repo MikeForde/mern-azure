@@ -121,16 +121,6 @@
     }
   },
 
-  "allOf": [
-    {
-      "description": "An EPS Observation should have either a direct valueQuantity or component array.",
-      "oneOf": [
-        { "required": ["valueQuantity"] },
-        { "required": ["component"] }
-      ]
-    }
-  ],
-
   "definitions": {
     "ReferenceUrnUuidWithOptionalDisplay": {
       "type": "object",

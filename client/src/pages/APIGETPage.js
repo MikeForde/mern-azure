@@ -31,6 +31,9 @@ function APIGETPage() {
   // NHS SCR IPS narrative toggle (only for mode === 'ipsnhsscr')
   const [useIpsNhsscrNarrative, setUseIpsNhsscrNarrative] = useState(false); // => narrative=1
 
+  // EPS narrative toggles (only for mode === 'ipseps')
+  const [useIpsEpsNarrative, setUseIpsEpsNarrative] = useState(false); // => narrative=1
+
   // ---------- On-page validation (NPS + NHS SCR JSON modes) ----------
   const [valLoading, setValLoading] = useState(false);
   const [valResult, setValResult] = useState(null);   // response JSON from validator
@@ -67,7 +70,8 @@ function APIGETPage() {
         // add narrative flags for IPS and NHS SCR IPS
         if (
           (mode === 'ips' && useIpsNarrative) ||
-          (mode === 'ipsnhsscr' && useIpsNhsscrNarrative)
+          (mode === 'ipsnhsscr' && useIpsNhsscrNarrative) ||
+          (mode === 'ipseps' && useIpsEpsNarrative)
         ) {
           endpoint += (endpoint.includes('?') ? '&' : '?') + 'narrative=1';
         }
@@ -123,6 +127,7 @@ function APIGETPage() {
     useIdOmit,
     useIpsNarrative,
     useIpsNhsscrNarrative,
+    useIpsEpsNarrative
   ]);
 
   const handleDownloadData = () => {
@@ -175,7 +180,7 @@ function APIGETPage() {
     const pmSuffix = mode === 'ipsunified' ? useFieldEncrypt ? '_jwefld' : (useIdOmit ? '_omit' : '') : '';
     const narSuffix =
       ((mode === 'ips' && useIpsNarrative) ||
-        (mode === 'ipsnhsscr' && useIpsNhsscrNarrative))
+        (mode === 'ipsnhsscr' && useIpsNhsscrNarrative) || (mode === 'ipseps' && useIpsEpsNarrative))
         ? '_narr'
         : '';
     const fileName = `${yyyymmdd}-${fam}_${giv}_${last6}_${mode}${narSuffix}${pmSuffix}${ceSuffix}${ikSuffix}.${extension}`;
@@ -206,6 +211,9 @@ function APIGETPage() {
         break;
       case 'ipsnhsscr':
         setModeText('NHS SCR IPS JSON Bundle - /ipsnhsscr/:id');
+        break;
+      case 'ipseps':
+        setModeText('EPS IPS JSON Bundle - /ipseps/:id');
         break;
       case 'ipsxml':
         setModeText('IPS XML Bundle - /ipsxml/:id');
@@ -305,10 +313,10 @@ function APIGETPage() {
 
   // ---------- On-page validation helpers ----------
   const isJsonModeForValidation =
-    (mode === 'ipsunified' || mode === 'ipsnhsscr') &&
+    (mode === 'ipsunified' || mode === 'ipsnhsscr' || mode === 'ipseps') &&
     !useCompressionAndEncryption; // avoid validating compressed/encrypted wrapper JSON
 
-  const validatorEndpoint = mode === 'ipsnhsscr' ? '/ipsNhsScrVal' : '/ipsUniVal';
+  const validatorEndpoint = mode === 'ipseps' ? '/epsVal' : (mode === 'ipsnhsscr' ? '/ipsNhsScrVal' : '/npsVal');
 
   useEffect(() => {
     let cancelled = false;
@@ -387,7 +395,7 @@ function APIGETPage() {
   const openValidatorPage = () => {
     try {
       sessionStorage.setItem('ips:lastPayload', data || '');
-      sessionStorage.setItem('ips:lastMode', mode === 'ipsnhsscr' ? 'NHSSCR' : 'NPS');
+      sessionStorage.setItem('ips:lastMode', mode === 'ipseps' ? 'eps' : (mode === 'ipsnhsscr' ? 'nhsscr' : 'nps'));
     } catch (e) {
       console.warn('Could not store payload for validator:', e);
     }
@@ -451,6 +459,7 @@ function APIGETPage() {
                 >
                   <Dropdown.Item eventKey="ipsunified">NPS JSON Bundle - /nps/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipsnhsscr">NHS SCR IPS JSON Bundle - /ipsnhsscr/:id</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipseps">EPS JSON Bundle - /ipseps/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipshl72x">IPS HL7 2.3 - /ipshl72x/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipsmongo">IPS NoSQL - /ipsmongo/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipsbeer">IPS BEER - /ipsbeer/:id</Dropdown.Item>
@@ -543,6 +552,18 @@ function APIGETPage() {
                   />
                 </div>
               )}
+              {/* show only in EPS IPS mode */}
+              {mode === 'ipseps' && (
+                <div className="col-auto">
+                  <Form.Check
+                    type="checkbox"
+                    id="ipsEpsNarrative"
+                    label="Include narrative (composition)"
+                    checked={useIpsEpsNarrative}
+                    onChange={(e) => setUseIpsEpsNarrative(e.target.checked)}
+                  />
+                </div>
+              )}
             </div>
           </>
         )}
@@ -561,7 +582,7 @@ function APIGETPage() {
             </div>
 
             {/* ---------- On-page validation panel ---------- */}
-            {(mode === 'ipsunified' || mode === 'ipsnhsscr') && (
+            {(mode === 'ipsunified' || mode === 'ipsnhsscr' || mode === 'ipseps') && (
               <div className="mt-2">
                 {useCompressionAndEncryption ? (
                   <Alert variant="secondary" className="mb-2">
@@ -569,7 +590,7 @@ function APIGETPage() {
                   </Alert>
                 ) : valLoading ? (
                   <Alert variant="secondary" className="mb-2">
-                    Validating ({mode === 'ipsnhsscr' ? 'NHS SCR via /ipsNhsScrVal' : 'NPS via /npsVal'})…
+                    Validating ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : 'NPS')})...
                   </Alert>
                 ) : valError ? (
                   <Alert variant="warning" className="mb-2">
@@ -579,7 +600,7 @@ function APIGETPage() {
                   <Alert variant={valResult.valid ? "success" : "danger"} className="mb-2">
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                       <div>
-                        <strong>Validation ({mode === 'ipsnhsscr' ? 'NHS SCR via /ipsNhsScrVal' : 'NPS via /npsVal'}):</strong>{" "}
+                        <strong>Validation ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : 'NPS')}):</strong>
                         {valResult.valid ? "✅ Valid" : "❌ Invalid"}
                         {!!valResult.errors?.length && (
                           <> — {valResult.errors.length} error(s)</>
@@ -593,7 +614,7 @@ function APIGETPage() {
                           onClick={openValidatorPage}
                           disabled={!data}
                         >
-                          Go to Validator ({mode === 'ipsnhsscr' ? 'NHS SCR' : 'NPS'})
+                          Go to Validator ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : 'NPS')})
                         </Button>
 
                         {!valResult.valid && (
@@ -635,7 +656,7 @@ function APIGETPage() {
               </Button>
             </div>
 
-            {(mode === 'ips' || mode === 'ipsnhsscr') && (
+            {(mode === 'ips' || mode === 'ipsnhsscr' || mode === 'ipseps') && (
               <div className="col-auto">
                 <Button
                   variant="primary"
