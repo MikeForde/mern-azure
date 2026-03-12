@@ -236,11 +236,100 @@ api.delete("/ips/:id", deleteIPS);
 api.delete("/ipsdeletebypractitioner/:practitioner", deleteIPSbyPractitioner);
 
 // GraphQL
-api.get('/playground', playground({ endpoint: '/graphql' }));
+// GraphQL Playground with clickable example tabs
+api.get('/playground', playground({
+  endpoint: '/graphql',
+  settings: {
+    'editor.theme': 'dark',
+    'editor.cursorShape': 'line',
+    'request.credentials': 'same-origin',
+    'tracing.hideTracingResponse': true,
+    'schema.polling.enable': false,
+  },
+  tabs: [
+    {
+      name: 'Get all IPS',
+      endpoint: '/graphql',
+      query: `query {
+  getAllIPS {
+    id
+    status
+    contentType
+  }
+}`
+    },
+    {
+      name: 'Expanded IPS by ID',
+      endpoint: '/graphql',
+      query: `query {
+  getIPSExpanded(id: "12345", narrative: 1, resourceNarrative: 0) {
+    id
+    status
+    contentType
+    content
+  }
+}`
+    },
+    {
+      name: 'Unified IPS by ID',
+      endpoint: '/graphql',
+      query: `query {
+  getIPSUnified(id: "12345") {
+    id
+    content
+  }
+}`
+    },
+    {
+      name: 'IPS by name',
+      endpoint: '/graphql',
+      query: `query {
+  getIPSByName(name: "Smith", given: "John", format: "unified") {
+    id
+    content
+  }
+}`
+    },
+    {
+      name: 'BEER by ID',
+      endpoint: '/graphql',
+      query: `query {
+  getIPSBeer(id: "12345", delim: "pipe") {
+    id
+    content
+  }
+}`
+    },
+    {
+      name: 'Create IPS',
+      endpoint: '/graphql',
+      query: `mutation {
+  addIPS(
+    json: "{\\"packageUUID\\":\\"abc-123\\",\\"timeStamp\\":\\"2026-03-12T10:00:00.000Z\\",\\"patient\\":{\\"name\\":\\"Smith\\",\\"given\\":\\"John\\",\\"dob\\":\\"1980-01-01\\"}}"
+  ) {
+    ok
+    status
+    content
+  }
+}`
+    }
+  ]
+}));
+
 async function startApolloServer() {
-    const apolloServer = new ApolloServer({ typeDefs, resolvers, introspection: true, playground: true });
-    await apolloServer.start();
-    api.use('/graphql', express.json({ limit: BODY_LIMIT }), expressMiddleware(apolloServer));
+  const apolloServer = new ApolloServer({
+    typeDefs,
+    resolvers,
+    introspection: true,
+  });
+
+  await apolloServer.start();
+
+  api.use(
+    '/graphql',
+    express.json({ limit: BODY_LIMIT }),
+    expressMiddleware(apolloServer)
+  );
 }
 
 startApolloServer();
