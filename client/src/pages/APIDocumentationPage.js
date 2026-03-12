@@ -26,11 +26,13 @@ function APIDocumentationPage() {
     { method: 'POST', endpoint: '/convertfhirxml', description: 'Convert FHIR XML format to FHIR JSON format.', request: 'FHIR XML', response: 'FHIR JSON' },
     { method: 'POST', endpoint: '/npsVal', description: 'Validates NPS JSON format against schema', request: 'FHIR JSON', response: 'Validation report as JSON' },
     { method: 'POST', endpoint: '/ipsNhsScrVal', description: 'Validates NHS SCR IPS JSON format against schema', request: 'FHIR JSON', response: 'Validation report as JSON' },
+    { method: 'POST', endpoint: '/epsVal', description: 'Validates EPS IPS JSON format against schema', request: 'FHIR JSON', response: 'Validation report as JSON' },
     { method: 'GET', endpoint: '/ips/all', description: 'Retrieve all IPS records.', request: 'None.', response: 'Array of JSON objects representing IPS records.' },
     { method: 'GET', endpoint: '/ipsraw/:id', description: 'Retrieve raw IPS record by ID.', request: 'IPS record ID as URL parameter.', response: 'JSON object of the raw IPS record.' },
     { method: 'GET', endpoint: '/ipsmongo/:id', description: 'Retrieve IPS record in MongoDB format by ID.', request: 'IPS record ID as URL parameter.', response: 'MongoDB - JSON' },
     { method: 'GET', endpoint: '/ips/:id?narrative=1&resourceNarrative=1', description: 'Retrieve IPS record in expanded format by ID (optional narratives).', request: 'IPS record ID as URL parameter.', response: 'Expanded Composition IPS format- FHiR JSON' },
     { method: 'GET', endpoint: '/ipsnhsscr/:id?narrative=1&resourceNarrative=1', description: 'Retrieve IPS record in NHS SCR format by ID (optional narratives).', request: 'IPS record ID as URL parameter.', response: 'NHS SCR format - FHiR JSON' },
+    { method: 'GET', endpoint: '/ipseps/:id?narrative=1&resourceNarrative=1', description: 'Retrieve IPS record in EPS format by ID (optional narratives).', request: 'IPS record ID as URL parameter.', response: 'EPS format - FHiR JSON' },
     { method: 'GET', endpoint: '/ipsbasic/:id', description: 'Retrieve IPS record in basic format by ID.', request: 'IPS record ID as URL parameter.', response: 'Basic format - Plain Text' },
     { method: 'GET', endpoint: '/ipsplaintext/:id', description: 'Retrieve IPS record in human readable format by ID.', request: 'IPS record ID as URL parameter.', response: 'Human Readable format - Plain Text' },
     {

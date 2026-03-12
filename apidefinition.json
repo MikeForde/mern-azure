@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "version": "0_83",
+    "version": "0_84",
     "title": "IPS MERN API",
     "description": "OpenAPI 3.0 specification for the IPS MERN API."
   },
@@ -611,7 +611,7 @@
     "/npsVal": {
       "post": {
         "tags": [
-          "NPS"
+          "Schema"
         ],
         "summary": "Validates an NPS format record.",
         "description": "Validates an NPS format record.",
@@ -628,7 +628,24 @@
         },
         "responses": {
           "200": {
-            "description": "JSON object containing the validation report."
+            "description": "Validation report for NPS validation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/valschemas/NpsValidationReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/valschemas/NpsValidationReport"
+                }
+              }
+            }
           }
         }
       }
@@ -657,7 +674,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationReport"
+                  "$ref": "#/components/valschemas/NhsScrValidationReport"
                 }
               }
             }
@@ -667,7 +684,49 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationReport"
+                  "$ref": "#/components/valschemas/NhsScrValidationReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/epsVal": {
+      "post": {
+        "tags": [
+          "Schema"
+        ],
+        "summary": "Validate EPS IPS FHIR JSON against schema",
+        "description": "Validates a pasted FHIR JSON payload (Bundle or single resource) against the EPS IPS (custom) schema and against the global FHIR R4 schema.",
+        "requestBody": {
+          "description": "FHIR JSON payload (Bundle or single resource).",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation report (custom schema + FHIR R4 structural validation).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/valschemas/EpsValidationReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (e.g. missing/unknown resourceType).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/valschemas/EpsValidationReport"
                 }
               }
             }
@@ -944,6 +1003,65 @@
         "responses": {
           "200": {
             "description": "NHS SCR format - FHIR JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ipseps/{id}": {
+      "get": {
+        "tags": [
+          "IPS"
+        ],
+        "summary": "Retrieve IPS record in EPS format by ID",
+        "description": "Retrieve IPS record in EPS format by ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "narrative",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "default": 0
+            },
+            "description": "If 1, include generated narrative in Composition.section[].text."
+          },
+          {
+            "name": "resourceNarrative",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "default": 0
+            },
+            "description": "If 1, include generated narrative in each resource.text within Bundle.entry[].resource."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "EPS format - FHIR JSON",
             "content": {
               "application/json": {
                 "schema": {
@@ -1797,6 +1915,147 @@
     }
   },
   "components": {
+    "valschemas": {
+      "ValidationIssue": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "example": "/entry/23/resource/MedicationStatement/dosage/0/doseAndRate/0/doseQuantity"
+          },
+          "message": {
+            "type": "string",
+            "example": "Missing required property \"code\""
+          }
+        },
+        "required": [
+          "path",
+          "message"
+        ]
+      },
+      "BaseValidationReport": {
+        "type": "object",
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "description": "Overall validation result."
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/valschemas/ValidationIssue"
+            },
+            "description": "Primary validation errors."
+          },
+          "validationMode": {
+            "type": "string",
+            "description": "Validation mode used by the endpoint.",
+            "example": "lenient"
+          }
+        },
+        "required": [
+          "valid",
+          "errors"
+        ]
+      },
+      "EpsValidationReport": {
+        "allOf": [
+          {
+            "$ref": "#/components/valschemas/BaseValidationReport"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "validEps": {
+                "type": "boolean"
+              },
+              "errorsEps": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/valschemas/ValidationIssue"
+                }
+              },
+              "validFhirR4": {
+                "type": "boolean"
+              },
+              "errorsFhirR4": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/valschemas/ValidationIssue"
+                }
+              }
+            },
+            "required": [
+              "validEps",
+              "errorsEps",
+              "validFhirR4",
+              "errorsFhirR4"
+            ]
+          }
+        ]
+      },
+      "NhsScrValidationReport": {
+        "allOf": [
+          {
+            "$ref": "#/components/valschemas/BaseValidationReport"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "validNhsScr": {
+                "type": "boolean"
+              },
+              "errorsNhsScr": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/valschemas/ValidationIssue"
+                }
+              },
+              "validFhirR4": {
+                "type": "boolean"
+              },
+              "errorsFhirR4": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/valschemas/ValidationIssue"
+                }
+              }
+            },
+            "required": [
+              "validNhsScr",
+              "errorsNhsScr",
+              "validFhirR4",
+              "errorsFhirR4"
+            ]
+          }
+        ]
+      },
+      "NpsValidationReport": {
+        "allOf": [
+          {
+            "$ref": "#/components/valschemas/BaseValidationReport"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "validNps": {
+                "type": "boolean"
+              },
+              "errorsNps": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/valschemas/ValidationIssue"
+                }
+              }
+            },
+            "required": [
+              "validNps",
+              "errorsNps"
+            ]
+          }
+        ]
+      }
+    },
     "parameters": {
       "XIPSFormat": {
         "name": "x-ips-format",

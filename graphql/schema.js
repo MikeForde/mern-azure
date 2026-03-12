@@ -123,6 +123,23 @@ const typeDefs = gql`
     ): ApiResult
 
     """
+    Fetch the EPS IPS FHIR JSON by ID.
+
+    Example:
+    query {
+      getIPSEPS(id: "12345", narrative: 1, resourceNarrative: 1) {
+        id
+        content
+      }
+    }
+    """
+    getIPSEPS(
+      id: ID!
+      narrative: Int = 0
+      resourceNarrative: Int = 0
+    ): ApiResult
+
+    """ 
     Fetch the unified IPS FHIR JSON by ID.
 
     Example:
@@ -495,6 +512,11 @@ const typeDefs = gql`
     Validate a FHIR JSON payload against the NHS SCR IPS schema.
     """
     validateNhsScr(json: String!): MutationResult
+
+    """
+    Validate a FHIR JSON payload against the EPS IPS schema.
+    """
+    validateEps(json: String!): MutationResult  
 
     """
     Update an IPS record by Mongo/Object ID.

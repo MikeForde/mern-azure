@@ -840,6 +840,18 @@ function ChangeLogPage() {
                                 <li>Improved stability of validator error navigation and response handling for large validation result sets.</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_84 — 12th Mar 2026</h5>
+                            <ul>
+                                <li><strong>European Patient Summary (EPS) Integration</strong></li>
+                                <li>Added full EPS Bundle generation capability via a new <code>generateIPSBundleEPS</code> pipeline aligned with the HL7 Europe EPS specification.</li>
+                                <li>Implemented EPS-specific FHIR resources including <code>PractitionerRole</code>, <code>DeviceUseStatement</code>, and <code>CarePlan</code> alongside existing IPS resources.</li>
+                                <li>Introduced an EPS JSON Schema set (<code>/epsDef</code>) enabling structural validation of EPS bundles in addition to the NHS SCR flavour.</li>
+                                <li>Added a dedicated EPS Schema Viewer to explore schemas and example resources interactively within the documentation interface.</li>
+                                <li>Extended Composition generation to support the EPS mandatory sections (Medication list, Allergies and Intolerances, Problem list, History of Procedures, and Device Use).</li>
+                                <li>Improved interoperability by supporting both NHS SCR and EPS bundle generation paths from the same IPS source data model.</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

@@ -2,6 +2,7 @@ const axios = require('axios');
 
 const { getIPSBundle } = require('../servercontrollers/ipsBundleFormat');
 const { getIPSBundleNHSSCR } = require('../servercontrollers/ipsBundleFormatNHSSCR');
+const { getIPSBundleEPS } = require('../servercontrollers/ipsBundleFormatEPS');
 const { getIPSBundleByName } = require('../servercontrollers/ipsBundleByName');
 const { getORABundleByName } = require('../servercontrollers/oraBundleByName');
 const { getIPSLegacyBundle } = require('../servercontrollers/ipsBundleFormat_old');
@@ -40,6 +41,7 @@ const { convertHL72_xToMongo } = require('../servercontrollers/convertHL72_xToMo
 const { convertHL72_xToIPS } = require('../servercontrollers/convertHL72_xToIPS');
 const { convertXmlEndpoint } = require('../servercontrollers/convertXmlEndpoint');
 const { convertFhirXmlEndpoint } = require('../servercontrollers/convertFhirXmlEndpoint');
+const { get } = require('mongoose');
 
 const PORT = process.env.PORT || 5049;
 const INTERNAL_BASE_URL =
@@ -237,6 +239,18 @@ const resolvers = {
 
     getIPSNhsScr: async (_, { id, narrative, resourceNarrative }) => {
       const result = await callController(getIPSBundleNHSSCR, {
+        params: { id },
+        query: {
+          narrative: String(narrative ?? 0),
+          resourceNarrative: String(resourceNarrative ?? 0),
+        },
+        headers: {},
+      });
+      return toApiResult(result, id);
+    },
+
+    getIPSEPS: async (_, { id, narrative, resourceNarrative }) => {
+      const result = await callController(getIPSBundleEPS, {
         params: { id },
         query: {
           narrative: String(narrative ?? 0),
@@ -634,6 +648,13 @@ const resolvers = {
 
     validateNhsScr: async (_, { json }) => {
       const result = await callInternalREST('post', '/ipsNhsScrVal', parseJsonInput(json), {
+        'content-type': 'application/json',
+      });
+      return toMutationResult(result);
+    },
+
+    validateEps: async (_, { json }) => {
+      const result = await callInternalREST('post', '/epsVal', parseJsonInput(json), {
         'content-type': 'application/json',
       });
       return toMutationResult(result);
