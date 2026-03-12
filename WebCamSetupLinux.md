@@ -6,8 +6,8 @@ This guide configures a Logitech C920 (or similar UVC webcam) for
 ------------------------------------------------------------------------
 
 Note, this may not work for a particular Logitech C920 as - for reasons better known to the manafacturers - some are malformed for focus distance:
-- larger numbers mean closer e.g. 200 (rather than 40)
-- after being turned off, reactivation resets the value to a low number which means the close focus is lost.
+- larger numbers mean closer e.g. focus_absolute=150 (rather than focus_absolute=40)
+- after you switch to QR settings (and having adjusted the focus_absolute to about 150) - using method below - then turn off camera, then switch camera back on, it resets the value to a low number (50 in my example) - while keeping the autofocus switched off - which means it is now focussed in the distance AND auto-focus is off. So, fairly useless for reading QR codes other than the first time you switch the camera on.
 
 ------------------------------------------------------------------------
 
