@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { Button, Alert, Form, DropdownButton, Dropdown, Toast, ToastContainer } from 'react-bootstrap';
 import './Page.css';
@@ -384,7 +384,7 @@ function APIGETPage() {
 
 
   // ---------- Jump to validator (carry payload + mode via sessionStorage) ----------
-   const openValidatorPage = () => {
+  const openValidatorPage = () => {
     try {
       sessionStorage.setItem('ips:lastPayload', data || '');
       sessionStorage.setItem('ips:lastMode', mode === 'ipsnhsscr' ? 'NHSSCR' : 'NPS');
@@ -401,6 +401,21 @@ function APIGETPage() {
       <div className="container">
         <h3>
           API GET - IPS Data: {responseSize}
+          <Link
+            to="/apidocumentation"
+            title="API documentation page"
+            style={{
+              marginLeft: '8px',
+              fontSize: '0.80em',
+              textDecoration: 'none',
+              opacity: 0.6,
+              transition: 'opacity 0.2s ease'
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = 0.6)}
+          >
+            (Full API)
+          </Link>
         </h3>
         {selectedPatients.length > 0 && selectedPatient && (
           <>
