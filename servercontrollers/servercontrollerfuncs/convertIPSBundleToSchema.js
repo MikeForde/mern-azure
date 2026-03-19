@@ -334,10 +334,13 @@ function convertIPSBundleToSchema(ipsBundle) {
           }
         }
 
+        // For date, prefer onsetDateTime, but fallback to recordedDate if onsetDateTime is not available
+        const allergyDate = getBestDateTime(resource, ['onsetDateTime', 'recordedDate']);
+
         allergies.push({
           name: alName,
           criticality: cleanString(resource.criticality, 'high'),
-          date: safeToISOString(resource.onsetDateTime),
+          date: allergyDate,
           system: alSystem,
           code: alCode
         });
@@ -348,10 +351,13 @@ function convertIPSBundleToSchema(ipsBundle) {
         const condDisplay = getCodeableConceptDisplay(resource.code, null);
         const condCode = getCodeableConceptCode(resource.code, null);
         const condSystem = getCodeableConceptSystem(resource.code, null);
+        
+        // For date, prefer onsetDateTime, but fallback to recordedDate if onsetDateTime is not available
+        const conditionDate = getBestDateTime(resource, ['onsetDateTime', 'recordedDate']);
 
         conditions.push({
           name: condDisplay,
-          date: getBestDateTime(resource, ['onsetDateTime', 'recordedDate']),
+          date: conditionDate,
           system: condSystem,
           code: condCode
         });

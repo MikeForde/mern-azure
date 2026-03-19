@@ -22,7 +22,7 @@ const schemaFiles = [
   'Coverage.schema.json'
 ];
 
-const FHIR_SCHEMA_KEY = "fhirR4";
+const FHIR_SCHEMA_KEY = 'fhirR4';
 
 // Load single-file FHIR R4 schema (draft-06)
 const fhirSchemaPath = path.join(__dirname, 'fhir.schema.json');
@@ -40,7 +40,6 @@ if (fhirSchema && typeof fhirSchema === 'object') {
   delete fhirSchema.discriminator;
 }
 
-
 const schemas = {};
 schemaFiles.forEach(file => {
   const name = file.replace('.schema.json', '');
@@ -52,18 +51,17 @@ function fhirDefRef(resourceType) {
   return `${FHIR_SCHEMA_KEY}#/definitions/${resourceType}`;
 }
 
-
 function convertSchemaIdKeyword(node) {
   if (Array.isArray(node)) {
     node.forEach(convertSchemaIdKeyword);
     return;
   }
-  if (!node || typeof node !== "object") return;
+  if (!node || typeof node !== 'object') return;
 
   // If this object uses draft-06 "id" as a schema identifier, convert it.
   // Heuristic: it's a string that looks like an absolute URI.
-  if (typeof node.id === "string" && /^https?:\/\//i.test(node.id)) {
-    if (typeof node.$id !== "string") node.$id = node.id;
+  if (typeof node.id === 'string' && /^https?:\/\//i.test(node.id)) {
+    if (typeof node.$id !== 'string') node.$id = node.id;
     delete node.id;
   }
 
@@ -71,6 +69,43 @@ function convertSchemaIdKeyword(node) {
   for (const v of Object.values(node)) convertSchemaIdKeyword(v);
 }
 
+function parseReference(ref) {
+  if (!ref || typeof ref !== 'string') {
+    return { type: null, id: null, style: null };
+  }
+
+  const trimmed = ref.trim();
+  if (!trimmed) {
+    return { type: null, id: null, style: null };
+  }
+
+  // urn:uuid:<id> or urn:oid:<id>
+  const urnMatch = trimmed.match(/^urn:(uuid|oid):(.+)$/i);
+  if (urnMatch) {
+    return {
+      type: null,
+      id: urnMatch[2],
+      style: `urn:${urnMatch[1].toLowerCase()}`
+    };
+  }
+
+  // Resource/id or Resource/id/_history/version
+  const parts = trimmed.split('/').filter(Boolean);
+  if (parts.length >= 2) {
+    return {
+      type: parts[0],
+      id: parts[1],
+      style: 'relative'
+    };
+  }
+
+  // id-only fallback
+  return {
+    type: null,
+    id: trimmed,
+    style: 'id-only'
+  };
+}
 
 function prettyAjvError(e, prefix = '') {
   let message = e.message;
@@ -95,35 +130,107 @@ function prettyAjvError(e, prefix = '') {
   };
 }
 
+function prettifyAjvErrors(errorList, prefix = '') {
+  const out = [];
+
+  // Map path -> collapsed anyOf info
+  const collapsedAnyOf = new Map();
+
+  // First pass:
+  // find anyOf failures where the sibling errors at the same path
+  // are all "required" missing-property messages
+  for (const e of errorList) {
+    if (e.keyword !== 'anyOf') continue;
+
+    const path = e.instancePath || '';
+
+    const siblingRequiredErrors = errorList.filter(r =>
+      (r.instancePath || '') === path &&
+      r.keyword === 'required' &&
+      typeof r.params?.missingProperty === 'string'
+    );
+
+    const missingProps = [
+      ...new Set(siblingRequiredErrors.map(r => r.params.missingProperty))
+    ];
+
+    if (missingProps.length >= 2) {
+      collapsedAnyOf.set(path, { missingProps });
+    }
+  }
+
+  // Second pass: emit cleaned errors
+  for (const e of errorList) {
+    const path = e.instancePath || '';
+    const collapseInfo = collapsedAnyOf.get(path);
+
+    if (collapseInfo) {
+      // suppress child required errors participating in this anyOf collapse
+      if (
+        e.keyword === 'required' &&
+        collapseInfo.missingProps.includes(e.params?.missingProperty)
+      ) {
+        continue;
+      }
+
+      // replace generic anyOf with one clearer message
+      if (e.keyword === 'anyOf') {
+        const quotedProps = collapseInfo.missingProps.map(p => `"${p}"`);
+        const propsText =
+          quotedProps.length === 2
+            ? `${quotedProps[0]} or ${quotedProps[1]}`
+            : `${quotedProps.slice(0, -1).join(', ')}, or ${quotedProps.slice(-1)}`;
+
+        out.push({
+          path: `${prefix}${path}`,
+          message: `At least one of ${propsText} must be supplied`
+        });
+        continue;
+      }
+    }
+
+    out.push(prettyAjvError(e, prefix));
+  }
+
+  return out;
+}
+
 // POST /ipsUniVal
 router.post('/', (req, res) => {
   const ajv = new Ajv({ allErrors: true, strict: false });
 
   // FHIR Ajv (draft-06 schema)
-  const ajvFhir = new Ajv({ allErrors: true, strict: false, schemaId: 'auto', validateSchema: false });
+  const ajvFhir = new Ajv({
+    allErrors: true,
+    strict: false,
+    schemaId: 'auto',
+    validateSchema: false
+  });
   addFormats(ajvFhir);
 
   // Ajv prefers $id; draft-06 commonly uses "id". Add both to be safe.
   ajvFhir.addSchema(fhirSchema, FHIR_SCHEMA_KEY);
 
-
   ajv.addKeyword({
     keyword: 'medReqForEachMed',
     type: 'array',
     validate: function medReqForEachMed(schema, entries) {
-      // collect all medication IDs
-      const meds = entries
+      // collect all Medication IDs present in the bundle
+      const meds = (entries || [])
         .filter(e => e.resource?.resourceType === 'Medication')
-        .map(e => e.resource.id);
-      // collect all request references
-      const reqRefs = entries
+        .map(e => e.resource.id)
+        .filter(Boolean);
+
+      // collect all MedicationRequest medicationReference IDs,
+      // regardless of reference style
+      const reqRefs = (entries || [])
         .filter(e => e.resource?.resourceType === 'MedicationRequest')
-        .map(e => {
-          const ref = e.resource.medicationReference?.reference || '';
-          return ref.split('/')[1];
-        });
-      // every med ID must appear in reqRefs
+        .map(e => parseReference(e.resource?.medicationReference?.reference).id)
+        .filter(Boolean);
+
+      // every Medication ID must appear in at least one MedicationRequest reference
       const missing = meds.filter(id => !reqRefs.includes(id));
+
       if (missing.length) {
         medReqForEachMed.errors = missing.map(id => ({
           keyword: 'medReqForEachMed',
@@ -132,6 +239,7 @@ router.post('/', (req, res) => {
         }));
         return false;
       }
+
       return true;
     },
     errors: true
@@ -163,22 +271,7 @@ router.post('/', (req, res) => {
         // external/contained/logical refs - skip
         if (ref.startsWith('#')) return true;
         if (/^https?:\/\//i.test(ref)) return true;
-        if (/^urn:(uuid|oid):/i.test(ref)) return true;
         return false;
-      }
-
-      function parseReference(ref) {
-        // returns { type, id } where either may be null
-        // allow "Resource/id", "Resource/id/_history/1", "id"
-        const trimmed = ref.trim();
-        if (!trimmed) return { type: null, id: null };
-
-        const parts = trimmed.split('/').filter(Boolean);
-        if (parts.length >= 2) {
-          return { type: parts[0], id: parts[1] };
-        }
-        // id-only
-        return { type: null, id: trimmed };
       }
 
       function walk(obj, visitor) {
@@ -220,7 +313,7 @@ router.post('/', (req, res) => {
               });
             }
           } else {
-            // id-only: resolve if unique
+            // id-only or urn-style: resolve if unique
             const types = byId.get(id);
             if (!types) {
               errs.push({
@@ -252,12 +345,13 @@ router.post('/', (req, res) => {
     }
   });
 
-
   addFormats(ajv);
+
   // Register schemas under their resourceType name
   Object.entries(schemas).forEach(([name, schema]) => ajv.addSchema(schema, name));
 
   let obj = req.body;
+
   // unwrap entry-wrapper
   if (!obj.resourceType && obj.resource?.resourceType) {
     obj = obj.resource;
@@ -274,7 +368,6 @@ router.post('/', (req, res) => {
   const errorsNps = [];
   const errorsFhir = [];
 
-
   if (topType === 'Bundle') {
     // 1) Envelope validation
     const bundleSchema = schemas.Bundle;
@@ -286,8 +379,9 @@ router.post('/', (req, res) => {
     envelopeSchema.properties.entry.bundleRefsResolve = true;
 
     if (!ajv.validate(envelopeSchema, obj)) {
-      (ajv.errors || []).forEach(e => errorsNps.push(prettyAjvError(e)));
+      errorsNps.push(...prettifyAjvErrors(ajv.errors || []));
     }
+
     // 2) Validate each entry.resource
     obj.entry?.forEach((en, idx) => {
       const resObj = en.resource;
@@ -295,11 +389,11 @@ router.post('/', (req, res) => {
       if (!schemaName || !schemas[schemaName]) {
         errorsNps.push({
           path: `/entry/${idx}/resource/${schemaName}`,
-          message: `Unknown or missing resourceType`
+          message: 'Unknown or missing resourceType'
         });
       } else if (!ajv.validate(schemaName, resObj)) {
-        (ajv.errors || []).forEach(e =>
-          errorsNps.push(prettyAjvError(e, `/entry/${idx}/resource/${schemaName}`))
+        errorsNps.push(
+          ...prettifyAjvErrors(ajv.errors || [], `/entry/${idx}/resource/${schemaName}`)
         );
       }
     });
@@ -325,11 +419,10 @@ router.post('/', (req, res) => {
         );
       }
     });
-
   } else {
     // Single resource validation
     ajv.validate(topType, obj);
-    (ajv.errors || []).forEach(e => errorsNps.push(prettyAjvError(e)));
+    errorsNps.push(...prettifyAjvErrors(ajv.errors || []));
 
     // --- FHIR validation (structural) ---
     const ref = fhirDefRef(topType);
@@ -347,7 +440,6 @@ router.post('/', (req, res) => {
     validFhirR4: errorsFhir.length === 0,
     errorsFhirR4: errorsFhir
   });
-
 });
 
 module.exports = router;
