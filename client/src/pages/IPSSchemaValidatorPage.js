@@ -430,7 +430,7 @@ export default function IPSchemaValidator() {
             </Alert>
           ) : (
             <Alert variant="danger" className="mt-3">
-              <h5>Validation Errors</h5>
+              <h5>Validation Issues</h5>
 
               {!schemaValid && schemaErrors.length > 0 && (
                 <>
