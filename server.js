@@ -90,6 +90,14 @@ const typeDefs = require('./graphql/schema');
 const resolvers = require('./graphql/resolvers');
 const playground = require('graphql-playground-middleware-express').default;
 
+// ------------- SNOMED GPS -------------
+const {
+    getSnomedTags,
+    getSnomedByCode,
+    getSnomedPicklistByTag,
+    searchSnomedGPS,
+} = require('./servercontrollers/snomedGPS');
+
 const { DB_CONN } = process.env;
 
 const api = express();
@@ -221,6 +229,12 @@ api.get("/ips/search/:name", getIPSSearch);
 api.get('/fetchipsora/:name/:givenName', getORABundleByName);
 api.get("/fetchips", getIPSBundleGeneric);
 api.get("/ipsplaintext/:id", getIPSPlainText);
+
+// SNOMED GPS
+api.get("/snomedgps/tags", getSnomedTags);
+api.get("/snomedgps/code/:code", getSnomedByCode);
+api.get("/snomedgps/picklist/:tag", getSnomedPicklistByTag);
+api.get("/snomedgps/search", searchSnomedGPS);
 
 // XMPP endpoints
 api.use("/xmpp", xmppRoutes);
