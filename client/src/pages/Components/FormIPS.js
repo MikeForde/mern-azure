@@ -3,6 +3,10 @@ import { Button, Form, Toast } from "react-bootstrap";
 import { v4 as uuidv4 } from 'uuid';
 import "./components.css";
 import { isValidObservationValue, getObservationValueError } from "../../utils/observationValidation";
+import {
+  OBSERVATION_OPTIONS,
+  applyObservationPreset,
+} from "../../utils/observationCatalog";
 
 const formatDate = (dateString) => {
   if (!dateString) return "";
@@ -82,7 +86,13 @@ export function FormIPS({ add }) {
   const handleObservationChange = (index, e) => {
     const { name, value } = e.target;
     const updatedObservations = [...formData.observations];
-    updatedObservations[index][name] = value;
+
+    if (name === "name") {
+      updatedObservations[index] = applyObservationPreset(updatedObservations[index], value);
+    } else {
+      updatedObservations[index][name] = value;
+    }
+
     setFormData({
       ...formData,
       observations: updatedObservations,
@@ -521,14 +531,11 @@ export function FormIPS({ add }) {
                     onChange={(e) => handleObservationChange(index, e)}
                   >
                     <option value="">Select an observation or enter custom</option>
-                    <option value="Blood Pressure">Blood Pressure</option>
-                    <option value="Pulse">Pulse</option>
-                    <option value="Resp Rate">Resp Rate</option>
-                    <option value="Temperature">Temperature</option>
-                    <option value="Oxygen Sats">Oxygen Sats</option>
-                    <option value="AVPU">AVPU</option>
-                    <option value="Weight">Weight</option>
-                    <option value="Blood Group">Blood Group</option>
+                    {OBSERVATION_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
                   </Form.Control>
                   <Form.Control
                     type="text"

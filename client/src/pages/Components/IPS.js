@@ -10,6 +10,10 @@ import "./components.css";
 import { generatePDF } from './generatePDF';
 import { Toast, ToastContainer } from 'react-bootstrap';
 import { isValidObservationValue, getObservationValueError } from "../../utils/observationValidation";
+import {
+  OBSERVATION_OPTIONS,
+  applyObservationPreset,
+} from "../../utils/observationCatalog";
 //import { set } from "mongoose";
 
 
@@ -135,9 +139,18 @@ export function IPS({ ips, remove, update }) {
 
   const handleChangeItem = (type, index, e) => {
     const { name, value } = e.target;
+
     setEditIPS((prev) => ({
       ...prev,
-      [type]: prev[type].map((item, i) => i === index ? { ...item, [name]: value } : item),
+      [type]: prev[type].map((item, i) => {
+        if (i !== index) return item;
+
+        if (type === "observations" && name === "name") {
+          return applyObservationPreset(item, value);
+        }
+
+        return { ...item, [name]: value };
+      }),
     }));
   };
 
@@ -994,9 +1007,25 @@ export function IPS({ ips, remove, update }) {
                     <tr key={index}>
                       <td>
                         <Form.Control
+                          as="select"
+                          name="name"
+                          value={OBSERVATION_OPTIONS.includes(observation.name) ? observation.name : ""}
+                          onChange={(e) => handleChangeItem("observations", index, e)}
+                          className="mb-2"
+                        >
+                          <option value="">Select preset</option>
+                          {OBSERVATION_OPTIONS.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </Form.Control>
+
+                        <Form.Control
                           type="text"
                           name="name"
                           value={observation.name}
+                          placeholder="Custom Observation"
                           onChange={(e) => handleChangeItem("observations", index, e)}
                         />
                       </td>
