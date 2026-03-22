@@ -737,9 +737,9 @@ export function IPS({ ips, remove, update }) {
             <div className="table-responsive">
               <table className="table table-bordered table-sm">
                 <colgroup>
-                  <col style={{ width: '50%' }} />  {/* Name */}
-                  <col style={{ width: '7%' }} />  {/* Code */}
-                  <col style={{ width: '7%' }} />  {/* System */}
+                  <col style={{ width: '35%' }} />  {/* Name */}
+                  <col style={{ width: '17%' }} />  {/* Code */}
+                  <col style={{ width: '12%' }} />  {/* System */}
                   <col style={{ width: '5%' }} />  {/* Date */}
                   <col style={{ width: '26%' }} />  {/* Dosage */}
                   <col style={{ width: '5%' }} />  {/* Actions */}
@@ -816,12 +816,12 @@ export function IPS({ ips, remove, update }) {
             <div className="table-responsive">
               <table className="table table-bordered table-sm">
                 <colgroup>
-                  <col style={{ width: '50%' }} />  {/* Name */}
-                  <col style={{ width: '7%' }} />  {/* Code */}
-                  <col style={{ width: '7%' }} />  {/* System */}
-                  <col style={{ width: '5%' }} />  {/* Date */}
-                  <col style={{ width: '26%' }} />  {/* Criticality */}
-                  <col style={{ width: '5%' }} />  {/* Actions */}
+                  <col style={{ width: '35%' }} />  {/* Name */}
+                  <col style={{ width: '17%' }} />  {/* Code */}
+                  <col style={{ width: '12%' }} />  {/* System */}
+                  <col style={{ width: '15%' }} />  {/* Criticality */}
+                  <col style={{ width: '12%' }} />  {/* Date */}
+                  <col style={{ width: '1%' }} />  {/* Actions */}
                 </colgroup>
                 <thead>
                   <tr>
@@ -900,9 +900,9 @@ export function IPS({ ips, remove, update }) {
             <div className="table-responsive">
               <table className="table table-bordered table-sm">
                 <colgroup>
-                  <col style={{ width: '40%' }} />  {/* Name */}
-                  <col style={{ width: '4%' }} />  {/* Code */}
-                  <col style={{ width: '4%' }} />  {/* System */}
+                  <col style={{ width: '35%' }} />  {/* Name */}
+                  <col style={{ width: '10%' }} />  {/* Code */}
+                  <col style={{ width: '16%' }} />  {/* System */}
                   <col style={{ width: '5%' }} />  {/* Date */}
                   <col style={{ width: '5%' }} />  {/* Actions */}
                 </colgroup>
@@ -972,12 +972,12 @@ export function IPS({ ips, remove, update }) {
             <div className="table-responsive">
               <table className="table table-bordered table-sm">
                 <colgroup>
-                  <col style={{ width: '50%' }} />  {/* Name */}
-                  <col style={{ width: '4%' }} />  {/* Code */}
-                  <col style={{ width: '4%' }} />  {/* System */}
-                  <col style={{ width: '5%' }} />  {/* Date */}
-                  <col style={{ width: '10%' }} />  {/* Value */}
-                  <col style={{ width: '5%' }} />  {/* Actions */}
+                  <col style={{ width: '20%' }} />  {/* Name */}
+                  <col style={{ width: '12%' }} />  {/* Code */}
+                  <col style={{ width: '16%' }} />  {/* System */}
+                  <col style={{ width: '3%' }} />  {/* Date */}
+                  <col style={{ width: '13%' }} />  {/* Value */}
+                  <col style={{ width: '1%' }} />  {/* Actions */}
                 </colgroup>
                 <thead>
                   <tr>
@@ -1052,11 +1052,18 @@ export function IPS({ ips, remove, update }) {
             <h4 className="ipsedit">Immunizations:</h4>
             <div className="table-responsive">
               <table className="table table-bordered table-sm">
+                <colgroup>
+                  <col style={{ width: '30%' }} />  {/* Name */}
+                  <col style={{ width: '15%' }} />  {/* Code */}
+                  <col style={{ width: '16%' }} />  {/* System */}
+                  <col style={{ width: '5%' }} />  {/* Date */}
+                  <col style={{ width: '1%' }} />  {/* Actions */}
+                </colgroup>
                 <thead>
                   <tr>
                     <th>Name</th>
-                    <th>System</th>
                     <th>Code</th>
+                    <th>System</th>
                     <th>Date</th>
                     <th>Actions</th>
                   </tr>
@@ -1075,16 +1082,16 @@ export function IPS({ ips, remove, update }) {
                       <td>
                         <Form.Control
                           type="text"
-                          name="system"
-                          value={immunization.system}
+                          name="code"
+                          value={immunization.code}
                           onChange={(e) => handleChangeItem("immunizations", index, e)}
                         />
                       </td>
                       <td>
                         <Form.Control
                           type="text"
-                          name="code"
-                          value={immunization.code}
+                          name="system"
+                          value={immunization.system}
                           onChange={(e) => handleChangeItem("immunizations", index, e)}
                         />
                       </td>
@@ -1114,11 +1121,18 @@ export function IPS({ ips, remove, update }) {
             <h4 className="ipsedit">Procedures:</h4>
             <div className="table-responsive">
               <table className="table table-bordered table-sm">
+                <colgroup>
+                  <col style={{ width: '32%' }} />  {/* Name */}
+                  <col style={{ width: '13%' }} />  {/* Code */}
+                  <col style={{ width: '16%' }} />  {/* System */}
+                  <col style={{ width: '5%' }} />  {/* Date */}
+                  <col style={{ width: '1%' }} />  {/* Actions */}
+                </colgroup>
                 <thead>
                   <tr>
                     <th>Name</th>
-                    <th>System</th>
                     <th>Code</th>
+                    <th>System</th>
                     <th>Date</th>
                     <th>Actions</th>
                   </tr>
@@ -1137,16 +1151,16 @@ export function IPS({ ips, remove, update }) {
                       <td>
                         <Form.Control
                           type="text"
-                          name="system"
-                          value={procedure.system}
+                          name="code"
+                          value={procedure.code}
                           onChange={(e) => handleChangeItem("procedures", index, e)}
                         />
                       </td>
                       <td>
                         <Form.Control
                           type="text"
-                          name="code"
-                          value={procedure.code}
+                          name="system"
+                          value={procedure.system}
                           onChange={(e) => handleChangeItem("procedures", index, e)}
                         />
                       </td>
