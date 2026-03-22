@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import axios from "axios";
 import { Button, Form, Toast } from "react-bootstrap";
 import { v4 as uuidv4 } from 'uuid';
 import "./components.css";
@@ -25,7 +26,7 @@ export function FormIPS({ add }) {
       given: "",
       dob: "",
       gender: "",
-      nationality: "",
+      nation: "",
       practitioner: "",
       organization: "",
       identifier: "",
@@ -41,6 +42,8 @@ export function FormIPS({ add }) {
 
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+  const [conditionOptions, setConditionOptions] = useState({});
+  const conditionSearchTimers = useRef({});
 
   const handlePatientChange = (e) => {
     const { name, value } = e.target;
@@ -73,10 +76,69 @@ export function FormIPS({ add }) {
     });
   };
 
+  const searchConditionOptions = async (index, searchText) => {
+    const trimmed = searchText.trim();
+
+    if (trimmed.length < 2) {
+      setConditionOptions((prev) => ({
+        ...prev,
+        [index]: [],
+      }));
+      return;
+    }
+
+    try {
+      const response = await axios.get("/snomedgps/search", {
+        params: {
+          q: trimmed,
+          tag: "disorder",
+          limit: 20,
+        },
+      });
+
+      setConditionOptions((prev) => ({
+        ...prev,
+        [index]: response.data || [],
+      }));
+    } catch (error) {
+      console.error("Error searching SNOMED conditions:", error);
+      setConditionOptions((prev) => ({
+        ...prev,
+        [index]: [],
+      }));
+    }
+  };
+
   const handleConditionChange = (index, e) => {
     const { name, value } = e.target;
     const updatedConditions = [...formData.conditions];
+
     updatedConditions[index][name] = value;
+
+    if (name === "name") {
+      const matches = conditionOptions[index] || [];
+      const selectedMatch = matches.find(
+        (item) => item.term_clean === value || item.term === value
+      );
+
+      if (selectedMatch) {
+        updatedConditions[index].name = selectedMatch.term_clean;
+        updatedConditions[index].code = selectedMatch.code;
+        updatedConditions[index].system = "http://snomed.info/sct";
+      } else {
+        updatedConditions[index].code = "";
+        updatedConditions[index].system = "";
+      }
+
+      if (conditionSearchTimers.current[index]) {
+        clearTimeout(conditionSearchTimers.current[index]);
+      }
+
+      conditionSearchTimers.current[index] = setTimeout(() => {
+        searchConditionOptions(index, value);
+      }, 250);
+    }
+
     setFormData({
       ...formData,
       conditions: updatedConditions,
@@ -134,10 +196,17 @@ export function FormIPS({ add }) {
   };
 
   const handleAddCondition = () => {
+    const newIndex = formData.conditions.length;
+
     setFormData({
       ...formData,
       conditions: [...formData.conditions, { name: "", code: "", system: "", date: "" }],
     });
+
+    setConditionOptions((prev) => ({
+      ...prev,
+      [newIndex]: [],
+    }));
   };
 
   const handleAddObservation = () => {
@@ -172,9 +241,7 @@ export function FormIPS({ add }) {
       }
     }
 
-    // Check if any of the required fields are missing
     if (!formData.patient.name || !formData.patient.given || !formData.patient.dob) {
-      // If any required field is missing, show the alert
       setAlertMessage("Please fill in Name, Given Name and Date of Birth.");
       setShowAlert(true);
       return;
@@ -185,7 +252,6 @@ export function FormIPS({ add }) {
     if (!formData.patient.practitioner) { formData.patient.practitioner = "Dr No"; }
     if (!formData.patient.organization) { formData.patient.organization = "GBR"; }
 
-    // Proceed with the submission if all required fields are filled
     if (!formData.packageUUID) return;
     add(formData);
     setFormData({
@@ -209,6 +275,7 @@ export function FormIPS({ add }) {
       immunizations: [{ name: "", code: "", system: "", date: "" }],
       procedures: [{ name: "", code: "", system: "", date: "" }]
     });
+    setConditionOptions({});
   };
 
 
@@ -343,7 +410,7 @@ export function FormIPS({ add }) {
               </div>
             </Form.Group>
           </Form.Group>
-          <Button className="mb-3 minor-button" onClick={handleAddMedication}>Add Medication</Button>
+          <Button type="button" className="mb-3 minor-button" onClick={handleAddMedication}>Add Medication</Button>
           {formData.medication.map((med, index) => (
             <div key={index}>
               <Form.Group className="row">
@@ -404,7 +471,7 @@ export function FormIPS({ add }) {
               </Form.Group>
             </div>
           ))}
-          <Button className="mb-3 minor-button" onClick={handleAddAllergy}>Add Allergy</Button>
+          <Button type="button" className="mb-3 minor-button" onClick={handleAddAllergy}>Add Allergy</Button>
           {formData.allergies.map((allergy, index) => (
             <div key={index}>
               <Form.Group className="row">
@@ -469,7 +536,7 @@ export function FormIPS({ add }) {
               </Form.Group>
             </div>
           ))}
-          <Button className="mb-3 minor-button" onClick={handleAddCondition}>Add Condition</Button>
+          <Button type="button" className="mb-3 minor-button" onClick={handleAddCondition}>Add Condition</Button>
           {formData.conditions.map((condition, index) => (
             <div key={index}>
               <Form.Group className="row">
@@ -480,7 +547,19 @@ export function FormIPS({ add }) {
                     name="name"
                     value={condition.name}
                     onChange={(e) => handleConditionChange(index, e)}
-                    placeholder="Condition/Problem Name" />
+                    placeholder="Condition/Problem Name"
+                    list={`condition-options-${index}`}
+                    autoComplete="off" />
+                  <datalist id={`condition-options-${index}`}>
+                    {(conditionOptions[index] || []).map((item) => (
+                      <option
+                        key={item.code}
+                        value={item.term_clean}
+                      >
+                        {item.term}
+                      </option>
+                    ))}
+                  </datalist>
                 </div>
               </Form.Group>
               <Form.Group className="row">
@@ -518,7 +597,7 @@ export function FormIPS({ add }) {
               </Form.Group>
             </div>
           ))}
-          <Button className="mb-3 minor-button" onClick={handleAddObservation}>Add Observation</Button>
+          <Button type="button" className="mb-3 minor-button" onClick={handleAddObservation}>Add Observation</Button>
           {formData.observations.map((observation, index) => (
             <div key={index}>
               <Form.Group className="row">
@@ -598,7 +677,7 @@ export function FormIPS({ add }) {
               </Form.Group>
             </div>
           ))}
-          <Button className="mb-3 minor-button" onClick={handleAddImmunization}>Add Immunization</Button>
+          <Button type="button" className="mb-3 minor-button" onClick={handleAddImmunization}>Add Immunization</Button>
           {formData.immunizations.map((immunization, index) => (
             <div key={index}>
               <Form.Group className="row">
@@ -636,7 +715,7 @@ export function FormIPS({ add }) {
               </Form.Group>
             </div>
           ))}
-          <Button className="mb-3 minor-button" onClick={handleAddProcedure}>Add Procedure</Button>
+          <Button type="button" className="mb-3 minor-button" onClick={handleAddProcedure}>Add Procedure</Button>
           {formData.procedures.map((procedure, index) => (
             <div key={index}>
               <Form.Group className="row">
