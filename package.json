@@ -8,7 +8,10 @@
         "server": "nodemon server",
         "client": "npm start --prefix client",
         "dev": "concurrently \"npm run server\" \"npm run client\"",
-        "build": "npm install && cd client && npm install && npm run build"
+        "build": "npm install && cd client && npm install && npm run build",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:coverage": "jest --coverage"
     },
     "author": "",
     "license": "ISC",
@@ -40,5 +43,9 @@
         "swagger-ui-express": "^5.0.1",
         "uuid": "^8.3.2",
         "xml-js": "1.6.11"
+    },
+    "devDependencies": {
+        "jest": "^30.3.0",
+        "supertest": "^7.2.2"
     }
 }
