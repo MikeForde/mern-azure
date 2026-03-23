@@ -2503,22 +2503,22 @@
           "timeStamp",
           "patient"
         ]
-      }
-    },
-    "SnomedCode": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "term_clean": {
-          "type": "string"
-        },
-        "term": {
-          "type": "string"
-        },
-        "semantic_tag": {
-          "type": "string"
+      },
+      "SnomedCode": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "term_clean": {
+            "type": "string"
+          },
+          "term": {
+            "type": "string"
+          },
+          "semantic_tag": {
+            "type": "string"
+          }
         }
       }
     }
