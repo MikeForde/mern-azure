@@ -83,25 +83,27 @@ const buildSearchFilter = (tag, q) => {
   const containsRegex = new RegExp(escaped, "i");
 
   if (trimmedTag.toLowerCase() === "allergyintolerance") {
-    const allergyToPrefixRegex = new RegExp(`^Allergy to ${escaped}`, "i");
+  const allergyToPrefixRegex = new RegExp(`^Allergy to ${escaped}`, "i");
 
-    return {
-      $or: [
-        {
-          semantic_tag: "substance",
-          $or: [
-            { term_clean: containsRegex },
-            { term: containsRegex },
-            { code: containsRegex },
-          ],
+  return {
+    $or: [
+      {
+        semantic_tag: {
+          $in: ["substance", "medicinal product"],
         },
-        {
-          semantic_tag: "disorder",
-          term_clean: allergyToPrefixRegex,
-        },
-      ],
-    };
-  }
+        $or: [
+          { term_clean: containsRegex },
+          { term: containsRegex },
+          { code: containsRegex },
+        ],
+      },
+      {
+        semantic_tag: "disorder",
+        term_clean: allergyToPrefixRegex,
+      },
+    ],
+  };
+}
 
   return {
     ...baseFilter,
