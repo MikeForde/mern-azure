@@ -9,6 +9,94 @@ const parseLimit = (value, defaultValue = 25, maxValue = 200) => {
 const escapeRegex = (value = "") =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+const PROJECTION = {
+  _id: 0,
+  code: 1,
+  term_clean: 1,
+  term: 1,
+  semantic_tag: 1,
+};
+
+const getSemanticTagFilter = (tag) => {
+  switch ((tag || "").trim().toLowerCase()) {
+    case "":
+      return {};
+
+    case "medication":
+      return {
+        semantic_tag: {
+          $in: [
+            "clinical drug",
+            "medicinal product",
+            "medicinal product form",
+          ],
+        },
+      };
+
+    case "allergyintolerance":
+      return {
+        semantic_tag: "substance",
+      };
+
+    case "immunization":
+      return {
+        semantic_tag: {
+          $in: ["medicinal product", "medicinal product form"],
+        },
+        term_clean: /^Vaccine product containing/i,
+      };
+
+    default:
+      return {
+        semantic_tag: tag,
+      };
+  }
+};
+
+const buildSearchFilter = (tag, q) => {
+  const trimmedTag = (tag || "").trim();
+  const trimmedQ = (q || "").trim();
+
+  const baseFilter = getSemanticTagFilter(trimmedTag);
+
+  if (!trimmedQ) {
+    return baseFilter;
+  }
+
+  const escaped = escapeRegex(trimmedQ);
+  const containsRegex = new RegExp(escaped, "i");
+
+  if (trimmedTag.toLowerCase() === "allergyintolerance") {
+    const allergyToPrefixRegex = new RegExp(`^Allergy to ${escaped}`, "i");
+
+    return {
+      $or: [
+        {
+          semantic_tag: "substance",
+          $or: [
+            { term_clean: containsRegex },
+            { term: containsRegex },
+            { code: containsRegex },
+          ],
+        },
+        {
+          semantic_tag: "disorder",
+          term_clean: allergyToPrefixRegex,
+        },
+      ],
+    };
+  }
+
+  return {
+    ...baseFilter,
+    $or: [
+      { term_clean: containsRegex },
+      { term: containsRegex },
+      { code: containsRegex },
+    ],
+  };
+};
+
 // GET /snomedgps/tags
 const getSnomedTags = async (req, res) => {
   try {
@@ -27,7 +115,7 @@ const getSnomedTags = async (req, res) => {
 const getSnomedByCode = async (req, res) => {
   try {
     const { code } = req.params;
-    const concept = await SnomedGPS.findOne({ code }).lean();
+    const concept = await SnomedGPS.findOne({ code }, PROJECTION).lean();
 
     if (!concept) {
       return res.status(404).json({ error: "SNOMED concept not found" });
@@ -46,10 +134,9 @@ const getSnomedPicklistByTag = async (req, res) => {
     const { tag } = req.params;
     const limit = parseLimit(req.query.limit, 100, 1000);
 
-    const results = await SnomedGPS.find(
-      { semantic_tag: tag },
-      { _id: 0, code: 1, term_clean: 1, term: 1, semantic_tag: 1 }
-    )
+    const filter = getSemanticTagFilter(tag);
+
+    const results = await SnomedGPS.find(filter, PROJECTION)
       .sort({ term_clean: 1 })
       .limit(limit)
       .lean();
@@ -68,25 +155,9 @@ const searchSnomedGPS = async (req, res) => {
     const tag = (req.query.tag || "").trim();
     const limit = parseLimit(req.query.limit, 25, 200);
 
-    const filter = {};
+    const filter = buildSearchFilter(tag, q);
 
-    if (tag) {
-      filter.semantic_tag = tag;
-    }
-
-    if (q) {
-      const regex = new RegExp(escapeRegex(q), "i");
-      filter.$or = [
-        { term_clean: regex },
-        { term: regex },
-        { code: regex },
-      ];
-    }
-
-    const results = await SnomedGPS.find(
-      filter,
-      { _id: 0, code: 1, term_clean: 1, term: 1, semantic_tag: 1 }
-    )
+    const results = await SnomedGPS.find(filter, PROJECTION)
       .sort({ term_clean: 1 })
       .limit(limit)
       .lean();
