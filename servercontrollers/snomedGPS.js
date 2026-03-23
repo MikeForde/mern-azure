@@ -46,6 +46,11 @@ const getSemanticTagFilter = (tag) => {
         term_clean: /^Vaccine product containing/i,
       };
 
+    case "observation":
+      return {
+        semantic_tag: "observable entity",
+      };
+
     default:
       return {
         semantic_tag: tag,

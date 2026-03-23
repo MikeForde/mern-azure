@@ -57,6 +57,7 @@ export function FormIPS({ add }) {
   const allergySnomed = useSnomedLookup("allergyintolerance");
   const procedureSnomed = useSnomedLookup("procedure");
   const immunizationSnomed = useSnomedLookup("immunization");
+  const observationSnomed = useSnomedLookup("observation");
 
   const handlePatientChange = (e) => {
     const { name, value } = e.target;
@@ -174,6 +175,27 @@ export function FormIPS({ add }) {
     }));
   };
 
+  const applyObservationSelection = (index, selectedMatch) => {
+    const updatedObservations = [...formData.observations];
+
+    updatedObservations[index] = {
+      ...updatedObservations[index],
+      name: selectedMatch.term_clean,
+      code: selectedMatch.code,
+      system: SNOMED_SYSTEM,
+    };
+
+    setFormData({
+      ...formData,
+      observations: updatedObservations,
+    });
+
+    observationSnomed.setLookup((prev) => ({
+      ...prev,
+      [index]: selectedMatch.term_clean,
+    }));
+  };
+
   const handleMedicationLookupChange = (index, value) => {
     medicationSnomed.handleLookupChange(index, value, (selectedMatch) => {
       applyMedicationSelection(index, selectedMatch);
@@ -201,6 +223,12 @@ export function FormIPS({ add }) {
   const handleImmunizationLookupChange = (index, value) => {
     immunizationSnomed.handleLookupChange(index, value, (selectedMatch) => {
       applyImmunizationSelection(index, selectedMatch);
+    });
+  };
+
+  const handleObservationLookupChange = (index, value) => {
+    observationSnomed.handleLookupChange(index, value, (selectedMatch) => {
+      applyObservationSelection(index, selectedMatch);
     });
   };
 
@@ -244,6 +272,11 @@ export function FormIPS({ add }) {
         updatedObservations[index],
         value
       );
+
+      observationSnomed.setLookup((prev) => ({
+        ...prev,
+        [index]: updatedObservations[index].name || "",
+      }));
     } else {
       updatedObservations[index][name] = value;
     }
@@ -317,6 +350,8 @@ export function FormIPS({ add }) {
   };
 
   const handleAddObservation = () => {
+    const newIndex = formData.observations.length;
+
     setFormData({
       ...formData,
       observations: [
@@ -324,6 +359,8 @@ export function FormIPS({ add }) {
         { name: "", code: "", system: "", date: "", value: "" },
       ],
     });
+
+    observationSnomed.initRow(newIndex);
   };
 
   const handleAddImmunization = () => {
@@ -464,6 +501,7 @@ export function FormIPS({ add }) {
     allergySnomed.resetAll();
     procedureSnomed.resetAll();
     immunizationSnomed.resetAll();
+    observationSnomed.resetAll();
 
     setFocusedMedicationIndex(null);
     setFocusedImmunizationIndex(null);
@@ -945,6 +983,29 @@ export function FormIPS({ add }) {
 
           {formData.observations.map((observation, index) => (
             <div key={index}>
+              <Form.Group className="row">
+                <Form.Label className="col-sm-2">Observation Lookup</Form.Label>
+                <div className="col-sm-10">
+                  <Form.Control
+                    type="text"
+                    value={observationSnomed.lookup[index] || ""}
+                    onChange={(e) =>
+                      handleObservationLookupChange(index, e.target.value)
+                    }
+                    placeholder="Search SNOMED observation"
+                    list={`observation-options-${index}`}
+                    autoComplete="off"
+                  />
+                  <datalist id={`observation-options-${index}`}>
+                    {(observationSnomed.options[index] || []).map((item) => (
+                      <option key={item.code} value={item.term_clean}>
+                        {item.term_clean} ({item.semantic_tag})
+                      </option>
+                    ))}
+                  </datalist>
+                </div>
+              </Form.Group>
+
               <Form.Group className="row">
                 <Form.Label className="col-sm-2">Observation</Form.Label>
                 <div className="col-sm-10">

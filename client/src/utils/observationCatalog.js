@@ -13,7 +13,7 @@ export const OBSERVATION_PRESETS = {
   },
   "Temperature": {
     name: "Temperature",
-    code: "703421000",
+    code: "386725007",
     system: SNOMED_SYSTEM,
   },
   "Resp Rate": {
