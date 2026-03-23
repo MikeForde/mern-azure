@@ -506,7 +506,7 @@ export default function IPSEditModal({
                             openSnomedModal(
                               "conditions",
                               index,
-                              "disorder",
+                              "condition",
                               "Search SNOMED GPS Condition"
                             )
                           }

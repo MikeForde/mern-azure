@@ -53,7 +53,7 @@ export function FormIPS({ add }) {
   const [focusedImmunizationIndex, setFocusedImmunizationIndex] = useState(null);
 
   const medicationSnomed = useSnomedLookup("medication");
-  const conditionSnomed = useSnomedLookup("disorder");
+  const conditionSnomed = useSnomedLookup("condition");
   const allergySnomed = useSnomedLookup("allergyintolerance");
   const procedureSnomed = useSnomedLookup("procedure");
   const immunizationSnomed = useSnomedLookup("immunization");

@@ -22,6 +22,17 @@ const getSemanticTagFilter = (tag) => {
     case "":
       return {};
 
+    case "condition":
+      return {
+        semantic_tag: {
+          $in: [
+            "disorder",
+            "finding",
+          ],
+        },
+      };
+
+
     case "medication":
       return {
         semantic_tag: {
