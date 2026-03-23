@@ -64,14 +64,39 @@ ul {
   gap: 0.5rem;
 }
 
+.sct-button-vertical {
+  min-width: 32px;
+  width: 32px;
+  height: 40px;
+  padding: 0;
+  font-size: 0.7rem;
+  line-height: 1;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+}
+
+.sct-col {
+  width: 40px;
+  min-width: 40px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.sct-col .btn {
+  margin: 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* Mobile responsive design */
 
 @media (max-width: 576px) {
-  /* Base tweaks for IPS cards */
   .ips {
-    font-size: 0.80rem;
-    line-height: 1.0;
-    overflow-x: auto;      /* allow horizontal scroll if needed */
+    font-size: 0.8rem;
+    line-height: 1.05;
+    overflow-x: auto;
     padding-bottom: 1rem;
     display: flex;
     flex-direction: column;
@@ -79,85 +104,108 @@ ul {
 
   .ips-details {
     width: 100% !important;
-    box-sizing: border-box;    /* include any padding in that 100% */
+    box-sizing: border-box;
+    order: 0;
   }
 
-  /* Buttons move to top in mobile */
   .ips-buttons {
     order: -1;
     display: flex;
-    flex-wrap: wrap;      /* push buttons onto new lines */
+    flex-wrap: wrap;
     gap: 0.25rem;
     margin-bottom: 0.5rem;
   }
 
-  /* Detail section after buttons */
-  .ips-details {
-    order: 0;
-  }
-
-  /* Heading and text tweaks */
   .ipsedit {
     font-size: 1rem;
-    line-height: 1.0;
-    padding-top: 2rem;
+    line-height: 1.1;
+    padding-top: 1rem;
   }
 
   .ips h4,
   .ips h5 {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
   }
 
   .ips p {
-    margin-bottom: 0.20rem;
-  }
-
-  /* Table and form responsive scales */
-  .table-responsive {
-    margin-bottom: 0.70rem;
-    overflow-x: auto;
-  }
-
-  .table {
-    font-size: 0.7rem;
+    margin-bottom: 0.2rem;
   }
 
   .edit-modal .modal-dialog {
-    margin: 0.5rem;
-    max-width: calc(100% - 1rem) !important;
+    margin: 0.25rem;
+    max-width: calc(100% - 0.5rem) !important;
   }
 
   .edit-modal .modal-content {
-    font-size: 0.7rem;
-  }
-
-  .edit-modal .modal-body {
-    padding: 0.70rem;
-  }
-
-  /* Inputs sizing */
-  .edit-modal input[type="datetime-local"],
-  .edit-modal input[type="date"],
-  .edit-modal input[type="text"] {
-    max-width: 4rem;
-    padding: 0.2rem 0.4rem;
     font-size: 0.8rem;
   }
 
-  .edit-modal input[name="code"],
-  .edit-modal input[name="system"] {
-    width: 1.5rem;
+  .edit-modal .modal-body {
+    padding: 0.6rem;
   }
 
+  .edit-modal .table-responsive {
+    margin-bottom: 0.7rem;
+    overflow-x: auto;
+  }
+
+  .edit-modal .table {
+    font-size: 0.72rem;
+    table-layout: auto;
+    min-width: 700px;
+  }
+
+  .edit-modal .table td,
+  .edit-modal .table th {
+    white-space: nowrap;
+    vertical-align: middle;
+    padding: 0.3rem;
+  }
+
+  /* Let inputs use available width instead of forcing tiny sizes */
+  .edit-modal .form-control,
+  .edit-modal input[type="text"],
+  .edit-modal input[type="date"],
+  .edit-modal input[type="datetime-local"],
+  .edit-modal select,
+  .edit-modal textarea {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.4rem;
+  }
+
+  /* Reasonable minimums for key columns */
   .edit-modal input[name="name"] {
-    width: 6.5rem;
+    min-width: 10rem;
+  }
+
+  .edit-modal input[name="code"] {
+    min-width: 7rem;
+  }
+
+  .edit-modal input[name="system"] {
+    min-width: 8rem;
   }
 
   .edit-modal input[name="value"] {
-    width: 4rem;
+    min-width: 6rem;
   }
 
-  /* Button sizing tweaks */
+  .edit-modal input[name="dosage"] {
+    min-width: 5rem;
+  }
+
+  .edit-modal select[name="criticality"] {
+    min-width: 5rem;
+  }
+
+  .edit-modal input[type="date"],
+  .edit-modal input[type="datetime-local"] {
+    min-width: 8rem;
+  }
+
   .custom-button {
     width: 35px;
     height: 35px;
@@ -168,11 +216,27 @@ ul {
     width: 35px;
     height: 30px;
     align-items: center;
-    transform: scale(0.8);
+    transform: scale(0.9);
   }
 
   .resp-add-button {
     height: 30px;
-    transform: scale(0.9);
+    transform: scale(0.95);
+  }
+
+  .sct-col {
+    width: 34px;
+    min-width: 34px;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .sct-button-vertical {
+    min-width: 26px;
+    width: 26px;
+    height: 42px;
+    padding: 0;
+    font-size: 0.58rem;
+    line-height: 1;
   }
 }

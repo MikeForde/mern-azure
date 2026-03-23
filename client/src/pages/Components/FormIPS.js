@@ -674,7 +674,7 @@ export function FormIPS({ add }) {
                     onChange={(e) =>
                       handleMedicationLookupChange(index, e.target.value)
                     }
-                    placeholder="Search SNOMED medication"
+                    placeholder="Search SNOMED GPS medication"
                     list={`medication-options-${index}`}
                     autoComplete="off"
                   />
@@ -800,7 +800,7 @@ export function FormIPS({ add }) {
                     onChange={(e) =>
                       handleAllergyLookupChange(index, e.target.value)
                     }
-                    placeholder="Search SNOMED allergy/substance"
+                    placeholder="Search SNOMED GPS allergy/substance"
                     list={`allergy-options-${index}`}
                     autoComplete="off"
                   />
@@ -905,7 +905,7 @@ export function FormIPS({ add }) {
                     onChange={(e) =>
                       handleConditionLookupChange(index, e.target.value)
                     }
-                    placeholder="Search SNOMED condition"
+                    placeholder="Search SNOMED GPS condition"
                     list={`condition-options-${index}`}
                     autoComplete="off"
                   />
@@ -992,7 +992,7 @@ export function FormIPS({ add }) {
                     onChange={(e) =>
                       handleObservationLookupChange(index, e.target.value)
                     }
-                    placeholder="Search SNOMED observation"
+                    placeholder="Search SNOMED GPS observation"
                     list={`observation-options-${index}`}
                     autoComplete="off"
                   />
@@ -1111,7 +1111,7 @@ export function FormIPS({ add }) {
                     onChange={(e) =>
                       handleImmunizationLookupChange(index, e.target.value)
                     }
-                    placeholder="Search SNOMED vaccine"
+                    placeholder="Search SNOMED GPS vaccine"
                     list={`immunization-options-${index}`}
                     autoComplete="off"
                   />
@@ -1223,7 +1223,7 @@ export function FormIPS({ add }) {
                     onChange={(e) =>
                       handleProcedureLookupChange(index, e.target.value)
                     }
-                    placeholder="Search SNOMED procedure"
+                    placeholder="Search SNOMED GPS procedure"
                     list={`procedure-options-${index}`}
                     autoComplete="off"
                   />
