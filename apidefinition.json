@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "version": "0_84",
+    "version": "0_85",
     "title": "IPS MERN API",
     "description": "OpenAPI 3.0 specification for the IPS MERN API."
   },
@@ -1498,7 +1498,7 @@
           "IPS"
         ],
         "summary": "Retrieve expanded IPS FHIR by patient name and given name",
-        "description": "Retrieve expanded IPS FHIR by patient name and given name (case-insensitive). An optional header parameter x-ips-format can be used to override the default format (e.g., 'nhsscr', 'inter', 'legacy', 'unified').",
+        "description": "Retrieve expanded IPS FHIR by patient name and given name (case-insensitive). An optional header parameter x-ips-format can be used to override the default format (e.g., 'nhsscr', 'inter', 'euro', 'legacy', 'unified').",
         "parameters": [
           {
             "$ref": "#/components/parameters/XIPSFormat"
@@ -1912,6 +1912,176 @@
           }
         }
       }
+    },
+    "/snomedgps/tags": {
+      "get": {
+        "tags": [
+          "SNOMED GPS"
+        ],
+        "summary": "Get all SNOMED GPS semantic tags",
+        "description": "Returns a list of all SNOMED GPS semantic tags currently in the system.",
+        "responses": {
+          "200": {
+            "description": "Array of SNOMED GPS tag strings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to retrieve SNOMED semantic tags."
+          }
+        }
+      }
+    },
+    "/snomedgps/code/{code}": {
+      "get": {
+        "tags": [
+          "SNOMED GPS"
+        ],
+        "summary": "Get SNOMED GPS concept by code",
+        "description": "Returns details for a specific SNOMED GPS concept identified by its code.",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "description": "The SNOMED code to retrieve.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Details of the specified SNOMED GPS concept.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SnomedCode"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "SNOMED concept not found."
+          },
+          "500": {
+            "description": "Failed to retrieve SNOMED concept."
+          }
+        }
+      }
+    },
+    "/snomedgps/picklist/{tag}": {
+      "get": {
+        "tags": [
+          "SNOMED GPS"
+        ],
+        "summary": "Get SNOMED GPS picklist by tag",
+        "description": "Returns a picklist of SNOMED concepts associated with a specific semantic tag.",
+        "parameters": [
+          {
+            "name": "tag",
+            "in": "path",
+            "required": true,
+            "description": "The semantic tag or lookup category.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum number of concepts to return.",
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Picklist of SNOMED concepts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SnomedCode"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to retrieve SNOMED picklist."
+          }
+        }
+      }
+    },
+    "/snomedgps/search": {
+      "get": {
+        "tags": [
+          "SNOMED GPS"
+        ],
+        "summary": "Search SNOMED GPS concepts",
+        "description": "Searches SNOMED concepts using free text and an optional semantic tag filter.",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "Free text query.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "description": "Optional semantic tag or lookup category filter.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum number of results to return.",
+            "schema": {
+              "type": "integer",
+              "default": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of matching SNOMED concepts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SnomedCode"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to search SNOMED GPS."
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2060,7 +2230,7 @@
       "XIPSFormat": {
         "name": "x-ips-format",
         "in": "header",
-        "description": "Optional format override. Available values: 'unified' (default), 'inter', 'nhsscr', 'legacy'.",
+        "description": "Optional format override. Available values: 'unified' (default), 'inter', 'nhsscr', 'euro', 'legacy'.",
         "required": false,
         "schema": {
           "type": "string"
@@ -2333,6 +2503,23 @@
           "timeStamp",
           "patient"
         ]
+      }
+    },
+    "SnomedCode": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "term_clean": {
+          "type": "string"
+        },
+        "term": {
+          "type": "string"
+        },
+        "semantic_tag": {
+          "type": "string"
+        }
       }
     }
   }

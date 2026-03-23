@@ -852,6 +852,17 @@ function ChangeLogPage() {
                                 <li>Improved interoperability by supporting both NHS SCR and EPS bundle generation paths from the same IPS source data model.</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_85 — 23rd Mar 2026</h5>
+                            <ul>
+                                <li><strong>SNOMED GPS Picklists & Lookup Integration</strong></li>
+                                <li>Introduced SNOMED GPS-backed search and picklist capability across key IPS sections to help users build/edit demo patients.</li>
+                                <li>Backend SNOMED GPS service with semantic tag filtering and optimized search endpoints (<code>/snomedgps/search</code>, <code>/snomedgps/picklist/:tag</code>).</li>
+                                <li>Domain-specific filtering logic (e.g. vaccine-only immunizations, substance/allergy dual matching) to improve clinical relevance of results.</li>
+                                <li>Enhanced user experience with compact “SCT” button integration within edit tables.</li>
+                                <li>Added intelligent term simplification for medications and immunizations to convert verbose SNOMED descriptions into concise, user-friendly labels while preserving code/system integrity.</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>
