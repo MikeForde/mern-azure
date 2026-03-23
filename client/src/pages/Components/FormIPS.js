@@ -79,7 +79,7 @@ export function FormIPS({ add }) {
   const searchConditionOptions = async (index, searchText) => {
     const trimmed = searchText.trim();
 
-    if (trimmed.length < 2) {
+    if (trimmed.length < 3) {
       setConditionOptions((prev) => ({
         ...prev,
         [index]: [],
@@ -136,7 +136,7 @@ export function FormIPS({ add }) {
 
       conditionSearchTimers.current[index] = setTimeout(() => {
         searchConditionOptions(index, value);
-      }, 250);
+      }, 600);
     }
 
     setFormData({
