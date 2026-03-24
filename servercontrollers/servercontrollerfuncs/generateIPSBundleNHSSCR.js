@@ -972,7 +972,7 @@ function generateIPSBundleNHSSCR(ipsRecord, options = {}) {
             coding: [
               {
                 system: "http://loinc.org",
-                code: "73771-9",
+                code: "47519-4",
                 display: "History of Procedures Narrative",
               },
             ],
