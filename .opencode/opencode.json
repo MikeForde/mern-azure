@@ -1,0 +1,19 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "lmstudio": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "LM Studio",
+      "options": {
+        "baseURL": "http://host.docker.internal:1234/v1",
+        "apiKey": "$LMSTUDIO_API_KEY"
+      },
+      "models": {
+        "deepseek-r1-0528-qwen3-8b-mlx": {
+          "name": "DeepSeek Local"
+        }
+      }
+    }
+  },
+  "model": "lmstudio/deepseek-r1-0528-qwen3-8b-mlx"
+}
