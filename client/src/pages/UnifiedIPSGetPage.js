@@ -1,4 +1,4 @@
-import  { useState } from 'react';
+import { useMemo, useState } from 'react';
 import axios from 'axios';
 import { Form, Button, DropdownButton, Dropdown } from 'react-bootstrap';
 import { useLoading } from '../contexts/LoadingContext';
@@ -11,24 +11,36 @@ const UnifiedIPSGetPage = () => {
   const [message, setMessage] = useState('');
   const { startLoading, stopLoading } = useLoading();
 
-  // New state variables for target selection and endpoint
-  const [target, setTarget] = useState('IPS SERN'); // Default target
-  const [endpoint, setEndpoint] = useState('https://ips-d2s-uksc-medsnomed-medsno.apps.ocp1.azure.dso.digital.mod.uk/ipsbyname');
+  const isLocalhost = useMemo(() => {
+    const host = window.location.hostname;
+    return host === 'localhost' || host === '127.0.0.1';
+  }, []);
+
+  const endpointMap = useMemo(() => {
+    const baseMap = {
+      'IPS SERN': 'https://ips-d2s-uksc-medsnomed-medsno.apps.ocp1.azure.dso.digital.mod.uk/ipsbyname',
+      VitalsIQ: 'https://4202xiwc.offroadapps.dev:62444/Fhir/ips/json',
+    };
+
+    if (isLocalhost) {
+      baseMap['IPS MERN Azure'] = 'https://ipsmern-dep.azurewebsites.net/ipsbyname';
+    }
+
+    return baseMap;
+  }, [isLocalhost]);
+
+  const [target, setTarget] = useState('IPS SERN');
+  const [endpoint, setEndpoint] = useState(endpointMap['IPS SERN']);
 
   const handleTargetChange = (selectedTarget) => {
     setTarget(selectedTarget);
-    if (selectedTarget === 'VitalsIQ') {
-      setEndpoint('https://4202xiwc.offroadapps.dev:62444/Fhir/ips/json');
-    } else if (selectedTarget === 'IPS SERN') {
-      setEndpoint('https://ips-d2s-uksc-medsnomed-medsno.apps.ocp1.azure.dso.digital.mod.uk/ipsbyname');
-    }
+    setEndpoint(endpointMap[selectedTarget] || '');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     startLoading();
     try {
-      // Call our generic backend GET endpoint passing the current endpoint, name, and givenName as query parameters.
       const response = await axios.get('/fetchips', {
         params: { endpoint, name, givenName }
       });
@@ -67,6 +79,7 @@ const UnifiedIPSGetPage = () => {
               required
             />
           </Form.Group>
+
           <Form.Group controlId="givenName">
             <Form.Control
               type="text"
@@ -77,7 +90,6 @@ const UnifiedIPSGetPage = () => {
             />
           </Form.Group>
 
-          {/* Target Endpoint Dropdown */}
           <div className="dropdown-container mb-2">
             <DropdownButton
               id="dropdown-target-get"
@@ -86,15 +98,21 @@ const UnifiedIPSGetPage = () => {
               className="dropdown-button"
             >
               <Dropdown.Item eventKey="IPS SERN" active={target === 'IPS SERN'}>
-                IPS SERN
+                IPS SERN D2S
               </Dropdown.Item>
+
+              {isLocalhost && (
+                <Dropdown.Item eventKey="IPS MERN Azure" active={target === 'IPS MERN Azure'}>
+                  IPS MERN Azure
+                </Dropdown.Item>
+              )}
+
               <Dropdown.Item eventKey="VitalsIQ" active={target === 'VitalsIQ'}>
                 VitalsIQ
               </Dropdown.Item>
             </DropdownButton>
           </div>
 
-          {/* Editable Endpoint Field */}
           <Form.Group controlId="endpointInput" className="mb-2">
             <Form.Label>Endpoint</Form.Label>
             <Form.Control
@@ -108,18 +126,26 @@ const UnifiedIPSGetPage = () => {
             Submit GET Request
           </Button>
         </Form>
+
         {error && <p style={{ color: 'red' }}>{error}</p>}
+
         {ipsData && (
           <div>
             <h4>IPS Data</h4>
             <div className="text-area">
-              <Form.Control as="textarea" rows={10} value={JSON.stringify(ipsData, null, 2)} readOnly />
+              <Form.Control
+                as="textarea"
+                rows={10}
+                value={JSON.stringify(ipsData, null, 2)}
+                readOnly
+              />
             </div>
             <Button variant="success" onClick={handleTransform}>
               Transform to IPS MERN Record
             </Button>
           </div>
         )}
+
         {message && <p style={{ color: 'green' }}>{message}</p>}
       </div>
     </div>
