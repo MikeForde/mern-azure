@@ -1,0 +1,2605 @@
+{
+  "info": {
+    "_postman_id": "f9791c38-7ac1-44a8-86a8-9361e991e831",
+    "name": "IPS MERN API",
+    "description": "OpenAPI 3.0 specification for the IPS MERN API.\n\nUse the collection variable `url` to switch between local and deployed environments. Generated from the root `apidefinition.json`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "url",
+      "value": "http://localhost:5049"
+    },
+    {
+      "key": "id",
+      "value": "sample-id"
+    },
+    {
+      "key": "uuid",
+      "value": "sample-uuid"
+    },
+    {
+      "key": "name",
+      "value": "Smith"
+    },
+    {
+      "key": "given",
+      "value": "John"
+    },
+    {
+      "key": "givenName",
+      "value": "John"
+    },
+    {
+      "key": "code",
+      "value": "123456"
+    },
+    {
+      "key": "tag",
+      "value": "problem"
+    },
+    {
+      "key": "q",
+      "value": "diabetes"
+    },
+    {
+      "key": "msg",
+      "value": "Hello from Postman"
+    },
+    {
+      "key": "protect",
+      "value": "false"
+    },
+    {
+      "key": "delim",
+      "value": "|"
+    },
+    {
+      "key": "narrative",
+      "value": "false"
+    },
+    {
+      "key": "resourceNarrative",
+      "value": "false"
+    },
+    {
+      "key": "limit",
+      "value": "10"
+    },
+    {
+      "key": "x_ips_format",
+      "value": "unified"
+    }
+  ],
+  "item": [
+    {
+      "name": "IPS",
+      "description": "Endpoints for managing and converting IPS records",
+      "item": [
+        {
+          "name": "Create a new IPS record",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/ips",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ips"
+              ]
+            },
+            "description": "Create a new IPS record.\n\nExpected 200: MongoDb JSON object of the created IPS record.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create multiple IPS records",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/ipsmany",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipsmany"
+              ]
+            },
+            "description": "Create multiple IPS records.\n\nExpected 200: Array of MongoDb JSON objects of the created IPS records.",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {}\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create IPS records from an IPS Bundle",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/ipsbundle",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipsbundle"
+              ]
+            },
+            "description": "Create IPS records from an IPS Bundle.\n\nExpected 200: MongoDb JSON as confirmation of record creation.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Push IPS data to an external ORA system",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/pushipsora",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "pushipsora"
+              ]
+            },
+            "description": "Push IPS data to an external ORA system.\n\nExpected 200: Response from the ORA system.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Push IPS data to an external NLD system",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/pushipsnld",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "pushipsnld"
+              ]
+            },
+            "description": "Push IPS data to an external NLD system.\n\nExpected 200: Response from the NLD system.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create MongoDb IPS records from BEER format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/ipsfrombeer",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipsfrombeer"
+              ]
+            },
+            "description": "Create MongoDb IPS records from BEER format.\n\nExpected 200: MongoDb JSON as confirmation of record creation.",
+            "body": {
+              "mode": "raw",
+              "raw": "Sample text payload",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create MongoDb IPS records from CDA XML format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/xml"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/ipsfromcda",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipsfromcda"
+              ]
+            },
+            "description": "Create MongoDb IPS records from CDA XML format.\n\nExpected 200: MongoDb JSON as confirmation of record creation.",
+            "body": {
+              "mode": "raw",
+              "raw": "<root>Sample XML payload</root>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create MongoDb IPS records from HL7 2.x format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/ipsfromhl72x",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipsfromhl72x"
+              ]
+            },
+            "description": "Create MongoDb IPS records from HL7 2.x format.\n\nExpected 200: MongoDb JSON as confirmation of record creation.",
+            "body": {
+              "mode": "raw",
+              "raw": "Sample text payload",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Convert MongoDB format to BEER format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/convertmongo2beer",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "convertmongo2beer"
+              ]
+            },
+            "description": "Convert MongoDB format to BEER format.\n\nExpected 200: BEER - Plain Text",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Convert MongoDB format to HL7 2.3 format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/convertmongo2hl7",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "convertmongo2hl7"
+              ]
+            },
+            "description": "Convert MongoDB format to HL7 2.3 format.\n\nExpected 200: HL7 2.3 - Plain Text",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Convert BEER format to MongoDB format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/convertbeer2mongo",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "convertbeer2mongo"
+              ]
+            },
+            "description": "Convert BEER format to MongoDB format.\n\nExpected 200: MongoDB JSON",
+            "body": {
+              "mode": "raw",
+              "raw": "Sample text payload",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Convert BEER format to IPS JSON format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              },
+              {
+                "key": "x-ips-format",
+                "value": "{{x_ips_format}}",
+                "description": "Optional format override. Available values: 'unified' (default), 'inter', 'nhsscr', 'euro', 'legacy'.",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/convertbeer2ips",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "convertbeer2ips"
+              ]
+            },
+            "description": "Convert BEER format to IPS JSON format.\n\nExpected 200: IPS Bundle JSON",
+            "body": {
+              "mode": "raw",
+              "raw": "Sample text payload",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Convert IPS JSON format to BEER format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/convertips2beer",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "convertips2beer"
+              ]
+            },
+            "description": "Convert IPS JSON format to BEER format.\n\nExpected 200: BEER - Plain Text",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Convert IPS JSON format to Plain Text Readable format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/convertips2plaintext",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "convertips2plaintext"
+              ]
+            },
+            "description": "Convert IPS JSON format to Plain Text Readable format.\n\nExpected 200: Human Readable - Plain Text",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Convert CDA XML format to IPS JSON format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/xml"
+              },
+              {
+                "key": "x-ips-format",
+                "value": "{{x_ips_format}}",
+                "description": "Optional format override. Available values: 'unified' (default), 'inter', 'nhsscr', 'euro', 'legacy'.",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/convertcdatoips",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "convertcdatoips"
+              ]
+            },
+            "description": "Convert CDA XML format to IPS JSON format.\n\nExpected 200: IPS Bundle JSON",
+            "body": {
+              "mode": "raw",
+              "raw": "<root>Sample XML payload</root>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Convert CDA XML format to BEER format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/xml"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/convertcdatobeer",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "convertcdatobeer"
+              ]
+            },
+            "description": "Convert CDA XML format to BEER format.\n\nExpected 200: BEER - Plain Text",
+            "body": {
+              "mode": "raw",
+              "raw": "<root>Sample XML payload</root>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Convert CDA XML format to MongoDB format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/xml"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/convertcdatomongo",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "convertcdatomongo"
+              ]
+            },
+            "description": "Convert CDA XML format to MongoDB format.\n\nExpected 200: MongoDB JSON",
+            "body": {
+              "mode": "raw",
+              "raw": "<root>Sample XML payload</root>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Convert HL7 2.x format to MongoDB format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/converthl72xtomongo",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "converthl72xtomongo"
+              ]
+            },
+            "description": "Convert HL7 2.x format to MongoDB format.\n\nExpected 200: MongoDB JSON",
+            "body": {
+              "mode": "raw",
+              "raw": "Sample text payload",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Convert HL7 2.x format to IPS JSON format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              },
+              {
+                "key": "x-ips-format",
+                "value": "{{x_ips_format}}",
+                "description": "Optional format override. Available values: 'unified' (default), 'inter', 'nhsscr', 'euro', 'legacy'.",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/converthl72xtoips",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "converthl72xtoips"
+              ]
+            },
+            "description": "Convert HL7 2.x format to IPS JSON format.\n\nExpected 200: IPS Bundle JSON",
+            "body": {
+              "mode": "raw",
+              "raw": "Sample text payload",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generic convert XML format to JSON format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/xml"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/convertxml",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "convertxml"
+              ]
+            },
+            "description": "Generic convert XML format to JSON format.\n\nExpected 200: JSON",
+            "body": {
+              "mode": "raw",
+              "raw": "<root>Sample XML payload</root>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Convert FHIR XML format to FHIR JSON format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/xml"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/convertfhirxml",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "convertfhirxml"
+              ]
+            },
+            "description": "Convert FHIR XML format to FHIR JSON format.\n\nExpected 200: FHIR JSON",
+            "body": {
+              "mode": "raw",
+              "raw": "<root>Sample XML payload</root>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve all IPS records",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/ips/all",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ips",
+                "all"
+              ]
+            },
+            "description": "Retrieve all IPS records.\n\nExpected 200: Array of JSON objects representing IPS records."
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve raw IPS record by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/ipsraw/{{id}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipsraw",
+                "{{id}}"
+              ]
+            },
+            "description": "Retrieve raw IPS record by ID.\n\nExpected 200: JSON object of the raw IPS record."
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve IPS record in MongoDB format by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/ipsmongo/{{id}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipsmongo",
+                "{{id}}"
+              ]
+            },
+            "description": "Retrieve IPS record in MongoDB format by ID.\n\nExpected 200: MongoDB JSON"
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve IPS record in expanded format by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/ips/{{id}}?narrative={{narrative}}&resourceNarrative={{resourceNarrative}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ips",
+                "{{id}}"
+              ],
+              "query": [
+                {
+                  "key": "narrative",
+                  "value": "{{narrative}}",
+                  "description": "If 1, include generated narrative in Composition.section[].text.",
+                  "disabled": true
+                },
+                {
+                  "key": "resourceNarrative",
+                  "value": "{{resourceNarrative}}",
+                  "description": "If 1, include generated narrative in each resource.text within Bundle.entry[].resource.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve IPS record in expanded format by ID.\n\nExpected 200: Expanded IPS - FHIR JSON"
+          },
+          "response": []
+        },
+        {
+          "name": "Update an IPS record by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/ips/{{id}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ips",
+                "{{id}}"
+              ]
+            },
+            "description": "Update an IPS record by ID.\n\nExpected 200: Updated IPS record in MongoDB JSON format.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete an IPS record by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/ips/{{id}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ips",
+                "{{id}}"
+              ]
+            },
+            "description": "Delete an IPS record by ID.\n\nExpected 200: Confirmation of deletion."
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve IPS record in NHS SCR format by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/ipsnhsscr/{{id}}?narrative={{narrative}}&resourceNarrative={{resourceNarrative}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipsnhsscr",
+                "{{id}}"
+              ],
+              "query": [
+                {
+                  "key": "narrative",
+                  "value": "{{narrative}}",
+                  "description": "If 1, include generated narrative in Composition.section[].text.",
+                  "disabled": true
+                },
+                {
+                  "key": "resourceNarrative",
+                  "value": "{{resourceNarrative}}",
+                  "description": "If 1, include generated narrative in each resource.text within Bundle.entry[].resource.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve IPS record in NHS SCR format by ID.\n\nExpected 200: NHS SCR format - FHIR JSON"
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve IPS record in EPS format by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/ipseps/{{id}}?narrative={{narrative}}&resourceNarrative={{resourceNarrative}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipseps",
+                "{{id}}"
+              ],
+              "query": [
+                {
+                  "key": "narrative",
+                  "value": "{{narrative}}",
+                  "description": "If 1, include generated narrative in Composition.section[].text.",
+                  "disabled": true
+                },
+                {
+                  "key": "resourceNarrative",
+                  "value": "{{resourceNarrative}}",
+                  "description": "If 1, include generated narrative in each resource.text within Bundle.entry[].resource.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve IPS record in EPS format by ID.\n\nExpected 200: EPS format - FHIR JSON"
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve IPS record in basic format by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/ipsbasic/{{id}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipsbasic",
+                "{{id}}"
+              ]
+            },
+            "description": "Retrieve IPS record in basic format by ID.\n\nExpected 200: Basic format - Plain Text"
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve IPS record in human readable format by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/ipsplaintext/{{id}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipsplaintext",
+                "{{id}}"
+              ]
+            },
+            "description": "Retrieve IPS record in human readable format by ID.\n\nExpected 200: Human Readable format - Plain Text"
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve IPS record in BEER format by ID with optional delimiter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/ipsbeer/{{id}}/{{delim}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipsbeer",
+                "{{id}}",
+                "{{delim}}"
+              ]
+            },
+            "description": "Retrieve IPS record in BEER format by ID with optional delimiter. The delimiter options are documented in the API docs.\n\nExpected 200: BEER - Plain Text"
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve IPS record in HL7 2.3 format by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/ipshl72x/{{id}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipshl72x",
+                "{{id}}"
+              ]
+            },
+            "description": "Retrieve IPS record in HL7 2.3 format by ID.\n\nExpected 200: HL7 2.3 - Plain Text"
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve IPS record in expanded FHIR XML format by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/ipsxml/{{id}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipsxml",
+                "{{id}}"
+              ]
+            },
+            "description": "Retrieve IPS record in expanded FHIR XML format by ID.\n\nExpected 200: IPS Bundle - FHIR XML"
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve IPS record in legacy format by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/ipslegacy/{{id}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipslegacy",
+                "{{id}}"
+              ]
+            },
+            "description": "Retrieve IPS record in legacy format by ID (FHIR JSON).\n\nExpected 200: Legacy IPS record in FHIR JSON format."
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve expanded IPS FHIR by patient name and given name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-ips-format",
+                "value": "{{x_ips_format}}",
+                "description": "Optional format override. Available values: 'unified' (default), 'inter', 'nhsscr', 'euro', 'legacy'.",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/ipsbyname/{{name}}/{{given}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipsbyname",
+                "{{name}}",
+                "{{given}}"
+              ]
+            },
+            "description": "Retrieve expanded IPS FHIR by patient name and given name (case-insensitive). An optional header parameter x-ips-format can be used to override the default format (e.g., 'nhsscr', 'inter', 'euro', 'legacy', 'unified').\n\nExpected 200: Expanded IPS Bundle in FHIR JSON format."
+          },
+          "response": []
+        },
+        {
+          "name": "Search IPS records by patient name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/ips/search/{{name}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ips",
+                "search",
+                "{{name}}"
+              ]
+            },
+            "description": "Search IPS records by patient name.\n\nExpected 200: Array of JSON objects representing IPS records."
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch IPS data from ORA by patient name and given name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/fetchipsora/{{name}}/{{givenName}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "fetchipsora",
+                "{{name}}",
+                "{{givenName}}"
+              ]
+            },
+            "description": "Fetch IPS data from ORA by patient name and given name.\n\nExpected 200: JSON object from ORA system."
+          },
+          "response": []
+        },
+        {
+          "name": "Update an IPS record by UUID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/ipsuuid/{{uuid}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipsuuid",
+                "{{uuid}}"
+              ]
+            },
+            "description": "Update an IPS record by UUID.\n\nExpected 200: Updated IPS record in MongoDB JSON format.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "XMPP",
+      "description": "Endpoints for XMPP messaging integration",
+      "item": [
+        {
+          "name": "Send a test message to XMPP group chat",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/xmpp/test-send-message?msg={{msg}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "xmpp",
+                "test-send-message"
+              ],
+              "query": [
+                {
+                  "key": "msg",
+                  "value": "{{msg}}",
+                  "description": "Optional message text",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Send a test message to the configured XMPP group chat (optionally specify ?msg=...).\n\nExpected 200: A text response indicating success."
+          },
+          "response": []
+        },
+        {
+          "name": "Send a message to the XMPP group chat",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/xmpp/xmpp-post",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "xmpp",
+                "xmpp-post"
+              ]
+            },
+            "description": "Send a message to the XMPP group chat, optionally specifying a custom room.\n\nExpected 200: JSON response with status, the target room, and the message sent.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch an IPS record by ID and broadcast it to the XMPP group chat",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/xmpp/xmpp-ips",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "xmpp",
+                "xmpp-ips"
+              ]
+            },
+            "description": "Fetch an IPS record by ID and broadcast it (as plain text) to the configured XMPP group chat.\n\nExpected 200: JSON response confirming the record was retrieved and sent.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch an IPS record by ID and send it privately to a specific occupant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/xmpp/xmpp-ips-private",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "xmpp",
+                "xmpp-ips-private"
+              ]
+            },
+            "description": "Fetch an IPS record by ID and send it privately (type=\"chat\") to a specific occupant.\n\nExpected 200: JSON response confirming the record was retrieved and sent privately.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "TAK",
+      "description": "Endpoints for TAK server integration",
+      "item": [
+        {
+          "name": "Sends a test CoT message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/tak/test",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "tak",
+                "test"
+              ]
+            },
+            "description": "Sends a test CoT message. A custom CoT message can be provided via the \"cot\" property in the JSON body.\n\nExpected 200: JSON: { \"message\": \"<result>\" }",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resolve an IPS record and send it in a CoT message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/tak/ips",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "tak",
+                "ips"
+              ]
+            },
+            "description": "Resolves an IPS record by id (either packageUUID or ObjectId), compresses it into a gzipped, Base64-encoded payload, and embeds it in the custom <ipsData> element of a CoT message.\n\nExpected 200: JSON: { \"message\": \"<result>\", \"cot\": \"<Complete CoT message with <ipsData> element>\" }",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Returns an HTML page with formatted IPS record details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/tak/browser/{{id}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "tak",
+                "browser",
+                "{{id}}"
+              ]
+            },
+            "description": "Returns an HTML page with nicely formatted IPS record details for display in a browser, using the IPS record identified by packageUUID.\n\nExpected 200: HTML page with formatted IPS record details."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Schema",
+      "item": [
+        {
+          "name": "Validates an NPS format record.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/npsVal",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "npsVal"
+              ]
+            },
+            "description": "Validates an NPS format record.\n\nExpected 200: Validation report for NPS validation.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate NHS SCR IPS FHIR JSON against schema",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/ipsNhsScrVal",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipsNhsScrVal"
+              ]
+            },
+            "description": "Validates a pasted FHIR JSON payload (Bundle or single resource) against the NHS SCR IPS (custom) schema and against the global FHIR R4 schema.\n\nExpected 200: Validation report (custom schema + FHIR R4 structural validation).",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate EPS IPS FHIR JSON against schema",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/epsVal",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "epsVal"
+              ]
+            },
+            "description": "Validates a pasted FHIR JSON payload (Bundle or single resource) against the EPS IPS (custom) schema and against the global FHIR R4 schema.\n\nExpected 200: Validation report (custom schema + FHIR R4 structural validation).",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "NPS",
+      "item": [
+        {
+          "name": "Retrieve IPS record in NPS format by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/nps/{{id}}?protect={{protect}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "nps",
+                "{{id}}"
+              ],
+              "query": [
+                {
+                  "key": "protect",
+                  "value": "{{protect}}",
+                  "description": "Protection method to apply to identifiers. 0 = none, 1 = field-level encryption (JWE), 2 = omit identifiers.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve IPS record in NPS format by ID (FHIR JSON). Optional protection can be applied via the protect query parameter.\n\nExpected 200: NPS record in FHIR JSON format."
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve NPS record split into RO and RW bundles by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/npsnfc/{{id}}?protect={{protect}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "npsnfc",
+                "{{id}}"
+              ],
+              "query": [
+                {
+                  "key": "protect",
+                  "value": "{{protect}}",
+                  "description": "Protection method to apply to identifiers. 0 = none, 1 = field-level encryption (JWE), 2 = omit identifiers.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Returns two FHIR Bundles split around the NPS timestamp: RO includes Patient/Organization and resources on or before timestamp; RW includes resources after timestamp. Optional protection can be applied via the protect query parameter.\n\nExpected 200: Split IPS payloads (RO and RW) as JSON."
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve NPS record split into RO plaintext and RW gzipped unified FHIR JSON (POC)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/ipsdatasplitpoc/{{id}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "ipsdatasplitpoc",
+                "{{id}}"
+              ]
+            },
+            "description": "RO is a human-readable plaintext summary (optionally omitting observations/immunizations/procedures). RW is unified FHIR Bundle JSON compressed with gzip and returned as base64.\n\nExpected 200: Split payloads: RO plaintext + RW gzip(base64) unified FHIR JSON."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "SNOMED GPS",
+      "item": [
+        {
+          "name": "Get all SNOMED GPS semantic tags",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/snomedgps/tags",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "snomedgps",
+                "tags"
+              ]
+            },
+            "description": "Returns a list of all SNOMED GPS semantic tags currently in the system.\n\nExpected 200: Array of SNOMED GPS tag strings."
+          },
+          "response": []
+        },
+        {
+          "name": "Get SNOMED GPS concept by code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/snomedgps/code/{{code}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "snomedgps",
+                "code",
+                "{{code}}"
+              ]
+            },
+            "description": "Returns details for a specific SNOMED GPS concept identified by its code.\n\nExpected 200: Details of the specified SNOMED GPS concept."
+          },
+          "response": []
+        },
+        {
+          "name": "Get SNOMED GPS picklist by tag",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/snomedgps/picklist/{{tag}}?limit={{limit}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "snomedgps",
+                "picklist",
+                "{{tag}}"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "{{limit}}",
+                  "description": "Maximum number of concepts to return.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Returns a picklist of SNOMED concepts associated with a specific semantic tag.\n\nExpected 200: Picklist of SNOMED concepts."
+          },
+          "response": []
+        },
+        {
+          "name": "Search SNOMED GPS concepts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/snomedgps/search?q={{q}}&tag={{tag}}&limit={{limit}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "snomedgps",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "{{q}}",
+                  "description": "Free text query.",
+                  "disabled": true
+                },
+                {
+                  "key": "tag",
+                  "value": "{{tag}}",
+                  "description": "Optional semantic tag or lookup category filter.",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "{{limit}}",
+                  "description": "Maximum number of results to return.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Searches SNOMED concepts using free text and an optional semantic tag filter.\n\nExpected 200: Array of matching SNOMED concepts."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
