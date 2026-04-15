@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useContext } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Container, Form, Button, Alert, Row, Col, ButtonGroup } from 'react-bootstrap'
 import { PatientContext } from '../PatientContext'
 
@@ -10,9 +11,21 @@ const MODE_NHS_SCR = 'NHSSCR'
 const MODE_EPS = 'EPS'
 const SPLIT_PART_RO = 'RO'
 const SPLIT_PART_RW = 'RW'
+const MODE_TO_QUERY = {
+  [MODE_NPS]: 'nps',
+  [MODE_NPS_NFC]: 'npsnfc',
+  [MODE_NHS_SCR]: 'nhsscr',
+  [MODE_EPS]: 'eps'
+}
+const QUERY_TO_MODE = Object.fromEntries(
+  Object.entries(MODE_TO_QUERY).map(([mode, query]) => [query, mode])
+)
+
+const getModeFromQuery = (value) => QUERY_TO_MODE[String(value || '').trim().toLowerCase()] || null
 
 export default function IPSchemaValidator() {
   const { setSelectedPatient } = useContext(PatientContext)
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const [result, setResult] = useState(null)
   const [mode, setMode] = useState(MODE_NPS)
@@ -28,6 +41,7 @@ export default function IPSchemaValidator() {
   const pendingSplitRestoreRef = useRef(null)
 
   const isSplitMode = mode === MODE_NPS_NFC
+  const requestedMode = getModeFromQuery(searchParams.get('mode'))
 
   const endpoint =
     mode === MODE_NHS_SCR
@@ -112,11 +126,17 @@ export default function IPSchemaValidator() {
 
   const getInputValue = (part = 'main') => getInputRef(part).current?.value || ''
 
-  const setModeAndReset = (nextMode) => {
+  const setModeAndReset = (nextMode, syncQuery = true) => {
     setMode(nextMode)
     setResult(null)
     setSubmitResult(null)
     setShowAllErrors(false)
+
+    if (syncQuery) {
+      const nextParams = new URLSearchParams(searchParams)
+      nextParams.set('mode', MODE_TO_QUERY[nextMode])
+      setSearchParams(nextParams)
+    }
   }
 
   const updateMainInputSize = (value) => setInputSizes((prev) => ({ ...prev, main: value.length }))
@@ -397,6 +417,15 @@ export default function IPSchemaValidator() {
       console.warn('Could not restore validator payload/mode:', e)
     }
   }, [])
+
+  useEffect(() => {
+    if (requestedMode && requestedMode !== mode) {
+      setMode(requestedMode)
+      setResult(null)
+      setSubmitResult(null)
+      setShowAllErrors(false)
+    }
+  }, [mode, requestedMode])
 
   useEffect(() => {
     if (mode !== MODE_NPS_NFC || !pendingSplitRestoreRef.current) return

@@ -160,6 +160,24 @@ function NavigationBar() {
               <NavDropdown.Item as={Link} to="/schemavalidator" onClick={() => handleNavItemSelect(false)}>
                 Schema Validators
               </NavDropdown.Item>
+
+              <NavDropdown.Divider />
+
+              <NavDropdown.Item as={Link} to="/schemavalidator?mode=nps" onClick={() => handleNavItemSelect(false)}>
+                Validator: NPS
+              </NavDropdown.Item>
+
+              <NavDropdown.Item as={Link} to="/schemavalidator?mode=npsnfc" onClick={() => handleNavItemSelect(false)}>
+                Validator: NPS NFC
+              </NavDropdown.Item>
+
+              <NavDropdown.Item as={Link} to="/schemavalidator?mode=nhsscr" onClick={() => handleNavItemSelect(false)}>
+                Validator: NHS SCR
+              </NavDropdown.Item>
+
+              <NavDropdown.Item as={Link} to="/schemavalidator?mode=eps" onClick={() => handleNavItemSelect(false)}>
+                Validator: EPS
+              </NavDropdown.Item>
             </NavDropdown>
 
             <NavDropdown title={<span><FontAwesomeIcon icon={faInfoCircle} /> Info</span>} id="info-nav-dropdown">
