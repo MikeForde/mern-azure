@@ -863,6 +863,16 @@ function ChangeLogPage() {
                                 <li>Added intelligent term simplification for medications and immunizations to convert verbose SNOMED descriptions into concise, user-friendly labels while preserving code/system integrity.</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_86 — 15th Apr 2026</h5>
+                            <ul>
+                                <li><strong>NPS NFC Split Validation & Preview</strong></li>
+                                <li>Added a new <code>NPS NFC</code> mode to the Schema Validator with separate Read Only and Read/Write bundle inputs combined for unified validation.</li>
+                                <li>Validation issues indicate whether they originate from the RO or RW portion, with direct navigation into the correct textarea.</li>
+                                <li>Extended the Schemas menu so validator types can be opened directly from submenu links with the required mode preselected.</li>
+                                <li>Updated API GET for NPS bundles with an <code>NPS NFC</code> split demo preview, date-based RO/RW cutoff selection, and linked Medication/MedicationRequest handling.</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

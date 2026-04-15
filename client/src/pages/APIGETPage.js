@@ -830,7 +830,7 @@ function APIGETPage() {
               <>
                 <Alert variant={npsNfcSplitError ? 'warning' : 'secondary'} className="mb-2">
                   <div>
-                    <strong>NPS NFC split view:</strong>{' '}
+                    <strong>NPS NFC split view (for illustrative purposes only):</strong>{' '}
                     {npsNfcCutoff === NPS_NFC_EMPTY_RW_OPTION
                       ? 'RO contains all resources; RW contains no entries.'
                       : npsNfcCutoff
