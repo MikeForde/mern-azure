@@ -7,6 +7,141 @@ import { PatientContext } from '../PatientContext';
 import { useLoading } from '../contexts/LoadingContext';
 import pako from 'pako';
 
+const NPS_NFC_EMPTY_RW_OPTION = '__after_latest__';
+
+function parseIso(value) {
+  const t = Date.parse(value);
+  return Number.isFinite(t) ? t : null;
+}
+
+function getReferenceId(reference, expectedType) {
+  if (!reference || typeof reference !== 'string') return null;
+
+  const trimmed = reference.trim();
+  if (!trimmed) return null;
+
+  const urnMatch = trimmed.match(/^urn:(uuid|oid):(.+)$/i);
+  if (urnMatch) return urnMatch[2];
+
+  const parts = trimmed.split('/').filter(Boolean);
+  if (parts.length >= 2) {
+    if (!expectedType || parts[0] === expectedType) return parts[1];
+    return null;
+  }
+
+  return trimmed;
+}
+
+function getResourceDateValue(resource) {
+  if (!resource || !resource.resourceType) return null;
+
+  switch (resource.resourceType) {
+    case 'AllergyIntolerance':
+      return resource.onsetDateTime || null;
+    case 'Condition':
+      return resource.onsetDateTime || null;
+    case 'Observation':
+      return resource.effectiveDateTime || null;
+    case 'Procedure':
+      return resource.performedDateTime || null;
+    case 'MedicationRequest':
+      return resource.authoredOn || null;
+    default:
+      return null;
+  }
+}
+
+function buildSplitBundle(bundle, entries) {
+  return {
+    resourceType: 'Bundle',
+    id: bundle.id,
+    identifier: bundle.identifier,
+    meta: bundle.meta,
+    implicitRules: bundle.implicitRules,
+    language: bundle.language,
+    type: bundle.type,
+    timestamp: bundle.timestamp,
+    total: entries.length,
+    entry: entries
+  };
+}
+
+function splitNpsBundleAtDate(bundle, cutoffIso) {
+  const cutoffMs = parseIso(cutoffIso);
+  if (cutoffMs == null) {
+    throw new Error(`Invalid cutoff date: ${cutoffIso}`);
+  }
+
+  const entries = Array.isArray(bundle?.entry) ? bundle.entry : [];
+  const roEntries = [];
+  const rwEntries = [];
+  const medicationDateById = new Map();
+
+  entries.forEach((entry) => {
+    const resource = entry?.resource;
+    if (resource?.resourceType !== 'MedicationRequest') return;
+
+    const requestDateMs = parseIso(resource.authoredOn);
+    const medicationId = getReferenceId(resource?.medicationReference?.reference, 'Medication');
+    if (!medicationId || requestDateMs == null) return;
+
+    if (!medicationDateById.has(medicationId) || requestDateMs > medicationDateById.get(medicationId)) {
+      medicationDateById.set(medicationId, requestDateMs);
+    }
+  });
+
+  entries.forEach((entry) => {
+    const resource = entry?.resource;
+    if (!resource) return;
+
+    if (resource.resourceType === 'Patient' || resource.resourceType === 'Organization') {
+      roEntries.push(entry);
+      return;
+    }
+
+    const dateValue = getResourceDateValue(resource);
+    const dateMs = resource.resourceType === 'Medication'
+      ? (medicationDateById.get(resource.id) ?? null)
+      : parseIso(dateValue);
+
+    if (dateMs == null || dateMs < cutoffMs) {
+      roEntries.push(entry);
+      return;
+    }
+
+    rwEntries.push(entry);
+  });
+
+  return {
+    roBundle: buildSplitBundle(bundle, roEntries),
+    rwBundle: buildSplitBundle(bundle, rwEntries)
+  };
+}
+
+function getBundleDateOptions(bundle) {
+  const countsByDate = new Map();
+
+  (Array.isArray(bundle?.entry) ? bundle.entry : []).forEach((entry) => {
+    const resource = entry?.resource;
+    const dateValue = getResourceDateValue(resource);
+    const dateMs = parseIso(dateValue);
+    if (dateMs == null || !dateValue) return;
+
+    if (!countsByDate.has(dateValue)) {
+      countsByDate.set(dateValue, { value: dateValue, millis: dateMs, count: 0 });
+    }
+
+    countsByDate.get(dateValue).count += 1;
+  });
+
+  return Array.from(countsByDate.values())
+    .sort((a, b) => a.millis - b.millis)
+    .map((item) => ({
+      value: item.value,
+      label: `${item.value} (${item.count} resource${item.count === 1 ? '' : 's'})`
+    }));
+}
+
 function APIGETPage() {
   const { selectedPatients, selectedPatient, setSelectedPatient } = useContext(PatientContext);
   const { startLoading, stopLoading } = useLoading();
@@ -24,6 +159,11 @@ function APIGETPage() {
   const [isWriting, setIsWriting] = useState(false);
   const [useFieldEncrypt, setUseFieldEncrypt] = useState(false); // => protect=1 (JWE)
   const [useIdOmit, setUseIdOmit] = useState(false);             // => protect=2 (omit)
+  const [useNpsNfcSplit, setUseNpsNfcSplit] = useState(false);
+  const [npsNfcDateOptions, setNpsNfcDateOptions] = useState([]);
+  const [npsNfcCutoff, setNpsNfcCutoff] = useState('');
+  const [npsNfcSplitData, setNpsNfcSplitData] = useState(null);
+  const [npsNfcSplitError, setNpsNfcSplitError] = useState(null);
 
   // IPS narrative toggle (only for mode === 'ips')
   const [useIpsNarrative, setUseIpsNarrative] = useState(false); // => narrative=1
@@ -41,6 +181,8 @@ function APIGETPage() {
   const [showValErrors, setShowValErrors] = useState(false);
 
   const navigate = useNavigate();
+  const showNpsNfcControls = mode === 'ipsunified' && !useCompressionAndEncryption;
+  const showNpsNfcSplitView = showNpsNfcControls && useNpsNfcSplit && !!npsNfcSplitData;
 
   const handleRecordChange = (recordId) => {
     const record = selectedPatients.find((record) => record._id === recordId);
@@ -204,6 +346,7 @@ function APIGETPage() {
     // reset narrative toggles when leaving their modes
     if (selectedMode !== 'ips') setUseIpsNarrative(false);
     if (selectedMode !== 'ipsnhsscr') setUseIpsNhsscrNarrative(false);
+    if (selectedMode !== 'ipsunified') setUseNpsNfcSplit(false);
 
     switch (selectedMode) {
       case 'ips':
@@ -251,6 +394,67 @@ function APIGETPage() {
     const formatted = xml.replace(/></g, '>\n<');
     return formatted;
   };
+
+  useEffect(() => {
+    if (!showNpsNfcControls || !useNpsNfcSplit || !data) {
+      setNpsNfcDateOptions([]);
+      setNpsNfcCutoff('');
+      setNpsNfcSplitData(null);
+      setNpsNfcSplitError(null);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(data);
+      if (!parsed || parsed.resourceType !== 'Bundle') {
+        throw new Error('Displayed NPS data is not a FHIR Bundle.');
+      }
+
+      const resourceDateOptions = getBundleDateOptions(parsed);
+      const dateOptions = resourceDateOptions.length > 0
+        ? [
+          ...resourceDateOptions,
+          { value: NPS_NFC_EMPTY_RW_OPTION, label: 'After latest dated resource (RW empty)' }
+        ]
+        : [];
+      const defaultCutoff = resourceDateOptions[Math.floor(resourceDateOptions.length / 2)]?.value || '';
+      const nextCutoff = dateOptions.some((option) => option.value === npsNfcCutoff)
+        ? npsNfcCutoff
+        : defaultCutoff;
+
+      const split = nextCutoff === NPS_NFC_EMPTY_RW_OPTION
+        ? {
+          roBundle: buildSplitBundle(parsed, Array.isArray(parsed.entry) ? parsed.entry : []),
+          rwBundle: buildSplitBundle(parsed, [])
+        }
+        : nextCutoff
+          ? splitNpsBundleAtDate(parsed, nextCutoff)
+          : {
+            roBundle: buildSplitBundle(parsed, Array.isArray(parsed.entry) ? parsed.entry : []),
+            rwBundle: buildSplitBundle(parsed, [])
+          };
+
+      setNpsNfcDateOptions(dateOptions);
+      setNpsNfcCutoff(nextCutoff);
+      setNpsNfcSplitData({
+        cutoff: nextCutoff,
+        roBundle: split.roBundle,
+        rwBundle: split.rwBundle,
+        roJson: JSON.stringify(split.roBundle, null, 2),
+        rwJson: JSON.stringify(split.rwBundle, null, 2)
+      });
+      setNpsNfcSplitError(
+        resourceDateOptions.length > 0
+          ? null
+          : 'No dated resources were found. All resources remain in the Read Only section.'
+      );
+    } catch (err) {
+      setNpsNfcDateOptions([]);
+      setNpsNfcCutoff('');
+      setNpsNfcSplitData(null);
+      setNpsNfcSplitError(`Could not split NPS bundle for NFC view: ${err.message}`);
+    }
+  }, [data, npsNfcCutoff, showNpsNfcControls, useNpsNfcSplit]);
 
   const handleNfcWriteMode = async (nfctype) => {
     try {
@@ -394,14 +598,24 @@ function APIGETPage() {
   // ---------- Jump to validator (carry payload + mode via sessionStorage) ----------
   const openValidatorPage = () => {
     try {
-      sessionStorage.setItem('ips:lastPayload', data || '');
-      sessionStorage.setItem('ips:lastMode', mode === 'ipseps' ? 'eps' : (mode === 'ipsnhsscr' ? 'nhsscr' : 'nps'));
+      if (showNpsNfcSplitView) {
+        sessionStorage.setItem('ips:lastPayload', JSON.stringify({
+          type: 'split',
+          ro: npsNfcSplitData.roJson,
+          rw: npsNfcSplitData.rwJson
+        }));
+        sessionStorage.setItem('ips:lastMode', 'NPSNFC');
+      } else {
+        const validatorMode = mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHSSCR' : 'NPS');
+        sessionStorage.setItem('ips:lastPayload', data || '');
+        sessionStorage.setItem('ips:lastMode', validatorMode);
+      }
     } catch (e) {
       console.warn('Could not store payload for validator:', e);
     }
 
     // Navigate within the React app (SPA)
-    navigate('/schemavalidator');
+    navigate(showNpsNfcSplitView ? '/schemavalidator?mode=npsnfc' : '/schemavalidator');
   };
 
   return (
@@ -528,6 +742,43 @@ function APIGETPage() {
                 />
               </div>
 
+              {showNpsNfcControls && (
+                <div className="col-auto">
+                  <Form.Check
+                    type="checkbox"
+                    id="npsNfcSplit"
+                    label="NPS NFC split (RO/RW)"
+                    checked={useNpsNfcSplit}
+                    onChange={(e) => setUseNpsNfcSplit(e.target.checked)}
+                  />
+                </div>
+              )}
+
+              {showNpsNfcControls && useNpsNfcSplit && (
+                <div className="col-auto">
+                  <Form.Label htmlFor="npsNfcCutoff" className="mb-1">
+                    Split from resource date
+                  </Form.Label>
+                  <Form.Select
+                    id="npsNfcCutoff"
+                    size="sm"
+                    value={npsNfcCutoff}
+                    onChange={(e) => setNpsNfcCutoff(e.target.value)}
+                    disabled={npsNfcDateOptions.length === 0}
+                  >
+                    {npsNfcDateOptions.length === 0 ? (
+                      <option value="">No dated resources</option>
+                    ) : (
+                      npsNfcDateOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))
+                    )}
+                  </Form.Select>
+                </div>
+              )}
+
               {/* show only in IPS mode */}
               {mode === 'ips' && (
                 <div className="col-auto">
@@ -571,15 +822,66 @@ function APIGETPage() {
           <Alert variant="danger">Data is too large to display. Please try a different mode.</Alert>
         ) : (
           <>
-            <div className="text-area">
-              <Form.Control
-                as="textarea"
-                rows={10}
-                value={data}
-                readOnly
-                className="resultTextArea"
-              />
-            </div>
+            {showNpsNfcControls && useNpsNfcSplit && npsNfcSplitError && !npsNfcSplitData && (
+              <Alert variant="warning" className="mb-2">{npsNfcSplitError}</Alert>
+            )}
+
+            {showNpsNfcSplitView ? (
+              <>
+                <Alert variant={npsNfcSplitError ? 'warning' : 'secondary'} className="mb-2">
+                  <div>
+                    <strong>NPS NFC split view:</strong>{' '}
+                    {npsNfcCutoff === NPS_NFC_EMPTY_RW_OPTION
+                      ? 'RO contains all resources; RW contains no entries.'
+                      : npsNfcCutoff
+                      ? `RO contains resources before ${npsNfcCutoff}; RW contains resources on and after ${npsNfcCutoff}.`
+                      : 'All resources are currently in the Read Only section.'}
+                  </div>
+                  <div>
+                    RO entries: {npsNfcSplitData.roBundle.total} | RW entries: {npsNfcSplitData.rwBundle.total}
+                  </div>
+                  {npsNfcSplitError && <div>{npsNfcSplitError}</div>}
+                </Alert>
+
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <Form.Group controlId="npsNfcRoData">
+                      <Form.Label>Read Only (RO) - historical data</Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={10}
+                        value={npsNfcSplitData.roJson}
+                        readOnly
+                        className="resultTextArea apiGetResultTextAreaDouble"
+                      />
+                    </Form.Group>
+                  </div>
+
+                  <div className="col-md-6">
+                    <Form.Group controlId="npsNfcRwData">
+                      <Form.Label>Read/Write (RW) - operational data</Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={10}
+                        value={npsNfcSplitData.rwJson}
+                        readOnly
+                        className="resultTextArea apiGetResultTextAreaDouble"
+                      />
+                    </Form.Group>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="text-area">
+                <Form.Control
+                  as="textarea"
+                  rows={10}
+                  value={data}
+                  readOnly
+                  className="resultTextArea apiGetResultTextArea"
+                />
+              </div>
+            )}
 
             {/* ---------- On-page validation panel ---------- */}
             {(mode === 'ipsunified' || mode === 'ipsnhsscr' || mode === 'ipseps') && (
@@ -590,7 +892,7 @@ function APIGETPage() {
                   </Alert>
                 ) : valLoading ? (
                   <Alert variant="secondary" className="mb-2">
-                    Validating ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : 'NPS')})...
+                    Validating ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : (showNpsNfcSplitView ? 'NPS NFC' : 'NPS'))})...
                   </Alert>
                 ) : valError ? (
                   <Alert variant="warning" className="mb-2">
@@ -600,7 +902,7 @@ function APIGETPage() {
                   <Alert variant={valResult.valid ? "success" : "danger"} className="mb-2">
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                       <div>
-                        <strong>Validation ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : 'NPS')}):</strong>
+                        <strong>Validation ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : (showNpsNfcSplitView ? 'NPS NFC' : 'NPS'))}):</strong>
                         {valResult.valid ? "✅ Valid" : "❌ Invalid"}
                         {!!valResult.errors?.length && (
                           <> — {valResult.errors.length} error(s)</>
@@ -614,7 +916,7 @@ function APIGETPage() {
                           onClick={openValidatorPage}
                           disabled={!data}
                         >
-                          Go to Validator ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : 'NPS')})
+                          Go to Validator ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : (showNpsNfcSplitView ? 'NPS NFC' : 'NPS'))})
                         </Button>
 
                         {!valResult.valid && (
@@ -647,12 +949,11 @@ function APIGETPage() {
             )}
           </>
         )}
-        <br />
         <div className="container">
           <div className="row mb-3 align-items-start">
             <div className="col-auto">
               <Button onClick={handleDownloadData} disabled={!data}>
-                Download Data
+                {showNpsNfcSplitView ? 'Download Combined Data' : 'Download Data'}
               </Button>
             </div>
 
@@ -685,13 +986,13 @@ function APIGETPage() {
             <div className="col-auto">
               <DropdownButton
                 variant={isWriting ? 'dark' : 'primary'}
-                title={isWriting ? 'Writing...' : 'Write to NFC'}
+                title={isWriting ? 'Writing...' : (showNpsNfcSplitView ? 'Write to NFC (combined bundle)' : 'Write to NFC')}
                 disabled={!data || isWriting}
                 onSelect={handleNfcWriteMode}
               >
-                <Dropdown.Item eventKey="plain">As Shown Above</Dropdown.Item>
+                <Dropdown.Item eventKey="plain">{showNpsNfcSplitView ? 'Combined NPS Bundle' : 'As Shown Above'}</Dropdown.Item>
                 <Dropdown.Item eventKey="binary">Binary (AES256 + gzip) - regardless to above</Dropdown.Item>
-                <Dropdown.Item eventKey="gzipbin">Gzip (as shown)</Dropdown.Item>
+                <Dropdown.Item eventKey="gzipbin">{showNpsNfcSplitView ? 'Gzip combined bundle' : 'Gzip (as shown)'}</Dropdown.Item>
                 <Dropdown.Item eventKey="url">Gzipped Data URL</Dropdown.Item>
                 <Dropdown.Item eventKey="copyurl">Gzipped Data URL - CopyPaste Buffer Only</Dropdown.Item>
               </DropdownButton>

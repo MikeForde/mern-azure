@@ -28,6 +28,18 @@
   font-size:small !important;       /* optional */
 }
 
+.apiGetResultTextAreaDouble {
+  height: calc(85vh - 400px) !important;
+  min-height: calc(85vh - 400px);
+  resize: vertical;
+}
+
+.apiGetResultTextArea {
+  height: calc(100vh - 355px) !important;
+  min-height: calc(100vh - 355px);
+  resize: vertical;
+}
+
 
 .text-area textarea {
   width: 100%;
@@ -122,6 +134,11 @@
   .text-area textarea {
     height: 100%;
   }
+
+  .apiGetResultTextArea {
+    height: calc(100vh - 330px) !important;
+    min-height: calc(100vh - 330px);
+  }
   .text-area-container {
     flex-direction: column;
   }
@@ -150,7 +167,6 @@
   }
 
 }
-
 
 
 
