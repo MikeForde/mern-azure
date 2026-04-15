@@ -4,29 +4,40 @@ import { PatientContext } from '../PatientContext'
 
 const MAX_RESTORE_CHARS = 300000
 const MAX_VISIBLE_ERRORS = 100
+const MODE_NPS = 'NPS'
+const MODE_NPS_NFC = 'NPSNFC'
+const MODE_NHS_SCR = 'NHSSCR'
+const MODE_EPS = 'EPS'
+const SPLIT_PART_RO = 'RO'
+const SPLIT_PART_RW = 'RW'
 
 export default function IPSchemaValidator() {
   const { setSelectedPatient } = useContext(PatientContext)
 
   const [result, setResult] = useState(null)
-  const [mode, setMode] = useState('NPS') // 'NPS' | 'NHSSCR' | 'EPS'
-  const [inputSize, setInputSize] = useState(0)
+  const [mode, setMode] = useState(MODE_NPS)
+  const [inputSizes, setInputSizes] = useState({ main: 0, ro: 0, rw: 0 })
   const [showAllErrors, setShowAllErrors] = useState(false)
   const [submitResult, setSubmitResult] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [nhsScrLenient, setNhsScrLenient] = useState(false)
 
   const inputRef = useRef(null)
+  const roInputRef = useRef(null)
+  const rwInputRef = useRef(null)
+  const pendingSplitRestoreRef = useRef(null)
+
+  const isSplitMode = mode === MODE_NPS_NFC
 
   const endpoint =
-    mode === 'NHSSCR'
+    mode === MODE_NHS_SCR
       ? '/ipsNhsScrVal'
-      : mode === 'EPS'
+      : mode === MODE_EPS
         ? '/epsVal'
         : '/ipsUniVal'
 
   const labels =
-    mode === 'NHSSCR'
+    mode === MODE_NHS_SCR
       ? {
         title: 'NHS SCR JSON Validator',
         helper: 'Paste your NHS SCR IPS Bundle here (you can also paste a single resource e.g. Patient)',
@@ -34,7 +45,7 @@ export default function IPSchemaValidator() {
         resultValidKey: 'validNhsScr',
         resultErrorsKey: 'errorsNhsScr'
       }
-      : mode === 'EPS'
+      : mode === MODE_EPS
         ? {
           title: 'EPS JSON Validator',
           helper: 'Paste your EPS Bundle here (you can also paste a single resource e.g. Patient)',
@@ -42,6 +53,14 @@ export default function IPSchemaValidator() {
           resultValidKey: 'validEps',
           resultErrorsKey: 'errorsEps'
         }
+        : mode === MODE_NPS_NFC
+          ? {
+            title: 'NPS NFC JSON Validator',
+            helper: 'Paste the Read Only (historical) and Read/Write (operational) NPS bundles here. They will be combined into one bundle before validation.',
+            schemaLabel: 'NPS NFC',
+            resultValidKey: 'validNps',
+            resultErrorsKey: 'errorsNps'
+          }
         : {
           title: 'NPS JSON Validator',
           helper: 'Paste your NPS Bundle here (note, you can also paste a single resource e.g. Patient)',
@@ -71,24 +90,304 @@ export default function IPSchemaValidator() {
     errorsFhirR4: body?.errorsFhirR4 || []
   })
 
-  const getInputValue = () => inputRef.current?.value || ''
+  const buildClientValidationResult = ({ schemaErrors = [], fhirErrors = [], extra = {} } = {}) => ({
+    valid: schemaErrors.length === 0 && fhirErrors.length === 0,
+    errors: [...schemaErrors, ...fhirErrors],
+    validNps: schemaErrors.length === 0,
+    errorsNps: schemaErrors,
+    validNhsScr: schemaErrors.length === 0,
+    errorsNhsScr: schemaErrors,
+    validEps: schemaErrors.length === 0,
+    errorsEps: schemaErrors,
+    validFhirR4: fhirErrors.length === 0,
+    errorsFhirR4: fhirErrors,
+    ...extra
+  })
+
+  const getInputRef = (part = 'main') => {
+    if (part === SPLIT_PART_RO) return roInputRef
+    if (part === SPLIT_PART_RW) return rwInputRef
+    return inputRef
+  }
+
+  const getInputValue = (part = 'main') => getInputRef(part).current?.value || ''
+
+  const setModeAndReset = (nextMode) => {
+    setMode(nextMode)
+    setResult(null)
+    setSubmitResult(null)
+    setShowAllErrors(false)
+  }
+
+  const updateMainInputSize = (value) => setInputSizes((prev) => ({ ...prev, main: value.length }))
+  const updateSplitInputSize = (part, value) => {
+    setInputSizes((prev) => ({
+      ...prev,
+      [part === SPLIT_PART_RO ? 'ro' : 'rw']: value.length
+    }))
+  }
+
+  const buildSplitValidationError = (errors) => buildClientValidationResult({
+    schemaErrors: errors,
+    extra: { validFhirR4: false }
+  })
+
+  const preparePayload = () => {
+    if (!isSplitMode) {
+      const input = getInputValue()
+      updateMainInputSize(input)
+
+      if (!input.trim()) {
+        return {
+          ok: false,
+          validationResult: normalizeErrorResult(
+            { message: 'Please paste some JSON before validating.' },
+            'Please paste some JSON before validating.'
+          ),
+          submitMessage: 'Please paste some JSON before submitting.'
+        }
+      }
+
+      const parsed = safeParseJson(input)
+      if (!parsed) {
+        return {
+          ok: false,
+          validationResult: normalizeErrorResult(
+            { message: 'Input is not valid JSON.' },
+            'Input is not valid JSON.'
+          ),
+          submitMessage: 'Input is not valid JSON.'
+        }
+      }
+
+      return {
+        ok: true,
+        payloadJson: input,
+        parsed,
+        persistPayload: input
+      }
+    }
+
+    const roInput = getInputValue(SPLIT_PART_RO)
+    const rwInput = getInputValue(SPLIT_PART_RW)
+    updateSplitInputSize(SPLIT_PART_RO, roInput)
+    updateSplitInputSize(SPLIT_PART_RW, rwInput)
+
+    const schemaErrors = []
+
+    if (!roInput.trim()) {
+      schemaErrors.push({
+        path: '/',
+        message: 'Read Only input is empty.',
+        sourcePart: SPLIT_PART_RO,
+        displayPath: '/',
+        jumpPath: '/',
+        jumpPart: SPLIT_PART_RO
+      })
+    }
+
+    if (!rwInput.trim()) {
+      schemaErrors.push({
+        path: '/',
+        message: 'Read/Write input is empty.',
+        sourcePart: SPLIT_PART_RW,
+        displayPath: '/',
+        jumpPath: '/',
+        jumpPart: SPLIT_PART_RW
+      })
+    }
+
+    if (schemaErrors.length > 0) {
+      return {
+        ok: false,
+        validationResult: buildSplitValidationError(schemaErrors),
+        submitMessage: 'Please paste both Read Only and Read/Write JSON bundles before submitting.'
+      }
+    }
+
+    const roParsed = safeParseJson(roInput)
+    if (!roParsed) {
+      return {
+        ok: false,
+        validationResult: buildSplitValidationError([{
+          path: '/',
+          message: 'Read Only input is not valid JSON.',
+          sourcePart: SPLIT_PART_RO,
+          displayPath: '/',
+          jumpPath: '/',
+          jumpPart: SPLIT_PART_RO
+        }]),
+        submitMessage: 'Read Only input is not valid JSON.'
+      }
+    }
+
+    const rwParsed = safeParseJson(rwInput)
+    if (!rwParsed) {
+      return {
+        ok: false,
+        validationResult: buildSplitValidationError([{
+          path: '/',
+          message: 'Read/Write input is not valid JSON.',
+          sourcePart: SPLIT_PART_RW,
+          displayPath: '/',
+          jumpPath: '/',
+          jumpPart: SPLIT_PART_RW
+        }]),
+        submitMessage: 'Read/Write input is not valid JSON.'
+      }
+    }
+
+    if (roParsed.resourceType !== 'Bundle') {
+      return {
+        ok: false,
+        validationResult: buildSplitValidationError([{
+          path: '/resourceType',
+          message: 'Read Only input must be a FHIR Bundle.',
+          sourcePart: SPLIT_PART_RO,
+          displayPath: '/resourceType',
+          jumpPath: '/resourceType',
+          jumpPart: SPLIT_PART_RO
+        }]),
+        submitMessage: 'Read Only input must be a FHIR Bundle.'
+      }
+    }
+
+    if (rwParsed.resourceType !== 'Bundle') {
+      return {
+        ok: false,
+        validationResult: buildSplitValidationError([{
+          path: '/resourceType',
+          message: 'Read/Write input must be a FHIR Bundle.',
+          sourcePart: SPLIT_PART_RW,
+          displayPath: '/resourceType',
+          jumpPath: '/resourceType',
+          jumpPart: SPLIT_PART_RW
+        }]),
+        submitMessage: 'Read/Write input must be a FHIR Bundle.'
+      }
+    }
+
+    const roEntries = Array.isArray(roParsed.entry) ? roParsed.entry : []
+    const rwEntries = Array.isArray(rwParsed.entry) ? rwParsed.entry : []
+    const combined = {
+      ...roParsed,
+      ...rwParsed,
+      resourceType: 'Bundle',
+      id: roParsed.id || rwParsed.id,
+      identifier: roParsed.identifier || rwParsed.identifier,
+      meta: roParsed.meta || rwParsed.meta,
+      implicitRules: roParsed.implicitRules || rwParsed.implicitRules,
+      language: roParsed.language || rwParsed.language,
+      type: roParsed.type || rwParsed.type || 'document',
+      timestamp: rwParsed.timestamp || roParsed.timestamp,
+      total: roEntries.length + rwEntries.length,
+      entry: [...roEntries, ...rwEntries]
+    }
+
+    return {
+      ok: true,
+      payloadJson: JSON.stringify(combined),
+      parsed: combined,
+      persistPayload: JSON.stringify({ type: 'split', ro: roInput, rw: rwInput }),
+      splitMeta: {
+        roCount: roEntries.length,
+        rwCount: rwEntries.length,
+        topLevelSources: {
+          id: roParsed.id ? SPLIT_PART_RO : (rwParsed.id ? SPLIT_PART_RW : SPLIT_PART_RO),
+          identifier: roParsed.identifier ? SPLIT_PART_RO : (rwParsed.identifier ? SPLIT_PART_RW : SPLIT_PART_RO),
+          meta: roParsed.meta ? SPLIT_PART_RO : (rwParsed.meta ? SPLIT_PART_RW : SPLIT_PART_RO),
+          implicitRules: roParsed.implicitRules ? SPLIT_PART_RO : (rwParsed.implicitRules ? SPLIT_PART_RW : SPLIT_PART_RO),
+          language: roParsed.language ? SPLIT_PART_RO : (rwParsed.language ? SPLIT_PART_RW : SPLIT_PART_RO),
+          type: roParsed.type ? SPLIT_PART_RO : (rwParsed.type ? SPLIT_PART_RW : SPLIT_PART_RO),
+          timestamp: rwParsed.timestamp ? SPLIT_PART_RW : SPLIT_PART_RO,
+          total: SPLIT_PART_RO,
+          entry: SPLIT_PART_RO
+        }
+      }
+    }
+  }
+
+  const getSplitEntryInfo = (path, message) => {
+    const pathMatch = String(path || '').match(/^\/entry\/(\d+)(\/.*)?$/)
+    if (pathMatch) {
+      return {
+        entryIndex: parseInt(pathMatch[1], 10),
+        remainder: pathMatch[2] || ''
+      }
+    }
+
+    const messageMatch = String(message || '').match(/\bin entry\[(\d+)\]/)
+    if (messageMatch) {
+      return {
+        entryIndex: parseInt(messageMatch[1], 10),
+        remainder: ''
+      }
+    }
+
+    return null
+  }
+
+  const decorateSplitError = (err, splitMeta) => {
+    const entryInfo = getSplitEntryInfo(err?.path, err?.message)
+
+    if (entryInfo) {
+      const isRoEntry = entryInfo.entryIndex < splitMeta.roCount
+      const sourcePart = isRoEntry ? SPLIT_PART_RO : SPLIT_PART_RW
+      const localIndex = isRoEntry ? entryInfo.entryIndex : entryInfo.entryIndex - splitMeta.roCount
+      const localPath = `/entry/${localIndex}${entryInfo.remainder}`
+
+      return {
+        ...err,
+        sourcePart,
+        displayPath: localPath,
+        jumpPath: localPath,
+        jumpPart: sourcePart
+      }
+    }
+
+    const topLevelKey = String(err?.path || '').split('/').filter(Boolean)[0]
+    const sourcePart = splitMeta.topLevelSources[topLevelKey] || SPLIT_PART_RO
+
+    return {
+      ...err,
+      sourcePart,
+      displayPath: err?.path || '/',
+      jumpPath: err?.path || '/',
+      jumpPart: sourcePart
+    }
+  }
+
+  const decorateSplitResult = (body, splitMeta) => {
+    const errorsNps = (body?.errorsNps || []).map((err) => decorateSplitError(err, splitMeta))
+    const errorsFhirR4 = (body?.errorsFhirR4 || []).map((err) => decorateSplitError(err, splitMeta))
+
+    return {
+      ...body,
+      errorsNps,
+      errorsFhirR4,
+      errors: [...errorsNps, ...errorsFhirR4]
+    }
+  }
 
   useEffect(() => {
     try {
       const savedPayload = sessionStorage.getItem('ips:lastPayload')
       const savedMode = sessionStorage.getItem('ips:lastMode')
 
-      if (savedMode === 'NPS' || savedMode === 'NHSSCR' || savedMode === 'EPS') {
+      if (savedMode === MODE_NPS || savedMode === MODE_NPS_NFC || savedMode === MODE_NHS_SCR || savedMode === MODE_EPS) {
         setMode(savedMode)
         setResult(null)
       }
 
       if (savedPayload) {
         if (savedPayload.length <= MAX_RESTORE_CHARS) {
-          if (inputRef.current) {
+          if (savedMode === MODE_NPS_NFC) {
+            const parsedPayload = safeParseJson(savedPayload)
+            pendingSplitRestoreRef.current = parsedPayload
+          } else if (inputRef.current) {
             inputRef.current.value = savedPayload
+            setInputSizes((prev) => ({ ...prev, main: savedPayload.length }))
           }
-          setInputSize(savedPayload.length)
         } else {
           console.warn(`Skipped restoring validator payload: too large (${savedPayload.length} chars)`)
         }
@@ -99,8 +398,30 @@ export default function IPSchemaValidator() {
     }
   }, [])
 
-  const jumpToPath = (path) => {
-    const el = inputRef.current
+  useEffect(() => {
+    if (mode !== MODE_NPS_NFC || !pendingSplitRestoreRef.current) return
+
+    const parsedPayload = pendingSplitRestoreRef.current
+
+    if (roInputRef.current && typeof parsedPayload?.ro === 'string') {
+      roInputRef.current.value = parsedPayload.ro
+    }
+
+    if (rwInputRef.current && typeof parsedPayload?.rw === 'string') {
+      rwInputRef.current.value = parsedPayload.rw
+    }
+
+    setInputSizes({
+      main: 0,
+      ro: typeof parsedPayload?.ro === 'string' ? parsedPayload.ro.length : 0,
+      rw: typeof parsedPayload?.rw === 'string' ? parsedPayload.rw.length : 0
+    })
+
+    pendingSplitRestoreRef.current = null
+  }, [mode])
+
+  const jumpToPath = (path, part = 'main') => {
+    const el = getInputRef(part).current
     if (!el || !path) return
 
     try {
@@ -155,32 +476,14 @@ export default function IPSchemaValidator() {
     setSubmitResult(null)
     setShowAllErrors(false)
 
-    const input = getInputValue()
-    setInputSize(input.length)
-
-    if (!input.trim()) {
-      setResult(
-        normalizeErrorResult(
-          { message: 'Please paste some JSON before validating.' },
-          'Please paste some JSON before validating.'
-        )
-      )
-      return
-    }
-
-    const parsed = safeParseJson(input)
-    if (!parsed) {
-      setResult(
-        normalizeErrorResult(
-          { message: 'Input is not valid JSON.' },
-          'Input is not valid JSON.'
-        )
-      )
+    const prepared = preparePayload()
+    if (!prepared.ok) {
+      setResult(prepared.validationResult)
       return
     }
 
     const validationUrl =
-      mode === 'NHSSCR' && nhsScrLenient
+      mode === MODE_NHS_SCR && nhsScrLenient
         ? `${endpoint}?lenient=true`
         : endpoint
 
@@ -188,7 +491,7 @@ export default function IPSchemaValidator() {
       const resp = await fetch(validationUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: input
+        body: prepared.payloadJson
       })
 
       const rawText = await resp.text()
@@ -196,7 +499,7 @@ export default function IPSchemaValidator() {
 
       if (resp.ok) {
         if (body) {
-          setResult(body)
+          setResult(isSplitMode ? decorateSplitResult(body, prepared.splitMeta) : body)
         } else {
           setResult(
             normalizeErrorResult(
@@ -226,22 +529,11 @@ export default function IPSchemaValidator() {
   const addAsRecord = async () => {
     setSubmitResult(null)
 
-    const input = getInputValue()
-    setInputSize(input.length)
-
-    if (!input.trim()) {
+    const prepared = preparePayload()
+    if (!prepared.ok) {
       setSubmitResult({
         ok: false,
-        message: 'Please paste some JSON before submitting.'
-      })
-      return
-    }
-
-    const parsed = safeParseJson(input)
-    if (!parsed) {
-      setSubmitResult({
-        ok: false,
-        message: 'Input is not valid JSON.'
+        message: prepared.submitMessage
       })
       return
     }
@@ -252,7 +544,7 @@ export default function IPSchemaValidator() {
       const resp = await fetch('/ipsbundle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: input
+        body: prepared.payloadJson
       })
 
       const rawText = await resp.text()
@@ -277,7 +569,7 @@ export default function IPSchemaValidator() {
       setSelectedPatient(body)
 
       try {
-        sessionStorage.setItem('ips:lastPayload', input)
+        sessionStorage.setItem('ips:lastPayload', prepared.persistPayload)
         sessionStorage.setItem('ips:lastMode', mode)
       } catch (e) {
         console.warn('Could not persist validator payload/mode:', e)
@@ -317,39 +609,34 @@ export default function IPSchemaValidator() {
         <Col xs="auto">
           <ButtonGroup aria-label="Validator mode">
             <Button
-              variant={mode === 'NPS' ? 'primary' : 'outline-primary'}
-              onClick={() => {
-                setMode('NPS')
-                setResult(null)
-                setSubmitResult(null)
-              }}
+              variant={mode === MODE_NPS ? 'primary' : 'outline-primary'}
+              onClick={() => setModeAndReset(MODE_NPS)}
             >
               NPS
             </Button>
 
             <Button
-              variant={mode === 'NHSSCR' ? 'primary' : 'outline-primary'}
-              onClick={() => {
-                setMode('NHSSCR')
-                setResult(null)
-                setSubmitResult(null)
-              }}
+              variant={mode === MODE_NPS_NFC ? 'primary' : 'outline-primary'}
+              onClick={() => setModeAndReset(MODE_NPS_NFC)}
+            >
+              NPS NFC
+            </Button>
+
+            <Button
+              variant={mode === MODE_NHS_SCR ? 'primary' : 'outline-primary'}
+              onClick={() => setModeAndReset(MODE_NHS_SCR)}
             >
               NHS SCR
             </Button>
 
             <Button
-              variant={mode === 'EPS' ? 'primary' : 'outline-primary'}
-              onClick={() => {
-                setMode('EPS')
-                setResult(null)
-                setSubmitResult(null)
-              }}
+              variant={mode === MODE_EPS ? 'primary' : 'outline-primary'}
+              onClick={() => setModeAndReset(MODE_EPS)}
             >
               EPS
             </Button>
           </ButtonGroup>
-          {mode === 'NHSSCR' && (
+          {mode === MODE_NHS_SCR && (
             <Form.Check
               className="mt-3"
               type="switch"
@@ -366,25 +653,82 @@ export default function IPSchemaValidator() {
         </Col>
       </Row>
 
-      <Form.Group controlId="jsonInput" className="mt-3">
-        <Form.Label>
-          {labels.helper}
-          <div className="text-muted small mt-1">
-            Size: {inputSize.toLocaleString()} characters
+      {isSplitMode ? (
+        <>
+          <div className="mt-3">
+            <div>{labels.helper}</div>
+            <div className="text-muted small mt-1">
+              Combined size: {(inputSizes.ro + inputSizes.rw).toLocaleString()} characters
+            </div>
           </div>
-        </Form.Label>
 
-        <Form.Control
-          as="textarea"
-          rows={20}
-          ref={inputRef}
-          defaultValue=""
-          onChange={(e) => setInputSize(e.target.value.length)}
-          placeholder='{ "resourceType": "Bundle", ... }'
-          className="resultTextArea"
-          spellCheck={false}
-        />
-      </Form.Group>
+          <Row className="mt-2">
+            <Col md={6}>
+              <Form.Group controlId="jsonInputRo">
+                <Form.Label>
+                  Read Only (RO) - historical data
+                  <div className="text-muted small mt-1">
+                    Size: {inputSizes.ro.toLocaleString()} characters
+                  </div>
+                </Form.Label>
+
+                <Form.Control
+                  as="textarea"
+                  rows={20}
+                  ref={roInputRef}
+                  defaultValue=""
+                  onChange={(e) => updateSplitInputSize(SPLIT_PART_RO, e.target.value)}
+                  placeholder='{ "resourceType": "Bundle", ... }'
+                  className="resultTextArea"
+                  spellCheck={false}
+                />
+              </Form.Group>
+            </Col>
+
+            <Col md={6} className="mt-3 mt-md-0">
+              <Form.Group controlId="jsonInputRw">
+                <Form.Label>
+                  Read/Write (RW) - operational data
+                  <div className="text-muted small mt-1">
+                    Size: {inputSizes.rw.toLocaleString()} characters
+                  </div>
+                </Form.Label>
+
+                <Form.Control
+                  as="textarea"
+                  rows={20}
+                  ref={rwInputRef}
+                  defaultValue=""
+                  onChange={(e) => updateSplitInputSize(SPLIT_PART_RW, e.target.value)}
+                  placeholder='{ "resourceType": "Bundle", ... }'
+                  className="resultTextArea"
+                  spellCheck={false}
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+        </>
+      ) : (
+        <Form.Group controlId="jsonInput" className="mt-3">
+          <Form.Label>
+            {labels.helper}
+            <div className="text-muted small mt-1">
+              Size: {inputSizes.main.toLocaleString()} characters
+            </div>
+          </Form.Label>
+
+          <Form.Control
+            as="textarea"
+            rows={20}
+            ref={inputRef}
+            defaultValue=""
+            onChange={(e) => updateMainInputSize(e.target.value)}
+            placeholder='{ "resourceType": "Bundle", ... }'
+            className="resultTextArea"
+            spellCheck={false}
+          />
+        </Form.Group>
+      )}
 
       <div className="mt-2 d-flex gap-2">
         <Button onClick={validate}>Validate</Button>
@@ -419,7 +763,7 @@ export default function IPSchemaValidator() {
           <Alert variant="secondary" className="mt-3">
             <div><strong>{labels.schemaLabel}:</strong> {schemaValid ? '✅ Valid' : '❌ Invalid'}</div>
             <div><strong>FHIR R4:</strong> {result.validFhirR4 ? '✅ Valid' : '❌ Invalid'}</div>
-            {mode === 'NHSSCR' && (
+            {mode === MODE_NHS_SCR && (
               <div><strong>Mode:</strong> {result.validationMode === 'lenient' ? 'Lenient' : 'Strict'}</div>
             )}
           </Alert>
@@ -440,9 +784,10 @@ export default function IPSchemaValidator() {
                       <li
                         key={`schema-${i}`}
                         style={{ cursor: 'pointer' }}
-                        onClick={() => jumpToPath(err.path)}
+                        onClick={() => jumpToPath(err.jumpPath || err.path, err.jumpPart || 'main')}
                       >
-                        <strong>{err.path || '/'}</strong>: {err.message}
+                        {err.sourcePart && <strong>[{err.sourcePart}] </strong>}
+                        <strong>{err.displayPath || err.path || '/'}</strong>: {err.message}
                       </li>
                     ))}
                   </ul>
@@ -462,9 +807,10 @@ export default function IPSchemaValidator() {
                       <li
                         key={`fhir-${i}`}
                         style={{ cursor: 'pointer' }}
-                        onClick={() => jumpToPath(err.path)}
+                        onClick={() => jumpToPath(err.jumpPath || err.path, err.jumpPart || 'main')}
                       >
-                        <strong>{err.path || '/'}</strong>: {err.message}
+                        {err.sourcePart && <strong>[{err.sourcePart}] </strong>}
+                        <strong>{err.displayPath || err.path || '/'}</strong>: {err.message}
                       </li>
                     ))}
                   </ul>
