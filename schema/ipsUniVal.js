@@ -51,6 +51,40 @@ function fhirDefRef(resourceType) {
   return `${FHIR_SCHEMA_KEY}#/definitions/${resourceType}`;
 }
 
+function absolutizeDefinitionRefs(node, schemaKey) {
+  if (Array.isArray(node)) {
+    node.forEach(item => absolutizeDefinitionRefs(item, schemaKey));
+    return;
+  }
+  if (!node || typeof node !== 'object') return;
+
+  if (typeof node.$ref === 'string' && node.$ref.startsWith('#/definitions/')) {
+    node.$ref = `${schemaKey}${node.$ref}`;
+  }
+
+  for (const value of Object.values(node)) {
+    absolutizeDefinitionRefs(value, schemaKey);
+  }
+}
+
+function buildFhirBundleEnvelopeSchema() {
+  const bundleSchema = JSON.parse(JSON.stringify(fhirSchema.definitions.Bundle));
+  const entrySchema = JSON.parse(JSON.stringify(fhirSchema.definitions.Bundle_Entry));
+
+  absolutizeDefinitionRefs(bundleSchema, FHIR_SCHEMA_KEY);
+  absolutizeDefinitionRefs(entrySchema, FHIR_SCHEMA_KEY);
+
+  entrySchema.properties.resource = { type: 'object' };
+  bundleSchema.properties.entry = {
+    ...bundleSchema.properties.entry,
+    items: entrySchema
+  };
+
+  return bundleSchema;
+}
+
+const fhirBundleEnvelopeSchema = buildFhirBundleEnvelopeSchema();
+
 function convertSchemaIdKeyword(node) {
   if (Array.isArray(node)) {
     node.forEach(convertSchemaIdKeyword);
@@ -399,8 +433,7 @@ router.post('/', (req, res) => {
     });
 
     // --- FHIR validation (structural) ---
-    const bundleRef = fhirDefRef('Bundle');
-    if (!ajvFhir.validate(bundleRef, obj)) {
+    if (!ajvFhir.validate(fhirBundleEnvelopeSchema, obj)) {
       (ajvFhir.errors || []).forEach(e => errorsFhir.push(prettyAjvError(e)));
     }
 
