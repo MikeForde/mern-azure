@@ -236,6 +236,20 @@ api.get("/snomedgps/code/:code", getSnomedByCode);
 api.get("/snomedgps/picklist/:tag", getSnomedPicklistByTag);
 api.get("/snomedgps/search", searchSnomedGPS);
 
+api.get('/debug/ip', async (req, res) => {
+    try {
+        const response = await axios.get('https://api.ipify.org?format=json');
+        res.json({
+            outboundIp: response.data.ip
+        });
+    } catch (err) {
+        res.status(500).json({
+            error: err.message
+        });
+    }
+});
+
+
 // XMPP endpoints
 api.use("/xmpp", xmppRoutes);
 
