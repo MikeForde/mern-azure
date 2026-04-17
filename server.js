@@ -236,6 +236,7 @@ api.get("/snomedgps/code/:code", getSnomedByCode);
 api.get("/snomedgps/picklist/:tag", getSnomedPicklistByTag);
 api.get("/snomedgps/search", searchSnomedGPS);
 
+// Debug endpoints
 api.get('/debug/ip', async (req, res) => {
     try {
         const response = await axios.get('https://api.ipify.org?format=json');
@@ -247,6 +248,12 @@ api.get('/debug/ip', async (req, res) => {
             error: err.message
         });
     }
+});
+
+api.get('/debug/inbound-ip', (req, res) => {
+    res.json({
+        sourceIp: req.headers['x-forwarded-for'] || req.socket.remoteAddress
+    });
 });
 
 
