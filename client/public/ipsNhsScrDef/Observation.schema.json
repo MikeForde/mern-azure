@@ -59,6 +59,10 @@
 
     "valueQuantity": { "$ref": "#/definitions/Quantity" },
 
+    "valueCodeableConcept": {
+      "$ref": "#/definitions/CodeableConcept"
+    },
+
     "component": {
       "type": "array",
       "minItems": 1,

@@ -873,6 +873,16 @@ function ChangeLogPage() {
                                 <li>Updated API GET for NPS bundles with an <code>NPS NFC</code> split demo preview, date-based RO/RW cutoff selection, and linked Medication/MedicationRequest handling.</li>
                             </ul>
                         </li>
+                        <li>
+                            <h5>Version 0_87 — 29th May 2026</h5>
+                            <ul>
+                                <li><strong>NPS Validation Warnings & Observation Schema Update</strong></li>
+                                <li>Added NPS-only validator warnings for accepted root-level Bundle and resource fields that pass validation but are not currently used to create usable NPS clinical data.</li>
+                                <li>Warnings retain a green validation result while highlighting fields such as unsupported top-level resource values as <code>accepted but unused</code>.</li>
+                                <li>Extended the Observation schemas (NPS/EPS and NHS SCR) to recognise <code>valueCodeableConcept</code>, supporting text-value coded observations such as blood group.</li>
+                                <li>Less strict version of CodeableConcept used for valueCodeableConcept and bodySite as realistically, most systems will not possess these - likely freetext in fact.</li>
+                            </ul>
+                        </li>
                     </ul>
                 </Col>
             </Row>

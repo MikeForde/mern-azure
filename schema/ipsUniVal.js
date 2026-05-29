@@ -229,6 +229,22 @@ function prettifyAjvErrors(errorList, prefix = '') {
   return out;
 }
 
+function findRootFieldsNotInSchema(obj, schema, prefix = '') {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return [];
+
+  const schemaProps = schema?.properties || {};
+  const allowed = new Set(Object.keys(schemaProps));
+
+  return Object.keys(obj)
+    .filter(key => !allowed.has(key))
+    .map(key => ({
+      severity: 'warning',
+      path: `${prefix}/${key}`,
+      field: key,
+      message: `Accepted but not currently used by NPS: "${key}"`
+    }));
+}
+
 // POST /ipsUniVal
 router.post('/', (req, res) => {
   const ajv = new Ajv({ allErrors: true, strict: false });
@@ -401,6 +417,7 @@ router.post('/', (req, res) => {
 
   const errorsNps = [];
   const errorsFhir = [];
+  const warningsNps = [];
 
   if (topType === 'Bundle') {
     // 1) Envelope validation
@@ -452,7 +469,41 @@ router.post('/', (req, res) => {
         );
       }
     });
+
+    warningsNps.push(
+      ...findRootFieldsNotInSchema(obj, schemas.Bundle, '')
+    );
+
+    obj.entry?.forEach((en, idx) => {
+      const resObj = en.resource;
+      const schemaName = resObj?.resourceType;
+
+      if (!schemaName || !schemas[schemaName]) {
+        errorsNps.push({
+          path: `/entry/${idx}/resource/${schemaName}`,
+          message: 'Unknown or missing resourceType'
+        });
+      } else {
+        warningsNps.push(
+          ...findRootFieldsNotInSchema(
+            resObj,
+            schemas[schemaName],
+            `/entry/${idx}/resource/${schemaName}`
+          )
+        );
+
+        if (!ajv.validate(schemaName, resObj)) {
+          errorsNps.push(
+            ...prettifyAjvErrors(ajv.errors || [], `/entry/${idx}/resource/${schemaName}`)
+          );
+        }
+      }
+    });
   } else {
+    warningsNps.push(
+      ...findRootFieldsNotInSchema(obj, schemas[topType], '')
+    );
+
     // Single resource validation
     ajv.validate(topType, obj);
     errorsNps.push(...prettifyAjvErrors(ajv.errors || []));
@@ -468,8 +519,12 @@ router.post('/', (req, res) => {
     valid: errorsNps.length === 0 && errorsFhir.length === 0,
     errors: [...errorsNps, ...errorsFhir],
 
+    warnings: warningsNps,
+
     validNps: errorsNps.length === 0,
     errorsNps,
+    warningsNps,
+    
     validFhirR4: errorsFhir.length === 0,
     errorsFhirR4: errorsFhir
   });

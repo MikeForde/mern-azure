@@ -75,13 +75,13 @@ export default function IPSchemaValidator() {
             resultValidKey: 'validNps',
             resultErrorsKey: 'errorsNps'
           }
-        : {
-          title: 'NPS JSON Validator',
-          helper: 'Paste your NPS Bundle here (note, you can also paste a single resource e.g. Patient)',
-          schemaLabel: 'NPS',
-          resultValidKey: 'validNps',
-          resultErrorsKey: 'errorsNps'
-        }
+          : {
+            title: 'NPS JSON Validator',
+            helper: 'Paste your NPS Bundle here (note, you can also paste a single resource e.g. Patient)',
+            schemaLabel: 'NPS',
+            resultValidKey: 'validNps',
+            resultErrorsKey: 'errorsNps'
+          }
 
   const safeParseJson = (text) => {
     try {
@@ -94,6 +94,8 @@ export default function IPSchemaValidator() {
   const normalizeErrorResult = (body, fallbackMessage = 'Validation failed') => ({
     valid: false,
     errors: body?.errors || [{ path: '', message: body?.message || fallbackMessage }],
+    warnings: body?.warnings || [],
+    warningsNps: body?.warningsNps || body?.warnings || [],
     validNps: false,
     errorsNps: body?.errorsNps || body?.errors || [],
     validNhsScr: false,
@@ -104,17 +106,30 @@ export default function IPSchemaValidator() {
     errorsFhirR4: body?.errorsFhirR4 || []
   })
 
-  const buildClientValidationResult = ({ schemaErrors = [], fhirErrors = [], extra = {} } = {}) => ({
+  const buildClientValidationResult = ({
+    schemaErrors = [],
+    fhirErrors = [],
+    npsWarnings = [],
+    extra = {}
+  } = {}) => ({
     valid: schemaErrors.length === 0 && fhirErrors.length === 0,
     errors: [...schemaErrors, ...fhirErrors],
+
+    warnings: npsWarnings,
+    warningsNps: npsWarnings,
+
     validNps: schemaErrors.length === 0,
     errorsNps: schemaErrors,
+
     validNhsScr: schemaErrors.length === 0,
     errorsNhsScr: schemaErrors,
+
     validEps: schemaErrors.length === 0,
     errorsEps: schemaErrors,
+
     validFhirR4: fhirErrors.length === 0,
     errorsFhirR4: fhirErrors,
+
     ...extra
   })
 
@@ -347,7 +362,7 @@ export default function IPSchemaValidator() {
     return null
   }
 
-  const decorateSplitError = (err, splitMeta) => {
+    const decorateSplitError = (err, splitMeta) => {
     const entryInfo = getSplitEntryInfo(err?.path, err?.message)
 
     if (entryInfo) {
@@ -378,492 +393,643 @@ export default function IPSchemaValidator() {
   }
 
   const decorateSplitResult = (body, splitMeta) => {
-    const errorsNps = (body?.errorsNps || []).map((err) => decorateSplitError(err, splitMeta))
-    const errorsFhirR4 = (body?.errorsFhirR4 || []).map((err) => decorateSplitError(err, splitMeta))
+    const errorsNps = (body?.errorsNps || []).map((err) =>
+      decorateSplitError(err, splitMeta)
+    )
+
+    const errorsFhirR4 = (body?.errorsFhirR4 || []).map((err) =>
+      decorateSplitError(err, splitMeta)
+    )
+
+    const warningsNps = (body?.warningsNps || body?.warnings || []).map((warn) =>
+      decorateSplitError(warn, splitMeta)
+    )
 
     return {
       ...body,
       errorsNps,
       errorsFhirR4,
+      warningsNps,
+      warnings: warningsNps,
       errors: [...errorsNps, ...errorsFhirR4]
     }
   }
 
-  useEffect(() => {
-    try {
-      const savedPayload = sessionStorage.getItem('ips:lastPayload')
-      const savedMode = sessionStorage.getItem('ips:lastMode')
+useEffect(() => {
+  try {
+    const savedPayload = sessionStorage.getItem('ips:lastPayload')
+    const savedMode = sessionStorage.getItem('ips:lastMode')
 
-      if (savedMode === MODE_NPS || savedMode === MODE_NPS_NFC || savedMode === MODE_NHS_SCR || savedMode === MODE_EPS) {
-        setMode(savedMode)
-        setResult(null)
-      }
-
-      if (savedPayload) {
-        if (savedPayload.length <= MAX_RESTORE_CHARS) {
-          if (savedMode === MODE_NPS_NFC) {
-            const parsedPayload = safeParseJson(savedPayload)
-            pendingSplitRestoreRef.current = parsedPayload
-          } else if (inputRef.current) {
-            inputRef.current.value = savedPayload
-            setInputSizes((prev) => ({ ...prev, main: savedPayload.length }))
-          }
-        } else {
-          console.warn(`Skipped restoring validator payload: too large (${savedPayload.length} chars)`)
-        }
-        setResult(null)
-      }
-    } catch (e) {
-      console.warn('Could not restore validator payload/mode:', e)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (requestedMode && requestedMode !== mode) {
-      setMode(requestedMode)
+    if (savedMode === MODE_NPS || savedMode === MODE_NPS_NFC || savedMode === MODE_NHS_SCR || savedMode === MODE_EPS) {
+      setMode(savedMode)
       setResult(null)
-      setSubmitResult(null)
-      setShowAllErrors(false)
-    }
-  }, [mode, requestedMode])
-
-  useEffect(() => {
-    if (mode !== MODE_NPS_NFC || !pendingSplitRestoreRef.current) return
-
-    const parsedPayload = pendingSplitRestoreRef.current
-
-    if (roInputRef.current && typeof parsedPayload?.ro === 'string') {
-      roInputRef.current.value = parsedPayload.ro
     }
 
-    if (rwInputRef.current && typeof parsedPayload?.rw === 'string') {
-      rwInputRef.current.value = parsedPayload.rw
-    }
-
-    setInputSizes({
-      main: 0,
-      ro: typeof parsedPayload?.ro === 'string' ? parsedPayload.ro.length : 0,
-      rw: typeof parsedPayload?.rw === 'string' ? parsedPayload.rw.length : 0
-    })
-
-    pendingSplitRestoreRef.current = null
-  }, [mode])
-
-  const jumpToPath = (path, part = 'main') => {
-    const el = getInputRef(part).current
-    if (!el || !path) return
-
-    try {
-      const text = el.value || ''
-      const segments = path.split('/').filter(Boolean)
-
-      let pos = 0
-
-      if (segments[0] === 'entry') {
-        const entryIdx = parseInt(segments[1], 10)
-        if (!Number.isInteger(entryIdx) || entryIdx < 0) return
-
-        let matchPos = -1
-        let start = 0
-
-        for (let i = 0; i <= entryIdx; i++) {
-          matchPos = text.indexOf('"resource":', start)
-          if (matchPos === -1) return
-          start = matchPos + 10
-        }
-
-        pos = matchPos
-
-        for (let i = 3; i < segments.length; i++) {
-          const look = `"${segments[i]}"`
-          const nextPos = text.indexOf(look, pos)
-          if (nextPos === -1) break
-          pos = nextPos
+    if (savedPayload) {
+      if (savedPayload.length <= MAX_RESTORE_CHARS) {
+        if (savedMode === MODE_NPS_NFC) {
+          const parsedPayload = safeParseJson(savedPayload)
+          pendingSplitRestoreRef.current = parsedPayload
+        } else if (inputRef.current) {
+          inputRef.current.value = savedPayload
+          setInputSizes((prev) => ({ ...prev, main: savedPayload.length }))
         }
       } else {
-        const last = segments[segments.length - 1]
-        if (!last) return
-        const idx = text.indexOf(`"${last}"`)
-        if (idx === -1) return
-        pos = idx
+        console.warn(`Skipped restoring validator payload: too large (${savedPayload.length} chars)`)
       }
-
-      el.focus()
-      el.setSelectionRange(pos, Math.min(pos + 1, text.length))
-
-      const before = text.substring(0, pos)
-      const lineNumber = before.split('\n').length
-      const lh = parseInt(window.getComputedStyle(el).lineHeight, 10) || 18
-      el.scrollTop = Math.max(0, (lineNumber - 3) * lh)
-    } catch (e) {
-      console.warn('jumpToPath failed:', e)
+      setResult(null)
     }
+  } catch (e) {
+    console.warn('Could not restore validator payload/mode:', e)
   }
+}, [])
 
-  const validate = async () => {
+useEffect(() => {
+  if (requestedMode && requestedMode !== mode) {
+    setMode(requestedMode)
     setResult(null)
     setSubmitResult(null)
     setShowAllErrors(false)
+  }
+}, [mode, requestedMode])
 
-    const prepared = preparePayload()
-    if (!prepared.ok) {
-      setResult(prepared.validationResult)
-      return
+useEffect(() => {
+  if (mode !== MODE_NPS_NFC || !pendingSplitRestoreRef.current) return
+
+  const parsedPayload = pendingSplitRestoreRef.current
+
+  if (roInputRef.current && typeof parsedPayload?.ro === 'string') {
+    roInputRef.current.value = parsedPayload.ro
+  }
+
+  if (rwInputRef.current && typeof parsedPayload?.rw === 'string') {
+    rwInputRef.current.value = parsedPayload.rw
+  }
+
+  setInputSizes({
+    main: 0,
+    ro: typeof parsedPayload?.ro === 'string' ? parsedPayload.ro.length : 0,
+    rw: typeof parsedPayload?.rw === 'string' ? parsedPayload.rw.length : 0
+  })
+
+  pendingSplitRestoreRef.current = null
+}, [mode])
+
+const findTopLevelKeyPosition = (text, key) => {
+  const target = JSON.stringify(key)
+
+  let depth = 0
+  let inString = false
+  let escaped = false
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]
+
+    if (inString) {
+      if (escaped) {
+        escaped = false
+      } else if (ch === '\\') {
+        escaped = true
+      } else if (ch === '"') {
+        inString = false
+      }
+      continue
     }
 
-    const validationUrl =
-      mode === MODE_NHS_SCR && nhsScrLenient
-        ? `${endpoint}?lenient=true`
-        : endpoint
+    if (ch === '"') {
+      // Top-level object properties are at depth 1.
+      if (depth === 1 && text.startsWith(target, i)) {
+        let j = i + target.length
+        while (j < text.length && /\s/.test(text[j])) j += 1
+        if (text[j] === ':') return i
+      }
 
-    try {
-      const resp = await fetch(validationUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: prepared.payloadJson
-      })
+      inString = true
+      continue
+    }
 
-      const rawText = await resp.text()
-      const body = safeParseJson(rawText)
+    if (ch === '{' || ch === '[') {
+      depth += 1
+    } else if (ch === '}' || ch === ']') {
+      depth -= 1
+    }
+  }
 
-      if (resp.ok) {
-        if (body) {
-          setResult(isSplitMode ? decorateSplitResult(body, prepared.splitMeta) : body)
-        } else {
-          setResult(
-            normalizeErrorResult(
-              { message: 'Validator returned a non-JSON success response.' },
-              'Validator returned a non-JSON success response.'
-            )
-          )
-        }
+  return -1
+}
+
+const normaliseJumpSegments = (segments) => {
+  // Backend/display paths may include a resource type marker:
+  // /entry/0/resource/Patient/language
+  //
+  // But "Patient" is not a JSON property. The real JSON path is:
+  // /entry/0/resource/language
+  if (
+    segments[0] === 'entry' &&
+    segments[2] === 'resource' &&
+    segments[3] &&
+    /^[A-Z]/.test(segments[3])
+  ) {
+    return [
+      ...segments.slice(0, 3),
+      ...segments.slice(4)
+    ]
+  }
+
+  return segments
+}
+
+const findNextKeyPosition = (text, key, startAt) => {
+  return text.indexOf(JSON.stringify(key), startAt)
+}
+
+const jumpToPath = (path, part = 'main') => {
+  const el = getInputRef(part).current
+  if (!el || !path) return
+
+  try {
+    const text = el.value || ''
+    const segments = normaliseJumpSegments(path.split('/').filter(Boolean))
+
+    let pos = 0
+
+    if (segments[0] === 'entry') {
+      const entryIdx = parseInt(segments[1], 10)
+      if (!Number.isInteger(entryIdx) || entryIdx < 0) return
+
+      let matchPos = -1
+      let start = 0
+
+      for (let i = 0; i <= entryIdx; i++) {
+        matchPos = text.indexOf('"resource":', start)
+        if (matchPos === -1) return
+        start = matchPos + 10
+      }
+
+      const resourceObjectStart = text.indexOf('{', matchPos)
+      pos = resourceObjectStart >= 0 ? resourceObjectStart : matchPos
+
+      // For /entry/N/resource/foo/bar, start searching at "foo".
+      for (let i = 3; i < segments.length; i++) {
+        const seg = segments[i]
+
+        // Skip array indexes in JSON pointer paths.
+        if (/^\d+$/.test(seg)) continue
+
+        const nextPos = findNextKeyPosition(text, seg, pos)
+        if (nextPos === -1) break
+        pos = nextPos
+      }
+    } else {
+      // Root-level path, e.g. /language.
+      // Important: do not use text.indexOf('"language"'), because that finds
+      // nested resource fields before the Bundle root field.
+      const first = segments[0]
+      if (!first) return
+
+      const rootPos = findTopLevelKeyPosition(text, first)
+      if (rootPos === -1) return
+
+      pos = rootPos
+
+      // Optional support for root nested paths, e.g. /identifier/value.
+      for (let i = 1; i < segments.length; i++) {
+        const seg = segments[i]
+        if (/^\d+$/.test(seg)) continue
+
+        const nextPos = findNextKeyPosition(text, seg, pos)
+        if (nextPos === -1) break
+        pos = nextPos
+      }
+    }
+
+    el.focus()
+    el.setSelectionRange(pos, Math.min(pos + 1, text.length))
+
+    const before = text.substring(0, pos)
+    const lineNumber = before.split('\n').length
+    const lh = parseInt(window.getComputedStyle(el).lineHeight, 10) || 18
+    el.scrollTop = Math.max(0, (lineNumber - 3) * lh)
+  } catch (e) {
+    console.warn('jumpToPath failed:', e)
+  }
+}
+
+const validate = async () => {
+  setResult(null)
+  setSubmitResult(null)
+  setShowAllErrors(false)
+
+  const prepared = preparePayload()
+  if (!prepared.ok) {
+    setResult(prepared.validationResult)
+    return
+  }
+
+  const validationUrl =
+    mode === MODE_NHS_SCR && nhsScrLenient
+      ? `${endpoint}?lenient=true`
+      : endpoint
+
+  try {
+    const resp = await fetch(validationUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: prepared.payloadJson
+    })
+
+    const rawText = await resp.text()
+    const body = safeParseJson(rawText)
+
+    if (resp.ok) {
+      if (body) {
+        setResult(isSplitMode ? decorateSplitResult(body, prepared.splitMeta) : body)
       } else {
         setResult(
           normalizeErrorResult(
-            body || { message: rawText || `Validation failed (${resp.status})` },
-            body?.message || rawText || `Validation failed (${resp.status})`
+            { message: 'Validator returned a non-JSON success response.' },
+            'Validator returned a non-JSON success response.'
           )
         )
       }
-    } catch (err) {
+    } else {
       setResult(
         normalizeErrorResult(
-          { message: 'Validation request failed: ' + (err?.message || 'Unknown error') },
-          'Validation request failed'
+          body || { message: rawText || `Validation failed (${resp.status})` },
+          body?.message || rawText || `Validation failed (${resp.status})`
         )
       )
     }
+  } catch (err) {
+    setResult(
+      normalizeErrorResult(
+        { message: 'Validation request failed: ' + (err?.message || 'Unknown error') },
+        'Validation request failed'
+      )
+    )
+  }
+}
+
+const addAsRecord = async () => {
+  setSubmitResult(null)
+
+  const prepared = preparePayload()
+  if (!prepared.ok) {
+    setSubmitResult({
+      ok: false,
+      message: prepared.submitMessage
+    })
+    return
   }
 
-  const addAsRecord = async () => {
-    setSubmitResult(null)
+  try {
+    setIsSubmitting(true)
 
-    const prepared = preparePayload()
-    if (!prepared.ok) {
+    const resp = await fetch('/ipsbundle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: prepared.payloadJson
+    })
+
+    const rawText = await resp.text()
+    const body = safeParseJson(rawText)
+
+    if (!resp.ok) {
       setSubmitResult({
         ok: false,
-        message: prepared.submitMessage
+        message: body?.message || rawText || `Failed to add record (${resp.status})`
       })
       return
     }
 
-    try {
-      setIsSubmitting(true)
-
-      const resp = await fetch('/ipsbundle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: prepared.payloadJson
-      })
-
-      const rawText = await resp.text()
-      const body = safeParseJson(rawText)
-
-      if (!resp.ok) {
-        setSubmitResult({
-          ok: false,
-          message: body?.message || rawText || `Failed to add record (${resp.status})`
-        })
-        return
-      }
-
-      if (!body || typeof body !== 'object') {
-        setSubmitResult({
-          ok: false,
-          message: 'Record was submitted, but the server response was not valid JSON.'
-        })
-        return
-      }
-
-      setSelectedPatient(body)
-
-      try {
-        sessionStorage.setItem('ips:lastPayload', prepared.persistPayload)
-        sessionStorage.setItem('ips:lastMode', mode)
-      } catch (e) {
-        console.warn('Could not persist validator payload/mode:', e)
-      }
-
-      setSubmitResult({
-        ok: true,
-        message: `Record added successfully${body?._id ? ` (ID: ${body._id})` : ''}. Current patient set to ${body?.patient?.given || ''} ${body?.patient?.name || ''}`.trim(),
-        record: body
-      })
-    } catch (err) {
+    if (!body || typeof body !== 'object') {
       setSubmitResult({
         ok: false,
-        message: 'Submission failed: ' + (err?.message || 'Unknown error')
+        message: 'Record was submitted, but the server response was not valid JSON.'
       })
-    } finally {
-      setIsSubmitting(false)
+      return
     }
+
+    setSelectedPatient(body)
+
+    try {
+      sessionStorage.setItem('ips:lastPayload', prepared.persistPayload)
+      sessionStorage.setItem('ips:lastMode', mode)
+    } catch (e) {
+      console.warn('Could not persist validator payload/mode:', e)
+    }
+
+    setSubmitResult({
+      ok: true,
+      message: `Record added successfully${body?._id ? ` (ID: ${body._id})` : ''}. Current patient set to ${body?.patient?.given || ''} ${body?.patient?.name || ''}`.trim(),
+      record: body
+    })
+  } catch (err) {
+    setSubmitResult({
+      ok: false,
+      message: 'Submission failed: ' + (err?.message || 'Unknown error')
+    })
+  } finally {
+    setIsSubmitting(false)
   }
+}
 
-  const schemaValid = result ? !!result[labels.resultValidKey] : false
-  const schemaErrors = result ? (result[labels.resultErrorsKey] || []) : []
-  const fhirErrors = result ? (result.errorsFhirR4 || []) : []
+const schemaValid = result ? !!result[labels.resultValidKey] : false
+const schemaErrors = result ? (result[labels.resultErrorsKey] || []) : []
+const fhirErrors = result ? (result.errorsFhirR4 || []) : []
 
-  const visibleSchemaErrors = showAllErrors ? schemaErrors : schemaErrors.slice(0, MAX_VISIBLE_ERRORS)
-  const visibleFhirErrors = showAllErrors ? fhirErrors : fhirErrors.slice(0, MAX_VISIBLE_ERRORS)
+const showNpsWarnings = mode === MODE_NPS || mode === MODE_NPS_NFC
+const npsWarnings = showNpsWarnings && result ? (result.warningsNps || result.warnings || []) : []
 
-  const hiddenSchemaCount = Math.max(0, schemaErrors.length - visibleSchemaErrors.length)
-  const hiddenFhirCount = Math.max(0, fhirErrors.length - visibleFhirErrors.length)
+const visibleSchemaErrors = showAllErrors ? schemaErrors : schemaErrors.slice(0, MAX_VISIBLE_ERRORS)
+const visibleFhirErrors = showAllErrors ? fhirErrors : fhirErrors.slice(0, MAX_VISIBLE_ERRORS)
 
-  return (
-    <Container className="mt-4">
-      <Row className="align-items-center">
-        <Col>
-          <h4 className="mb-0">{labels.title}</h4>
-        </Col>
-        <Col xs="auto">
-          <ButtonGroup aria-label="Validator mode">
-            <Button
-              variant={mode === MODE_NPS ? 'primary' : 'outline-primary'}
-              onClick={() => setModeAndReset(MODE_NPS)}
-            >
-              NPS
-            </Button>
+const visibleNpsWarnings = showAllErrors ? npsWarnings : npsWarnings.slice(0, MAX_VISIBLE_ERRORS)
 
-            <Button
-              variant={mode === MODE_NPS_NFC ? 'primary' : 'outline-primary'}
-              onClick={() => setModeAndReset(MODE_NPS_NFC)}
-            >
-              NPS NFC
-            </Button>
+const hiddenSchemaCount = Math.max(0, schemaErrors.length - visibleSchemaErrors.length)
+const hiddenFhirCount = Math.max(0, fhirErrors.length - visibleFhirErrors.length)
+const hiddenNpsWarningCount = Math.max(0, npsWarnings.length - visibleNpsWarnings.length)
 
-            <Button
-              variant={mode === MODE_NHS_SCR ? 'primary' : 'outline-primary'}
-              onClick={() => setModeAndReset(MODE_NHS_SCR)}
-            >
-              NHS SCR
-            </Button>
+return (
+  <Container className="mt-4">
+    <Row className="align-items-center">
+      <Col>
+        <h4 className="mb-0">{labels.title}</h4>
+      </Col>
+      <Col xs="auto">
+        <ButtonGroup aria-label="Validator mode">
+          <Button
+            variant={mode === MODE_NPS ? 'primary' : 'outline-primary'}
+            onClick={() => setModeAndReset(MODE_NPS)}
+          >
+            NPS
+          </Button>
 
-            <Button
-              variant={mode === MODE_EPS ? 'primary' : 'outline-primary'}
-              onClick={() => setModeAndReset(MODE_EPS)}
-            >
-              EPS
-            </Button>
-          </ButtonGroup>
-          {mode === MODE_NHS_SCR && (
-            <Form.Check
-              className="mt-3"
-              type="switch"
-              id="nhsscr-lenient-mode"
-              label="Lenient NHS SCR validation (allow additional properties outside schema)"
-              checked={nhsScrLenient}
-              onChange={(e) => {
-                setNhsScrLenient(e.target.checked)
-                setResult(null)
-                setSubmitResult(null)
-              }}
-            />
-          )}
-        </Col>
-      </Row>
+          <Button
+            variant={mode === MODE_NPS_NFC ? 'primary' : 'outline-primary'}
+            onClick={() => setModeAndReset(MODE_NPS_NFC)}
+          >
+            NPS NFC
+          </Button>
 
-      {isSplitMode ? (
-        <>
-          <div className="mt-3">
-            <div>{labels.helper}</div>
-            <div className="text-muted small mt-1">
-              Combined size: {(inputSizes.ro + inputSizes.rw).toLocaleString()} characters
-            </div>
-          </div>
+          <Button
+            variant={mode === MODE_NHS_SCR ? 'primary' : 'outline-primary'}
+            onClick={() => setModeAndReset(MODE_NHS_SCR)}
+          >
+            NHS SCR
+          </Button>
 
-          <Row className="mt-2">
-            <Col md={6}>
-              <Form.Group controlId="jsonInputRo">
-                <Form.Label>
-                  Read Only (RO) - historical data
-                  <div className="text-muted small mt-1">
-                    Size: {inputSizes.ro.toLocaleString()} characters
-                  </div>
-                </Form.Label>
-
-                <Form.Control
-                  as="textarea"
-                  rows={20}
-                  ref={roInputRef}
-                  defaultValue=""
-                  onChange={(e) => updateSplitInputSize(SPLIT_PART_RO, e.target.value)}
-                  placeholder='{ "resourceType": "Bundle", ... }'
-                  className="resultTextArea"
-                  spellCheck={false}
-                />
-              </Form.Group>
-            </Col>
-
-            <Col md={6} className="mt-3 mt-md-0">
-              <Form.Group controlId="jsonInputRw">
-                <Form.Label>
-                  Read/Write (RW) - operational data
-                  <div className="text-muted small mt-1">
-                    Size: {inputSizes.rw.toLocaleString()} characters
-                  </div>
-                </Form.Label>
-
-                <Form.Control
-                  as="textarea"
-                  rows={20}
-                  ref={rwInputRef}
-                  defaultValue=""
-                  onChange={(e) => updateSplitInputSize(SPLIT_PART_RW, e.target.value)}
-                  placeholder='{ "resourceType": "Bundle", ... }'
-                  className="resultTextArea"
-                  spellCheck={false}
-                />
-              </Form.Group>
-            </Col>
-          </Row>
-        </>
-      ) : (
-        <Form.Group controlId="jsonInput" className="mt-3">
-          <Form.Label>
-            {labels.helper}
-            <div className="text-muted small mt-1">
-              Size: {inputSizes.main.toLocaleString()} characters
-            </div>
-          </Form.Label>
-
-          <Form.Control
-            as="textarea"
-            rows={20}
-            ref={inputRef}
-            defaultValue=""
-            onChange={(e) => updateMainInputSize(e.target.value)}
-            placeholder='{ "resourceType": "Bundle", ... }'
-            className="resultTextArea"
-            spellCheck={false}
+          <Button
+            variant={mode === MODE_EPS ? 'primary' : 'outline-primary'}
+            onClick={() => setModeAndReset(MODE_EPS)}
+          >
+            EPS
+          </Button>
+        </ButtonGroup>
+        {mode === MODE_NHS_SCR && (
+          <Form.Check
+            className="mt-3"
+            type="switch"
+            id="nhsscr-lenient-mode"
+            label="Lenient NHS SCR validation (allow additional properties outside schema)"
+            checked={nhsScrLenient}
+            onChange={(e) => {
+              setNhsScrLenient(e.target.checked)
+              setResult(null)
+              setSubmitResult(null)
+            }}
           />
-        </Form.Group>
-      )}
+        )}
+      </Col>
+    </Row>
 
-      <div className="mt-2 d-flex gap-2">
-        <Button onClick={validate}>Validate</Button>
-        <Button
-          variant="success"
-          onClick={addAsRecord}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? 'Adding...' : 'Add as Record'}
-        </Button>
-      </div>
+    {isSplitMode ? (
+      <>
+        <div className="mt-3">
+          <div>{labels.helper}</div>
+          <div className="text-muted small mt-1">
+            Combined size: {(inputSizes.ro + inputSizes.rw).toLocaleString()} characters
+          </div>
+        </div>
 
-      {submitResult && (
-        <Alert variant={submitResult.ok ? 'success' : 'warning'} className="mt-3">
-          <div><strong>{submitResult.ok ? 'Record Added' : 'Record Not Added'}</strong></div>
-          <div>{submitResult.message}</div>
-          {submitResult.ok && submitResult.record?._id && (
-            <div className="mt-1">
-              <strong>Mongo ID:</strong> {submitResult.record._id}
-            </div>
-          )}
-          {submitResult.ok && submitResult.record?.packageUUID && (
-            <div>
-              <strong>Package UUID:</strong> {submitResult.record.packageUUID}
-            </div>
+        <Row className="mt-2">
+          <Col md={6}>
+            <Form.Group controlId="jsonInputRo">
+              <Form.Label>
+                Read Only (RO) - historical data
+                <div className="text-muted small mt-1">
+                  Size: {inputSizes.ro.toLocaleString()} characters
+                </div>
+              </Form.Label>
+
+              <Form.Control
+                as="textarea"
+                rows={20}
+                ref={roInputRef}
+                defaultValue=""
+                onChange={(e) => updateSplitInputSize(SPLIT_PART_RO, e.target.value)}
+                placeholder='{ "resourceType": "Bundle", ... }'
+                className="resultTextArea"
+                spellCheck={false}
+              />
+            </Form.Group>
+          </Col>
+
+          <Col md={6} className="mt-3 mt-md-0">
+            <Form.Group controlId="jsonInputRw">
+              <Form.Label>
+                Read/Write (RW) - operational data
+                <div className="text-muted small mt-1">
+                  Size: {inputSizes.rw.toLocaleString()} characters
+                </div>
+              </Form.Label>
+
+              <Form.Control
+                as="textarea"
+                rows={20}
+                ref={rwInputRef}
+                defaultValue=""
+                onChange={(e) => updateSplitInputSize(SPLIT_PART_RW, e.target.value)}
+                placeholder='{ "resourceType": "Bundle", ... }'
+                className="resultTextArea"
+                spellCheck={false}
+              />
+            </Form.Group>
+          </Col>
+        </Row>
+      </>
+    ) : (
+      <Form.Group controlId="jsonInput" className="mt-3">
+        <Form.Label>
+          {labels.helper}
+          <div className="text-muted small mt-1">
+            Size: {inputSizes.main.toLocaleString()} characters
+          </div>
+        </Form.Label>
+
+        <Form.Control
+          as="textarea"
+          rows={20}
+          ref={inputRef}
+          defaultValue=""
+          onChange={(e) => updateMainInputSize(e.target.value)}
+          placeholder='{ "resourceType": "Bundle", ... }'
+          className="resultTextArea"
+          spellCheck={false}
+        />
+      </Form.Group>
+    )}
+
+    <div className="mt-2 d-flex gap-2">
+      <Button onClick={validate}>Validate</Button>
+      <Button
+        variant="success"
+        onClick={addAsRecord}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? 'Adding...' : 'Add as Record'}
+      </Button>
+    </div>
+
+    {submitResult && (
+      <Alert variant={submitResult.ok ? 'success' : 'warning'} className="mt-3">
+        <div><strong>{submitResult.ok ? 'Record Added' : 'Record Not Added'}</strong></div>
+        <div>{submitResult.message}</div>
+        {submitResult.ok && submitResult.record?._id && (
+          <div className="mt-1">
+            <strong>Mongo ID:</strong> {submitResult.record._id}
+          </div>
+        )}
+        {submitResult.ok && submitResult.record?.packageUUID && (
+          <div>
+            <strong>Package UUID:</strong> {submitResult.record.packageUUID}
+          </div>
+        )}
+      </Alert>
+    )}
+
+    {result && (
+      <>
+        <Alert variant="secondary" className="mt-3">
+          <div>
+            <strong>{labels.schemaLabel}:</strong> {schemaValid ? '✅ Valid' : '❌ Invalid'}
+            {showNpsWarnings && npsWarnings.length > 0 && (
+              <> · ⚠️ {npsWarnings.length} accepted but unused</>
+            )}
+          </div>
+          <div><strong>FHIR R4:</strong> {result.validFhirR4 ? '✅ Valid' : '❌ Invalid'}</div>
+          {mode === MODE_NHS_SCR && (
+            <div><strong>Mode:</strong> {result.validationMode === 'lenient' ? 'Lenient' : 'Strict'}</div>
           )}
         </Alert>
-      )}
 
-      {result && (
-        <>
-          <Alert variant="secondary" className="mt-3">
-            <div><strong>{labels.schemaLabel}:</strong> {schemaValid ? '✅ Valid' : '❌ Invalid'}</div>
-            <div><strong>FHIR R4:</strong> {result.validFhirR4 ? '✅ Valid' : '❌ Invalid'}</div>
-            {mode === MODE_NHS_SCR && (
-              <div><strong>Mode:</strong> {result.validationMode === 'lenient' ? 'Lenient' : 'Strict'}</div>
-            )}
-          </Alert>
+        {showNpsWarnings && npsWarnings.length > 0 && (
+          <Alert variant="warning" className="mt-3">
+            <h5 className="mb-2">Accepted but not currently used</h5>
+            <div className="small mb-2">
+              These fields did not break validation, but NPS does not currently use them to create usable clinical data.
+            </div>
 
-          {(schemaValid && result.validFhirR4) ? (
-            <Alert variant="success" className="mt-3">
-              ✅ Valid ({labels.schemaLabel} + FHIR R4)!
-            </Alert>
-          ) : (
-            <Alert variant="danger" className="mt-3">
-              <h5>Validation Issues</h5>
+            <ul className="mb-0">
+              {visibleNpsWarnings.map((warn, i) => (
+                <li
+                  key={`nps-warning-${i}`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => jumpToPath(warn.jumpPath || warn.path, warn.jumpPart || 'main')}
+                >
+                  {warn.sourcePart && <strong>[{warn.sourcePart}] </strong>}
+                  <strong>{warn.displayPath || warn.path || '/'}</strong>: {warn.message}
+                </li>
+              ))}
+            </ul>
 
-              {!schemaValid && schemaErrors.length > 0 && (
-                <>
-                  <h6 className="mt-2">{labels.schemaLabel}</h6>
-                  <ul>
-                    {visibleSchemaErrors.map((err, i) => (
-                      <li
-                        key={`schema-${i}`}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => jumpToPath(err.jumpPath || err.path, err.jumpPart || 'main')}
-                      >
-                        {err.sourcePart && <strong>[{err.sourcePart}] </strong>}
-                        <strong>{err.displayPath || err.path || '/'}</strong>: {err.message}
-                      </li>
-                    ))}
-                  </ul>
-                  {hiddenSchemaCount > 0 && (
-                    <div className="mb-2">
-                      <em>{hiddenSchemaCount} more {labels.schemaLabel} errors hidden.</em>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {!result.validFhirR4 && fhirErrors.length > 0 && (
-                <>
-                  <h6 className="mt-2">FHIR R4</h6>
-                  <ul>
-                    {visibleFhirErrors.map((err, i) => (
-                      <li
-                        key={`fhir-${i}`}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => jumpToPath(err.jumpPath || err.path, err.jumpPart || 'main')}
-                      >
-                        {err.sourcePart && <strong>[{err.sourcePart}] </strong>}
-                        <strong>{err.displayPath || err.path || '/'}</strong>: {err.message}
-                      </li>
-                    ))}
-                  </ul>
-                  {hiddenFhirCount > 0 && (
-                    <div className="mb-2">
-                      <em>{hiddenFhirCount} more FHIR R4 errors hidden.</em>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {(hiddenSchemaCount > 0 || hiddenFhirCount > 0) && (
+            {hiddenNpsWarningCount > 0 && (
+              <div className="mt-2">
+                <em>{hiddenNpsWarningCount} more NPS warnings hidden.</em>{' '}
                 <Button
-                  variant="outline-light"
+                  variant="outline-dark"
                   size="sm"
                   onClick={() => setShowAllErrors(true)}
                 >
-                  Show all errors
+                  Show all warnings
                 </Button>
-              )}
-            </Alert>
-          )}
-        </>
-      )}
-    </Container>
-  )
+              </div>
+            )}
+          </Alert>
+        )}
+
+        {(schemaValid && result.validFhirR4) ? (
+          <Alert variant="success" className="mt-3">
+            ✅ Valid ({labels.schemaLabel} + FHIR R4)!
+            {showNpsWarnings && npsWarnings.length > 0 && (
+              <div className="mt-1">
+                ⚠️ Some accepted fields are not currently used by NPS.
+              </div>
+            )}
+          </Alert>
+        ) : (
+          <Alert variant="danger" className="mt-3">
+            <h5>Validation Issues</h5>
+
+            {!schemaValid && schemaErrors.length > 0 && (
+              <>
+                <h6 className="mt-2">{labels.schemaLabel}</h6>
+                <ul>
+                  {visibleSchemaErrors.map((err, i) => (
+                    <li
+                      key={`schema-${i}`}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => jumpToPath(err.jumpPath || err.path, err.jumpPart || 'main')}
+                    >
+                      {err.sourcePart && <strong>[{err.sourcePart}] </strong>}
+                      <strong>{err.displayPath || err.path || '/'}</strong>: {err.message}
+                    </li>
+                  ))}
+                </ul>
+                {hiddenSchemaCount > 0 && (
+                  <div className="mb-2">
+                    <em>{hiddenSchemaCount} more {labels.schemaLabel} errors hidden.</em>
+                  </div>
+                )}
+              </>
+            )}
+
+            {!result.validFhirR4 && fhirErrors.length > 0 && (
+              <>
+                <h6 className="mt-2">FHIR R4</h6>
+                <ul>
+                  {visibleFhirErrors.map((err, i) => (
+                    <li
+                      key={`fhir-${i}`}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => jumpToPath(err.jumpPath || err.path, err.jumpPart || 'main')}
+                    >
+                      {err.sourcePart && <strong>[{err.sourcePart}] </strong>}
+                      <strong>{err.displayPath || err.path || '/'}</strong>: {err.message}
+                    </li>
+                  ))}
+                </ul>
+                {hiddenFhirCount > 0 && (
+                  <div className="mb-2">
+                    <em>{hiddenFhirCount} more FHIR R4 errors hidden.</em>
+                  </div>
+                )}
+              </>
+            )}
+
+            {(hiddenSchemaCount > 0 || hiddenFhirCount > 0) && (
+              <Button
+                variant="outline-light"
+                size="sm"
+                onClick={() => setShowAllErrors(true)}
+              >
+                Show all errors
+              </Button>
+            )}
+          </Alert>
+        )}
+      </>
+    )}
+  </Container>
+)
 }

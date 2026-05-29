@@ -64,6 +64,9 @@
     "valueQuantity": {
       "$ref": "#/definitions/Quantity"
     },
+    "valueCodeableConcept": {
+      "$ref": "#/definitions/CodeableConceptLessStrict"
+    },
     "component": {
       "type": "array",
       "items": {
@@ -71,7 +74,7 @@
       }
     },
     "bodySite": {
-      "$ref": "#/definitions/CodeableConcept"
+      "$ref": "#/definitions/CodeableConceptLessStrict"
     }
   },
   "definitions": {
@@ -102,6 +105,45 @@
       "required": [
         "system",
         "code",
+        "display"
+      ],
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
+    "CodeableConceptLessStrict": {
+      "type": "object",
+      "required": [
+        "coding"
+      ],
+      "properties": {
+        "coding": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/CodingLessStrict"
+          }
+        },
+        "text": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "CodingLessStrict": {
+      "type": "object",
+      "required": [
         "display"
       ],
       "properties": {
