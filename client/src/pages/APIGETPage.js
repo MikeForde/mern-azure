@@ -339,6 +339,53 @@ function APIGETPage() {
     window.URL.revokeObjectURL(url);
   };
 
+    const handleDownloadNpsNfcSplitData = () => {
+    if (!selectedPatient || !npsNfcSplitData) return;
+
+    const today = new Date();
+    const pad = (n) => n.toString().padStart(2, '0');
+    const yyyymmdd = `${today.getFullYear()}${pad(today.getMonth() + 1)}${pad(today.getDate())}`;
+
+    const { packageUUID, patient: { name: familyName, given: givenName } } = selectedPatient;
+
+    const sanitize = str =>
+      String(str || '')
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_|_$/g, '');
+
+    const fam = sanitize(familyName);
+    const giv = sanitize(givenName);
+    const last6 = packageUUID.slice(-6);
+
+    const baseFileName = `${yyyymmdd}-${fam}_${giv}_${last6}_npsnfc`;
+
+    const downloadJson = (jsonText, fileName) => {
+      const blob = new Blob([jsonText], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+
+      link.href = url;
+      link.download = fileName;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      window.URL.revokeObjectURL(url);
+    };
+
+    downloadJson(npsNfcSplitData.roJson, `${baseFileName}_ro.json`);
+
+    // Tiny delay helps browsers reliably trigger both downloads from one click.
+    setTimeout(() => {
+      downloadJson(npsNfcSplitData.rwJson, `${baseFileName}_rw.json`);
+    }, 100);
+  };
+
   const handleModeChange = (selectedMode) => {
     startLoading();
     setMode(selectedMode);
@@ -956,6 +1003,18 @@ function APIGETPage() {
                 {showNpsNfcSplitView ? 'Download Combined Data' : 'Download Data'}
               </Button>
             </div>
+
+            {showNpsNfcSplitView && (
+              <div className="col-auto">
+                <Button
+                  variant="outline-primary"
+                  onClick={handleDownloadNpsNfcSplitData}
+                  disabled={!npsNfcSplitData}
+                >
+                  Download RO/RW JSON
+                </Button>
+              </div>
+            )}
 
             {(mode === 'ips' || mode === 'ipsnhsscr' || mode === 'ipseps') && (
               <div className="col-auto">
