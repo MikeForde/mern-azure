@@ -259,7 +259,7 @@ function parseBEER(dataPacket, delimiter) {
             const obsUnitsMap = {
                 'B': 'mmHg',
                 'P': 'bpm',
-                'R': 'bpm',
+                'R': 'rpm',
                 'T': 'cel',
                 'O': '%',
                 'A': ''
