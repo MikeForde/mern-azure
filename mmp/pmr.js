@@ -69,8 +69,10 @@ async function fetchActiveMtfCodes() {
 }
 
 router.get('/pmr/mtfs', async (req, res) => {
+  console.log("/pmr/mtfs invoked")
   try {
-    const mtfs = await fetchActiveMtfCodes(); // reuse your function (move it outside the POST handler)
+    const mtfs = await fetchActiveMtfCodes(); 
+    console.log(mtfs);
     res.json({ mtfs });
   } catch (e) {
     res.status(500).send(`Failed to load MTFs: ${e.message}`);
@@ -154,7 +156,9 @@ router.post('/pmr/:id', async (req, res) => {
       `${mmpBaseUrl}identity/connect/token`,
       new URLSearchParams({
         grant_type: 'client_credentials',
+        // client_id: 'IPS2',
         client_id: 'IPS1',
+        // client_secret: 'd1b0051f-4fd1-4aca-9a89-ba42a966a88c',
         client_secret: '009efe3d-7553-4ee6-acb4-f548790d63e9',
         scope: 'medmmapi'
       }).toString(),
@@ -169,7 +173,7 @@ router.post('/pmr/:id', async (req, res) => {
     // 3. Build the PMR XML using data from the IPS record.
     // Adjust the substitutions as needed.
     const pmrXml = `
-<urn:PatientMovementRequest mtfid="PMR" xmlns:urn="urn:nato:mtf:adatp-3:june%202021:pmr">
+<urn:PatientMovementRequest mtfid="PMR" xmlns:urn="urn:nato:mtf:app-11(e):1:pmr">
   <MessageIdentifier setid="MSGID" setSeq="3">
     <MessageTextFormatIdentifier ffSeq="1" ffirnFudn="FF1018-2">PMR</MessageTextFormatIdentifier>
     <Standard ffSeq="2" ffirnFudn="FF1589-8">ADATP-3</Standard>

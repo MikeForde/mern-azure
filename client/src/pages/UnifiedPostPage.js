@@ -96,7 +96,7 @@ function UnifiedPostPage() {
                             if (e === "VitalsIQ") {
                                 setEndpoint("https://4202xiwc.offroadapps.dev:62444/Fhir/ips/json");
                             } else if (e === "NLD") {
-                                setEndpoint("https://medicalcloud.orange-synapse.nl/api/fhir/1");
+                                setEndpoint("https://medicalcloud-test-int.orange-synapse.nl/api/fhir/1");
                             } else if (e === "IPS SERN") {
                                 setEndpoint("https://ips-d2s-uksc-medsnomed-medsno.apps.ocp1.azure.dso.digital.mod.uk/ipsbundle");
                             }
