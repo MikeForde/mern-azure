@@ -46,32 +46,30 @@ function NavigationBar() {
     setExpanded(false);
   };
 
-  const isHostedOnAzure = window.location.href.includes("azure");
+  console.log(window.location.href);
+ const isHostedOnAzure = window.location.href.includes("azure");
+const isHostedOnCWIX = window.location.href.includes("medis");
 
-  return (
-    <Navbar expanded={expanded} expand="md" bg="dark" variant="dark" fixed="top">
-      <Container>
-        <Navbar.Brand as={Link} to="/" onClick={() => handleNavItemSelect(false)}>
-          <img
-            src="/ipsnavbar.ico"
-            width="25"
-            height="25"
-            className="d-inline-block align-center"
-            alt="IPS Logo"
-            style={{ marginRight: '10px' }}
-          />
-          IPS MERN
-          {isHostedOnAzure ? (
-            <>
-              {' '} Azure {' '}
-            </>
-          ) : (
-            <>
-              {' '} Local {' '}
-            </>
-          )}
-          0_87
-        </Navbar.Brand>
+const hostingEnvironment = isHostedOnAzure
+  ? "Azure"
+  : isHostedOnCWIX
+    ? "CWIX"
+    : "Local";
+
+return (
+  <Navbar expanded={expanded} expand="md" bg="dark" variant="dark" fixed="top">
+    <Container>
+      <Navbar.Brand as={Link} to="/" onClick={() => handleNavItemSelect(false)}>
+        <img
+          src="/ipsnavbar.ico"
+          width="25"
+          height="25"
+          className="d-inline-block align-center"
+          alt="IPS Logo"
+          style={{ marginRight: "10px" }}
+        />
+        IPS MERN{' '}{hostingEnvironment}{' 0_87'}
+      </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">

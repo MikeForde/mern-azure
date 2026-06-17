@@ -29,3 +29,6 @@ yarn-error.log*
 # TAK - ignore the following files
 /certs/*.pem
 /certs/*.p12
+
+#CWIX26 WIBBLE 
+CWIX26_DNS_Fix.txt

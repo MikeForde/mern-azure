@@ -7,12 +7,14 @@ const path = require('path');
 // const clientKeyPath = path.join(__dirname, '..', 'certs', 'takserver-user-5-key.pem');
 // const clientCertPath = path.join(__dirname, '..', 'certs', 'takserver-user-5-cert.pem');
 // const caCertPath = path.join(__dirname, '..', 'certs', 'truststore-intermediate.pem');
-const clientKeyPath = path.join(__dirname, '..', 'certs', 'wintak01-key.pem');
-const clientCertPath = path.join(__dirname, '..', 'certs', 'wintak01-cert.pem');
-const caCertPath = path.join(__dirname, '..', 'certs', 'caCert.pem');
+// const clientKeyPath = path.join(__dirname, '..', 'certs', 'wintak01-key.pem');
+// const clientCertPath = path.join(__dirname, '..', 'certs', 'wintak01-cert.pem');
+// const caCertPath = path.join(__dirname, '..', 'certs', 'caCert.pem');
 // const clientKeyPath = path.join(__dirname, '..', 'certs', 'user03-key.pem');
 // const clientCertPath = path.join(__dirname, '..', 'certs', 'user03.pem');
-// const caCertPath = path.join(__dirname, '..', 'certs', 'truststore-EXTAKINTCA.pem');
+const caCertPath = path.join(__dirname, '..', 'certs', 'truststore-EXTAKINTCA.pem');
+const clientKeyPath = path.join(__dirname, '..', 'certs', 'dha02-key.pem');
+const clientCertPath = path.join(__dirname, '..', 'certs', 'dha02-cert.pem');
 
 function sendCotMessage(cotMessage, callback) {
   let clientKey, clientCert, caCert;
