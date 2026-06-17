@@ -54,7 +54,7 @@ export default function IPSchemaValidator() {
     mode === MODE_NHS_SCR
       ? {
         title: 'NHS SCR JSON Validator',
-        helper: 'Paste your NHS SCR IPS Bundle here (you can also paste a single resource e.g. Patient)',
+        helper: 'Paste your NHS SCR IPS Bundle here JSON or FHIR XML (you can also paste a single resource e.g. Patient)',
         schemaLabel: 'NHS SCR',
         resultValidKey: 'validNhsScr',
         resultErrorsKey: 'errorsNhsScr'
@@ -62,7 +62,7 @@ export default function IPSchemaValidator() {
       : mode === MODE_EPS
         ? {
           title: 'EPS JSON Validator',
-          helper: 'Paste your EPS Bundle here (you can also paste a single resource e.g. Patient)',
+          helper: 'Paste your EPS Bundle here JSON or FHIR XML(you can also paste a single resource e.g. Patient)',
           schemaLabel: 'EPS',
           resultValidKey: 'validEps',
           resultErrorsKey: 'errorsEps'
@@ -167,23 +167,119 @@ export default function IPSchemaValidator() {
     extra: { validFhirR4: false }
   })
 
-  const preparePayload = () => {
-    if (!isSplitMode) {
-      const input = getInputValue()
+    const looksLikeXml = (text) =>
+    String(text || '').trimStart().startsWith('<')
+
+  const replaceInputValue = (part, value) => {
+    const inputElement = getInputRef(part).current
+
+    if (inputElement) {
+      inputElement.value = value
+    }
+
+    if (part === SPLIT_PART_RO || part === SPLIT_PART_RW) {
+      updateSplitInputSize(part, value)
+    } else {
+      updateMainInputSize(value)
+    }
+  }
+
+  const convertFhirXmlInput = async (xml, part = 'main') => {
+    const response = await fetch('/convertfhirxml', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/xml',
+        Accept: 'application/json'
+      },
+      body: xml
+    })
+
+    const rawText = await response.text()
+    const responseBody = safeParseJson(rawText)
+
+    if (!response.ok) {
+      throw new Error(
+        responseBody?.message ||
+        responseBody?.error ||
+        rawText ||
+        `FHIR XML conversion failed (${response.status})`
+      )
+    }
+
+    // Normally the endpoint should return the FHIR resource directly.
+    // The alternatives allow for a wrapped response if the endpoint uses one.
+    let converted =
+      responseBody?.resourceType
+        ? responseBody
+        : responseBody?.fhirJson ??
+          responseBody?.json ??
+          responseBody?.result ??
+          responseBody?.data ??
+          responseBody
+
+    if (typeof converted === 'string') {
+      converted = safeParseJson(converted)
+    }
+
+    if (
+      !converted ||
+      typeof converted !== 'object' ||
+      Array.isArray(converted)
+    ) {
+      throw new Error(
+        'The XML conversion endpoint did not return a valid FHIR JSON resource.'
+      )
+    }
+
+    const formattedJson = JSON.stringify(converted, null, 2)
+
+    // Replace the pasted XML in the textarea with the converted JSON.
+    replaceInputValue(part, formattedJson)
+
+    return {
+      payloadJson: formattedJson,
+      parsed: converted
+    }
+  }
+
+  const preparePayload = async () => {
+        if (!isSplitMode) {
+      let input = getInputValue()
       updateMainInputSize(input)
 
       if (!input.trim()) {
         return {
           ok: false,
           validationResult: normalizeErrorResult(
-            { message: 'Please paste some JSON before validating.' },
-            'Please paste some JSON before validating.'
+            { message: 'Please paste some JSON or FHIR XML before validating.' },
+            'Please paste some JSON or FHIR XML before validating.'
           ),
-          submitMessage: 'Please paste some JSON before submitting.'
+          submitMessage: 'Please paste some JSON or FHIR XML before submitting.'
+        }
+      }
+
+      if (looksLikeXml(input)) {
+        try {
+          const converted = await convertFhirXmlInput(input)
+          input = converted.payloadJson
+        } catch (err) {
+          const message =
+            'FHIR XML conversion failed: ' +
+            (err?.message || 'Unknown conversion error')
+
+          return {
+            ok: false,
+            validationResult: normalizeErrorResult(
+              { message },
+              message
+            ),
+            submitMessage: message
+          }
         }
       }
 
       const parsed = safeParseJson(input)
+
       if (!parsed) {
         return {
           ok: false,
@@ -203,8 +299,8 @@ export default function IPSchemaValidator() {
       }
     }
 
-    const roInput = getInputValue(SPLIT_PART_RO)
-    const rwInput = getInputValue(SPLIT_PART_RW)
+    let roInput = getInputValue(SPLIT_PART_RO)
+    let rwInput = getInputValue(SPLIT_PART_RW)
     updateSplitInputSize(SPLIT_PART_RO, roInput)
     updateSplitInputSize(SPLIT_PART_RW, rwInput)
 
@@ -236,7 +332,63 @@ export default function IPSchemaValidator() {
       return {
         ok: false,
         validationResult: buildSplitValidationError(schemaErrors),
-        submitMessage: 'Please paste both Read Only and Read/Write JSON bundles before submitting.'
+        submitMessage: 'Please paste both Read Only and Read/Write JSON or FHIR XML bundles before submitting.'
+      }
+    }
+
+        if (looksLikeXml(roInput)) {
+      try {
+        const converted = await convertFhirXmlInput(
+          roInput,
+          SPLIT_PART_RO
+        )
+
+        roInput = converted.payloadJson
+      } catch (err) {
+        const message =
+          'Read Only FHIR XML conversion failed: ' +
+          (err?.message || 'Unknown conversion error')
+
+        return {
+          ok: false,
+          validationResult: buildSplitValidationError([{
+            path: '/',
+            message,
+            sourcePart: SPLIT_PART_RO,
+            displayPath: '/',
+            jumpPath: '/',
+            jumpPart: SPLIT_PART_RO
+          }]),
+          submitMessage: message
+        }
+      }
+    }
+
+    if (looksLikeXml(rwInput)) {
+      try {
+        const converted = await convertFhirXmlInput(
+          rwInput,
+          SPLIT_PART_RW
+        )
+
+        rwInput = converted.payloadJson
+      } catch (err) {
+        const message =
+          'Read/Write FHIR XML conversion failed: ' +
+          (err?.message || 'Unknown conversion error')
+
+        return {
+          ok: false,
+          validationResult: buildSplitValidationError([{
+            path: '/',
+            message,
+            sourcePart: SPLIT_PART_RW,
+            displayPath: '/',
+            jumpPath: '/',
+            jumpPart: SPLIT_PART_RW
+          }]),
+          submitMessage: message
+        }
       }
     }
 
@@ -620,7 +772,7 @@ const validate = async () => {
   setSubmitResult(null)
   setShowAllErrors(false)
 
-  const prepared = preparePayload()
+  const prepared = await preparePayload()
   if (!prepared.ok) {
     setResult(prepared.validationResult)
     return
