@@ -83,6 +83,9 @@ const pmrRoutes = require('./mmp/pmr');
 // ──────── TAK ───────────────────────────
 const takRoutes = require('./tak/takRoutes');
 
+// ───────────── HealthStaq ─────────────────────────────
+const healthStaqRoutes = require('./healthstaq/healthstaqRoutes');
+
 // ───────────── GraphQL Apollo ─────────────────────────────
 const { ApolloServer } = require('@apollo/server');
 const { expressMiddleware } = require('@apollo/server/express4');
@@ -256,6 +259,10 @@ api.get('/debug/inbound-ip', (req, res) => {
     });
 });
 
+
+
+// HealthStaq FHIR endpoints
+api.use('/healthstaq', healthStaqRoutes);
 
 // XMPP endpoints
 api.use("/xmpp", xmppRoutes);

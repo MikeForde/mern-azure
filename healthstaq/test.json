@@ -1,0 +1,869 @@
+{
+    "resourceType": "Bundle",
+    "meta": {
+        "profile": [
+            "http://hl7.org/fhir/uv/ips/StructureDefinition/Bundle-uv-ips"
+        ],
+        "security": [
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality",
+                "code": "R",
+                "display": "restricted"
+            },
+            {
+                "system": "https://bluestaq.com/fhir/CodeSystem/nato-classification",
+                "code": "NATO_UNCLASSIFIED",
+                "display": "NATO UNCLASSIFIED"
+            },
+            {
+                "system": "https://bluestaq.com/fhir/CodeSystem/release-to",
+                "code": "USA"
+            },
+            {
+                "system": "https://bluestaq.com/fhir/CodeSystem/release-to",
+                "code": "NLD"
+            }
+        ]
+    },
+    "type": "document",
+    "identifier": {
+        "system": "urn:ietf:rfc:3986",
+        "value": "urn:uuid:afb72c81-67dc-4f62-a698-58e92cb0a6b1"
+    },
+    "timestamp": "2026-06-17T14:22:19Z",
+    "entry": [
+        {
+            "fullUrl": "urn:uuid:de0a3c54-3e07-4a41-830f-2ca110854475",
+            "resource": {
+                "resourceType": "Composition",
+                "id": "de0a3c54-3e07-4a41-830f-2ca110854475",
+                "meta": {
+                    "profile": [
+                        "http://hl7.org/fhir/uv/ips/StructureDefinition/Composition-uv-ips"
+                    ],
+                    "security": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality",
+                            "code": "R",
+                            "display": "restricted"
+                        },
+                        {
+                            "system": "https://bluestaq.com/fhir/CodeSystem/nato-classification",
+                            "code": "NATO_UNCLASSIFIED",
+                            "display": "NATO UNCLASSIFIED"
+                        },
+                        {
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to",
+                            "code": "USA"
+                        },
+                        {
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to",
+                            "code": "NLD"
+                        }
+                    ]
+                },
+                "text": {
+                    "status": "generated",
+                    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Patient Summary</b> for Patient/45bb1073-d3ad-4b81-b076-b4d6ff9ffd1a generated 2026-06-17T14:22:19Z by Bluestaq Healthstaq.</p><ul><li>Active Problems: 3 entries</li><li>Allergies and Intolerances: 2 entries</li><li>Medication Summary: 3 entries</li></ul></div>"
+                },
+                "status": "final",
+                "type": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "60591-5"
+                        }
+                    ]
+                },
+                "subject": {
+                    "reference": "urn:uuid:45bb1073-d3ad-4b81-b076-b4d6ff9ffd1a"
+                },
+                "date": "2026-06-17T14:22:19Z",
+                "author": [
+                    {
+                        "reference": "urn:uuid:0cd996c6-8b42-4cce-9825-238d4837a6e7"
+                    }
+                ],
+                "title": "Patient Summary",
+                "section": [
+                    {
+                        "title": "Active Problems",
+                        "code": {
+                            "coding": [
+                                {
+                                    "system": "http://loinc.org",
+                                    "code": "11450-4"
+                                }
+                            ]
+                        },
+                        "text": {
+                            "status": "generated",
+                            "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Active Problems.</b> 3 entries — see structured data for details.</p></div>"
+                        },
+                        "entry": [
+                            {
+                                "reference": "urn:uuid:c1a40000-0000-4000-8000-000000000001"
+                            },
+                            {
+                                "reference": "urn:uuid:c1a40000-0000-4000-8000-000000000002"
+                            },
+                            {
+                                "reference": "urn:uuid:c1a40000-0000-4000-8000-000000000003"
+                            }
+                        ]
+                    },
+                    {
+                        "title": "Allergies and Intolerances",
+                        "code": {
+                            "coding": [
+                                {
+                                    "system": "http://loinc.org",
+                                    "code": "48765-2"
+                                }
+                            ]
+                        },
+                        "text": {
+                            "status": "generated",
+                            "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Allergies and Intolerances.</b> 2 entries — see structured data for details.</p></div>"
+                        },
+                        "entry": [
+                            {
+                                "reference": "urn:uuid:c1a40000-0000-4000-8000-000000000010"
+                            },
+                            {
+                                "reference": "urn:uuid:c1a40000-0000-4000-8000-000000000011"
+                            }
+                        ]
+                    },
+                    {
+                        "title": "Medication Summary",
+                        "code": {
+                            "coding": [
+                                {
+                                    "system": "http://loinc.org",
+                                    "code": "10160-0"
+                                }
+                            ]
+                        },
+                        "text": {
+                            "status": "generated",
+                            "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Medication Summary.</b> 3 entries — see structured data for details.</p></div>"
+                        },
+                        "entry": [
+                            {
+                                "reference": "urn:uuid:c1a40000-0000-4000-8000-000000000020"
+                            },
+                            {
+                                "reference": "urn:uuid:c1a40000-0000-4000-8000-000000000021"
+                            },
+                            {
+                                "reference": "urn:uuid:c1a40000-0000-4000-8000-000000000022"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:0cd996c6-8b42-4cce-9825-238d4837a6e7",
+            "resource": {
+                "resourceType": "Organization",
+                "id": "bluestaq-healthstaq",
+                "meta": {
+                    "profile": [
+                        "http://hl7.org/fhir/uv/ips/StructureDefinition/Organization-uv-ips"
+                    ],
+                    "security": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality",
+                            "code": "R",
+                            "display": "restricted"
+                        },
+                        {
+                            "system": "https://bluestaq.com/fhir/CodeSystem/nato-classification",
+                            "code": "NATO_UNCLASSIFIED",
+                            "display": "NATO UNCLASSIFIED"
+                        },
+                        {
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to",
+                            "code": "USA"
+                        },
+                        {
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to",
+                            "code": "NLD"
+                        }
+                    ]
+                },
+                "name": "Bluestaq Healthstaq"
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:45bb1073-d3ad-4b81-b076-b4d6ff9ffd1a",
+            "resource": {
+                "birthDate": "1985-07-15",
+                "gender": "male",
+                "id": "45bb1073-d3ad-4b81-b076-b4d6ff9ffd1a",
+                "identifier": [
+                    {
+                        "system": "http://healthstaq.bluestaq.com/identifier-system/FACILITY",
+                        "type": {
+                            "coding": [
+                                {
+                                    "code": "MR",
+                                    "display": "Medical record number",
+                                    "system": "http://terminology.hl7.org/CodeSystem/v2-0203"
+                                }
+                            ]
+                        },
+                        "value": "MRN12345"
+                    },
+                    {
+                        "system": "http://fhir.nld.example/sid",
+                        "type": {
+                            "coding": [
+                                {
+                                    "code": "PI",
+                                    "display": "Patient internal identifier",
+                                    "system": "http://terminology.hl7.org/CodeSystem/v2-0203"
+                                }
+                            ]
+                        },
+                        "value": "USA-CWIX-MRN12345"
+                    }
+                ],
+                "meta": {
+                    "profile": [
+                        "http://hl7.org/fhir/uv/ips/StructureDefinition/Patient-uv-ips"
+                    ],
+                    "security": [
+                        {
+                            "code": "R",
+                            "display": "restricted",
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality"
+                        },
+                        {
+                            "code": "NATO_UNCLASSIFIED",
+                            "display": "NATO UNCLASSIFIED",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/nato-classification"
+                        },
+                        {
+                            "code": "USA",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        },
+                        {
+                            "code": "NLD",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        }
+                    ]
+                },
+                "name": [
+                    {
+                        "family": "JOHNSON",
+                        "given": [
+                            "MARCUS",
+                            "SGT"
+                        ],
+                        "use": "official"
+                    }
+                ],
+                "resourceType": "Patient"
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:c1a40000-0000-4000-8000-000000000001",
+            "resource": {
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "code": "problem-list-item",
+                                "display": "Problem List Item",
+                                "system": "http://terminology.hl7.org/CodeSystem/condition-category"
+                            }
+                        ]
+                    }
+                ],
+                "clinicalStatus": {
+                    "coding": [
+                        {
+                            "code": "active",
+                            "display": "Active",
+                            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical"
+                        }
+                    ]
+                },
+                "code": {
+                    "coding": [
+                        {
+                            "code": "59621000",
+                            "display": "Essential hypertension (disorder)",
+                            "system": "http://snomed.info/sct"
+                        },
+                        {
+                            "code": "I10",
+                            "display": "Essential (primary) hypertension",
+                            "system": "http://hl7.org/fhir/sid/icd-10"
+                        }
+                    ],
+                    "text": "Essential hypertension"
+                },
+                "id": "c1a40000-0000-4000-8000-000000000001",
+                "meta": {
+                    "profile": [
+                        "http://hl7.org/fhir/uv/ips/StructureDefinition/Condition-uv-ips"
+                    ],
+                    "security": [
+                        {
+                            "code": "R",
+                            "display": "restricted",
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality"
+                        },
+                        {
+                            "code": "NATO_UNCLASSIFIED",
+                            "display": "NATO UNCLASSIFIED",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/nato-classification"
+                        },
+                        {
+                            "code": "USA",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        },
+                        {
+                            "code": "NLD",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        }
+                    ]
+                },
+                "recordedDate": "2024-09-12",
+                "resourceType": "Condition",
+                "subject": {
+                    "reference": "urn:uuid:45bb1073-d3ad-4b81-b076-b4d6ff9ffd1a"
+                },
+                "verificationStatus": {
+                    "coding": [
+                        {
+                            "code": "confirmed",
+                            "display": "Confirmed",
+                            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:c1a40000-0000-4000-8000-000000000002",
+            "resource": {
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "code": "problem-list-item",
+                                "display": "Problem List Item",
+                                "system": "http://terminology.hl7.org/CodeSystem/condition-category"
+                            }
+                        ]
+                    }
+                ],
+                "clinicalStatus": {
+                    "coding": [
+                        {
+                            "code": "active",
+                            "display": "Active",
+                            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical"
+                        }
+                    ]
+                },
+                "code": {
+                    "coding": [
+                        {
+                            "code": "F43.10",
+                            "display": "Post-traumatic stress disorder, unspecified",
+                            "system": "http://hl7.org/fhir/sid/icd-10"
+                        }
+                    ],
+                    "text": "PTSD, unspecified"
+                },
+                "id": "c1a40000-0000-4000-8000-000000000002",
+                "meta": {
+                    "profile": [
+                        "http://hl7.org/fhir/uv/ips/StructureDefinition/Condition-uv-ips"
+                    ],
+                    "security": [
+                        {
+                            "code": "R",
+                            "display": "restricted",
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality"
+                        },
+                        {
+                            "code": "NATO_UNCLASSIFIED",
+                            "display": "NATO UNCLASSIFIED",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/nato-classification"
+                        },
+                        {
+                            "code": "USA",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        },
+                        {
+                            "code": "NLD",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        }
+                    ]
+                },
+                "recordedDate": "2023-04-02",
+                "resourceType": "Condition",
+                "subject": {
+                    "reference": "urn:uuid:45bb1073-d3ad-4b81-b076-b4d6ff9ffd1a"
+                },
+                "verificationStatus": {
+                    "coding": [
+                        {
+                            "code": "confirmed",
+                            "display": "Confirmed",
+                            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:c1a40000-0000-4000-8000-000000000003",
+            "resource": {
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "code": "problem-list-item",
+                                "display": "Problem List Item",
+                                "system": "http://terminology.hl7.org/CodeSystem/condition-category"
+                            }
+                        ]
+                    }
+                ],
+                "clinicalStatus": {
+                    "coding": [
+                        {
+                            "code": "active",
+                            "display": "Active",
+                            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical"
+                        }
+                    ]
+                },
+                "code": {
+                    "coding": [
+                        {
+                            "code": "279039007",
+                            "display": "Low back pain (finding)",
+                            "system": "http://snomed.info/sct"
+                        },
+                        {
+                            "code": "M54.5",
+                            "display": "Low back pain",
+                            "system": "http://hl7.org/fhir/sid/icd-10"
+                        }
+                    ],
+                    "text": "Chronic low back pain"
+                },
+                "id": "c1a40000-0000-4000-8000-000000000003",
+                "meta": {
+                    "profile": [
+                        "http://hl7.org/fhir/uv/ips/StructureDefinition/Condition-uv-ips"
+                    ],
+                    "security": [
+                        {
+                            "code": "R",
+                            "display": "restricted",
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality"
+                        },
+                        {
+                            "code": "NATO_UNCLASSIFIED",
+                            "display": "NATO UNCLASSIFIED",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/nato-classification"
+                        },
+                        {
+                            "code": "USA",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        },
+                        {
+                            "code": "NLD",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        }
+                    ]
+                },
+                "recordedDate": "2022-11-20",
+                "resourceType": "Condition",
+                "subject": {
+                    "reference": "urn:uuid:45bb1073-d3ad-4b81-b076-b4d6ff9ffd1a"
+                },
+                "verificationStatus": {
+                    "coding": [
+                        {
+                            "code": "confirmed",
+                            "display": "Confirmed",
+                            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:c1a40000-0000-4000-8000-000000000010",
+            "resource": {
+                "category": [
+                    "medication"
+                ],
+                "clinicalStatus": {
+                    "coding": [
+                        {
+                            "code": "active",
+                            "display": "Active",
+                            "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical"
+                        }
+                    ]
+                },
+                "code": {
+                    "coding": [
+                        {
+                            "code": "373270004",
+                            "display": "Penicillin -class of antibiotic-",
+                            "system": "http://snomed.info/sct"
+                        }
+                    ],
+                    "text": "Penicillin"
+                },
+                "criticality": "high",
+                "id": "c1a40000-0000-4000-8000-000000000010",
+                "meta": {
+                    "profile": [
+                        "http://hl7.org/fhir/uv/ips/StructureDefinition/AllergyIntolerance-uv-ips"
+                    ],
+                    "security": [
+                        {
+                            "code": "R",
+                            "display": "restricted",
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality"
+                        },
+                        {
+                            "code": "NATO_UNCLASSIFIED",
+                            "display": "NATO UNCLASSIFIED",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/nato-classification"
+                        },
+                        {
+                            "code": "USA",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        },
+                        {
+                            "code": "NLD",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        }
+                    ]
+                },
+                "patient": {
+                    "reference": "urn:uuid:45bb1073-d3ad-4b81-b076-b4d6ff9ffd1a"
+                },
+                "reaction": [
+                    {
+                        "manifestation": [
+                            {
+                                "coding": [
+                                    {
+                                        "code": "247472004",
+                                        "display": "Hives",
+                                        "system": "http://snomed.info/sct"
+                                    }
+                                ],
+                                "text": "Hives"
+                            }
+                        ],
+                        "severity": "moderate"
+                    }
+                ],
+                "resourceType": "AllergyIntolerance",
+                "type": "allergy",
+                "verificationStatus": {
+                    "coding": [
+                        {
+                            "code": "confirmed",
+                            "display": "Confirmed",
+                            "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-verification"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:c1a40000-0000-4000-8000-000000000011",
+            "resource": {
+                "category": [
+                    "environment"
+                ],
+                "clinicalStatus": {
+                    "coding": [
+                        {
+                            "code": "active",
+                            "display": "Active",
+                            "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical"
+                        }
+                    ]
+                },
+                "code": {
+                    "coding": [
+                        {
+                            "code": "300916003",
+                            "display": "Latex allergy",
+                            "system": "http://snomed.info/sct"
+                        }
+                    ],
+                    "text": "Latex"
+                },
+                "criticality": "low",
+                "id": "c1a40000-0000-4000-8000-000000000011",
+                "meta": {
+                    "profile": [
+                        "http://hl7.org/fhir/uv/ips/StructureDefinition/AllergyIntolerance-uv-ips"
+                    ],
+                    "security": [
+                        {
+                            "code": "R",
+                            "display": "restricted",
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality"
+                        },
+                        {
+                            "code": "NATO_UNCLASSIFIED",
+                            "display": "NATO UNCLASSIFIED",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/nato-classification"
+                        },
+                        {
+                            "code": "USA",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        },
+                        {
+                            "code": "NLD",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        }
+                    ]
+                },
+                "patient": {
+                    "reference": "urn:uuid:45bb1073-d3ad-4b81-b076-b4d6ff9ffd1a"
+                },
+                "resourceType": "AllergyIntolerance",
+                "type": "allergy",
+                "verificationStatus": {
+                    "coding": [
+                        {
+                            "code": "confirmed",
+                            "display": "Confirmed",
+                            "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-verification"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:c1a40000-0000-4000-8000-000000000020",
+            "resource": {
+                "authoredOn": "2024-09-12",
+                "dosageInstruction": [
+                    {
+                        "route": {
+                            "coding": [
+                                {
+                                    "code": "26643006",
+                                    "display": "Oral route",
+                                    "system": "http://snomed.info/sct"
+                                }
+                            ]
+                        },
+                        "text": "Take 1 tablet by mouth once daily",
+                        "timing": {
+                            "repeat": {
+                                "frequency": 1,
+                                "period": 1,
+                                "periodUnit": "d"
+                            }
+                        }
+                    }
+                ],
+                "id": "c1a40000-0000-4000-8000-000000000020",
+                "intent": "order",
+                "medicationCodeableConcept": {
+                    "coding": [
+                        {
+                            "code": "314076",
+                            "display": "lisinopril 10 MG Oral Tablet",
+                            "system": "http://www.nlm.nih.gov/research/umls/rxnorm"
+                        }
+                    ],
+                    "text": "Lisinopril 10 mg oral tablet"
+                },
+                "meta": {
+                    "profile": [
+                        "http://hl7.org/fhir/uv/ips/StructureDefinition/MedicationRequest-uv-ips"
+                    ],
+                    "security": [
+                        {
+                            "code": "R",
+                            "display": "restricted",
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality"
+                        },
+                        {
+                            "code": "NATO_UNCLASSIFIED",
+                            "display": "NATO UNCLASSIFIED",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/nato-classification"
+                        },
+                        {
+                            "code": "USA",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        },
+                        {
+                            "code": "NLD",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        }
+                    ]
+                },
+                "resourceType": "MedicationRequest",
+                "status": "active",
+                "subject": {
+                    "reference": "urn:uuid:45bb1073-d3ad-4b81-b076-b4d6ff9ffd1a"
+                }
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:c1a40000-0000-4000-8000-000000000021",
+            "resource": {
+                "authoredOn": "2023-04-02",
+                "dosageInstruction": [
+                    {
+                        "route": {
+                            "coding": [
+                                {
+                                    "code": "26643006",
+                                    "display": "Oral route",
+                                    "system": "http://snomed.info/sct"
+                                }
+                            ]
+                        },
+                        "text": "Take 1 tablet by mouth once daily",
+                        "timing": {
+                            "repeat": {
+                                "frequency": 1,
+                                "period": 1,
+                                "periodUnit": "d"
+                            }
+                        }
+                    }
+                ],
+                "id": "c1a40000-0000-4000-8000-000000000021",
+                "intent": "order",
+                "medicationCodeableConcept": {
+                    "coding": [
+                        {
+                            "code": "312940",
+                            "display": "sertraline 50 MG Oral Tablet",
+                            "system": "http://www.nlm.nih.gov/research/umls/rxnorm"
+                        }
+                    ],
+                    "text": "Sertraline 50 mg oral tablet"
+                },
+                "meta": {
+                    "profile": [
+                        "http://hl7.org/fhir/uv/ips/StructureDefinition/MedicationRequest-uv-ips"
+                    ],
+                    "security": [
+                        {
+                            "code": "R",
+                            "display": "restricted",
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality"
+                        },
+                        {
+                            "code": "NATO_UNCLASSIFIED",
+                            "display": "NATO UNCLASSIFIED",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/nato-classification"
+                        },
+                        {
+                            "code": "USA",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        },
+                        {
+                            "code": "NLD",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        }
+                    ]
+                },
+                "resourceType": "MedicationRequest",
+                "status": "active",
+                "subject": {
+                    "reference": "urn:uuid:45bb1073-d3ad-4b81-b076-b4d6ff9ffd1a"
+                }
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:c1a40000-0000-4000-8000-000000000022",
+            "resource": {
+                "authoredOn": "2022-11-20",
+                "dosageInstruction": [
+                    {
+                        "asNeededBoolean": true,
+                        "route": {
+                            "coding": [
+                                {
+                                    "code": "26643006",
+                                    "display": "Oral route",
+                                    "system": "http://snomed.info/sct"
+                                }
+                            ]
+                        },
+                        "text": "Take 1 tablet by mouth every 12 hours as needed for back pain",
+                        "timing": {
+                            "repeat": {
+                                "frequency": 1,
+                                "period": 12,
+                                "periodUnit": "h"
+                            }
+                        }
+                    }
+                ],
+                "id": "c1a40000-0000-4000-8000-000000000022",
+                "intent": "order",
+                "medicationCodeableConcept": {
+                    "coding": [
+                        {
+                            "code": "849574",
+                            "display": "naproxen sodium 500 MG Oral Tablet",
+                            "system": "http://www.nlm.nih.gov/research/umls/rxnorm"
+                        }
+                    ],
+                    "text": "Naproxen sodium 500 mg oral tablet"
+                },
+                "meta": {
+                    "profile": [
+                        "http://hl7.org/fhir/uv/ips/StructureDefinition/MedicationRequest-uv-ips"
+                    ],
+                    "security": [
+                        {
+                            "code": "R",
+                            "display": "restricted",
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality"
+                        },
+                        {
+                            "code": "NATO_UNCLASSIFIED",
+                            "display": "NATO UNCLASSIFIED",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/nato-classification"
+                        },
+                        {
+                            "code": "USA",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        },
+                        {
+                            "code": "NLD",
+                            "system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+                        }
+                    ]
+                },
+                "resourceType": "MedicationRequest",
+                "status": "active",
+                "subject": {
+                    "reference": "urn:uuid:45bb1073-d3ad-4b81-b076-b4d6ff9ffd1a"
+                }
+            }
+        }
+    ]
+}
