@@ -1,0 +1,543 @@
+{
+	"resourceType": "Bundle",
+	"type": "searchset",
+	"total": 90,
+	"link": [
+		{
+			"relation": "self",
+			"url": "/Patient?family=Baggins"
+		},
+		{
+			"relation": "next",
+			"url": "/Patient?_offset=0&family=Baggins"
+		}
+	],
+	"entry": [
+		{
+			"fullUrl": "Patient/4b0b37c3-c492-4685-847f-04e0c791400c",
+			"resource": {
+				"id": "4b0b37c3-c492-4685-847f-04e0c791400c",
+				"name": [
+					{
+						"given": [
+							"Frodo"
+						],
+						"family": "Baggins",
+						"prefix": [
+							"Mr"
+						]
+					}
+				],
+				"gender": "male",
+				"birthDate": "1965-05-06",
+				"resourceType": "Patient",
+				"deceasedBoolean": false
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/8c5f688c-c30c-4180-b013-11730d80bca5",
+			"resource": {
+				"id": "8c5f688c-c30c-4180-b013-11730d80bca5",
+				"name": [
+					{
+						"given": [
+							"Gandalf"
+						],
+						"family": "Grey",
+						"prefix": [
+							"Mr"
+						]
+					}
+				],
+				"gender": "male",
+				"birthDate": "1945-05-22",
+				"resourceType": "Patient",
+				"deceasedBoolean": false
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/786168d1-a753-491e-8865-78960ed27046",
+			"resource": {
+				"id": "786168d1-a753-491e-8865-78960ed27046",
+				"name": [
+					{
+						"given": [
+							"Lark"
+						],
+						"family": "Hansel"
+					}
+				],
+				"gender": "male",
+				"birthDate": "1995-05-30",
+				"resourceType": "Patient",
+				"deceasedBoolean": false
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/ab9f08db-b6b9-4aa7-935a-47b9e73e5d28",
+			"resource": {
+				"id": "ab9f08db-b6b9-4aa7-935a-47b9e73e5d28",
+				"name": [
+					{
+						"given": [
+							"Lennon-98944"
+						]
+					}
+				],
+				"gender": "unknown",
+				"resourceType": "Patient",
+				"deceasedBoolean": false
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/d80af61b-2c10-4fb3-9a0c-9cf27ebbfefa",
+			"resource": {
+				"id": "d80af61b-2c10-4fb3-9a0c-9cf27ebbfefa",
+				"name": [
+					{
+						"given": [
+							"Sasha"
+						],
+						"family": "Johnson"
+					}
+				],
+				"gender": "female",
+				"birthDate": "1989-08-09",
+				"resourceType": "Patient",
+				"deceasedBoolean": false
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/aa98df26-cf18-4582-8118-79e3e8bce7af",
+			"resource": {
+				"id": "aa98df26-cf18-4582-8118-79e3e8bce7af",
+				"name": [
+					{
+						"given": [
+							"Heron-88910"
+						]
+					}
+				],
+				"gender": "male",
+				"birthDate": "1995-07-19",
+				"resourceType": "Patient",
+				"deceasedBoolean": false
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/23d91d73-7dff-4afa-87d3-0ac8278b2002",
+			"resource": {
+				"id": "23d91d73-7dff-4afa-87d3-0ac8278b2002",
+				"name": [
+					{
+						"use": "official",
+						"given": [
+							"Lars"
+						],
+						"family": "van der Berg"
+					}
+				],
+				"gender": "male",
+				"birthDate": "1985-07-22",
+				"identifier": [
+					{
+						"type": {
+							"coding": [
+								{
+									"code": "NI",
+									"system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+									"display": "National identifier"
+								}
+							]
+						},
+						"value": "999994025",
+						"system": "http://fhir.nl/fhir/NamingSystem/bsn"
+					},
+					{
+						"type": {
+							"coding": [
+								{
+									"code": "PI",
+									"system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+									"display": "Patient internal identifier"
+								}
+							]
+						},
+						"value": "NLD-999994025",
+						"system": "http://fhir.nld.example/sid"
+					},
+					{
+						"type": {
+							"coding": [
+								{
+									"code": "PI",
+									"system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+									"display": "Patient internal identifier"
+								}
+							]
+						},
+						"value": "2.16.840.1.113883.2.4.3.124.71234567890"
+					}
+				],
+				"resourceType": "Patient"
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/3264a6a0-4c42-4b32-adc1-79a2b27c7892",
+			"resource": {
+				"id": "3264a6a0-4c42-4b32-adc1-79a2b27c7892",
+				"name": [
+					{
+						"given": [
+							"Scarlett"
+						],
+						"family": "Adams"
+					}
+				],
+				"gender": "female",
+				"birthDate": "1985-02-08",
+				"identifier": [
+					{
+						"value": "72898211",
+						"system": "http://healthstaq.bluestaq.com/identifier-system/SERVICE-NUMBER"
+					},
+					{
+						"value": "3424561272",
+						"system": "http://healthstaq.bluestaq.com/identifier-system/NHS-NUMBER"
+					}
+				],
+				"resourceType": "Patient",
+				"deceasedBoolean": false
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/cfe66332-c808-4336-952a-87630e8df58f",
+			"resource": {
+				"id": "cfe66332-c808-4336-952a-87630e8df58f",
+				"name": [
+					{
+						"given": [
+							"Harper-24678"
+						]
+					}
+				],
+				"gender": "male",
+				"birthDate": "1990-08-06",
+				"resourceType": "Patient",
+				"deceasedBoolean": false
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/967a9722-a71c-47fe-a95d-6bc93188a976",
+			"resource": {
+				"id": "967a9722-a71c-47fe-a95d-6bc93188a976",
+				"name": [
+					{
+						"given": [
+							"Martin"
+						],
+						"family": "Abbott"
+					}
+				],
+				"gender": "unknown",
+				"resourceType": "Patient"
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/1d424064-45c8-41fc-aba9-cbd8fdd09183",
+			"resource": {
+				"id": "1d424064-45c8-41fc-aba9-cbd8fdd09183",
+				"name": [
+					{
+						"given": [
+							"Hermione"
+						],
+						"family": "Granger"
+					}
+				],
+				"gender": "unknown",
+				"resourceType": "Patient"
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/ac5bbb57-61b8-4d52-8c47-b370cdc7b80c",
+			"resource": {
+				"id": "ac5bbb57-61b8-4d52-8c47-b370cdc7b80c",
+				"name": [
+					{
+						"given": [
+							"Ronald"
+						],
+						"family": "Weasley"
+					}
+				],
+				"gender": "unknown",
+				"resourceType": "Patient"
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/7d8db715-8e49-4453-ac77-304cfac9f959",
+			"resource": {
+				"id": "7d8db715-8e49-4453-ac77-304cfac9f959",
+				"name": [
+					{
+						"given": [
+							"Harry"
+						],
+						"family": "Potter"
+					}
+				],
+				"gender": "unknown",
+				"resourceType": "Patient"
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/cf074767-b461-448e-99d2-7bc9a911d95a",
+			"resource": {
+				"id": "cf074767-b461-448e-99d2-7bc9a911d95a",
+				"name": [
+					{
+						"given": [
+							"Jonny"
+						],
+						"family": "Cash"
+					}
+				],
+				"gender": "unknown",
+				"resourceType": "Patient"
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/ba469456-5517-49ad-8a76-d4b3cc435947",
+			"resource": {
+				"id": "ba469456-5517-49ad-8a76-d4b3cc435947",
+				"name": [
+					{
+						"given": [
+							"Jonty"
+						],
+						"family": "Gentoo\\"
+					}
+				],
+				"gender": "unknown",
+				"resourceType": "Patient"
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/677781e5-fac9-529d-985a-24bb1ddd1ea7",
+			"resource": {
+				"id": "677781e5-fac9-529d-985a-24bb1ddd1ea7",
+				"identifier": [
+					{
+						"value": "BATDOK-VERIFY-001",
+						"system": "http://batdok.af.mil/encounter-derived-patient"
+					}
+				],
+				"resourceType": "Patient"
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/a5a51c37-eff4-5877-b5cd-9a28ea45113f",
+			"resource": {
+				"id": "a5a51c37-eff4-5877-b5cd-9a28ea45113f",
+				"identifier": [
+					{
+						"value": "057829A58ADD56",
+						"system": "http://batdok.af.mil/encounter-derived-patient"
+					}
+				],
+				"resourceType": "Patient"
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/90041790-6d5b-46d6-9878-c61d4d7aa758",
+			"resource": {
+				"id": "90041790-6d5b-46d6-9878-c61d4d7aa758",
+				"name": [
+					{
+						"use": "official",
+						"given": [
+							"TEST",
+							"TEST"
+						],
+						"family": "TEST"
+					}
+				],
+				"gender": "male",
+				"birthDate": "1985-07-15",
+				"identifier": [
+					{
+						"value": "MRN12345",
+						"system": "urn:oid:FACILITY"
+					}
+				],
+				"resourceType": "Patient"
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/c0e22000-0000-4000-8000-000000000001",
+			"resource": {
+				"id": "c0e22000-0000-4000-8000-000000000001",
+				"name": [
+					{
+						"use": "official",
+						"given": [
+							"Jane"
+						],
+						"family": "Doe"
+					}
+				],
+				"gender": "female",
+				"birthDate": "1990-03-15",
+				"identifier": [
+					{
+						"type": {
+							"coding": [
+								{
+									"code": "EI",
+									"system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+									"display": "EDI-PI"
+								}
+							]
+						},
+						"value": "1234567890",
+						"system": "urn:oid:2.16.840.1.113883.3.42.10001.100001.12"
+					}
+				],
+				"resourceType": "Patient"
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "Patient/45bb1073-d3ad-4b81-b076-b4d6ff9ffd1a",
+			"resource": {
+				"id": "45bb1073-d3ad-4b81-b076-b4d6ff9ffd1a",
+				"meta": {
+					"profile": [
+						"http://hl7.org/fhir/uv/ips/StructureDefinition/Patient-uv-ips"
+					],
+					"security": [
+						{
+							"code": "R",
+							"system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality",
+							"display": "restricted"
+						},
+						{
+							"code": "NATO_UNCLASSIFIED",
+							"system": "https://bluestaq.com/fhir/CodeSystem/nato-classification",
+							"display": "NATO UNCLASSIFIED"
+						},
+						{
+							"code": "USA",
+							"system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+						},
+						{
+							"code": "NLD",
+							"system": "https://bluestaq.com/fhir/CodeSystem/release-to"
+						}
+					]
+				},
+				"name": [
+					{
+						"use": "official",
+						"given": [
+							"MARCUS",
+							"SGT"
+						],
+						"family": "JOHNSON"
+					}
+				],
+				"gender": "male",
+				"birthDate": "1985-07-15",
+				"identifier": [
+					{
+						"type": {
+							"coding": [
+								{
+									"code": "MR",
+									"system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+									"display": "Medical record number"
+								}
+							]
+						},
+						"value": "MRN12345",
+						"system": "http://healthstaq.bluestaq.com/identifier-system/FACILITY"
+					},
+					{
+						"type": {
+							"coding": [
+								{
+									"code": "PI",
+									"system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+									"display": "Patient internal identifier"
+								}
+							]
+						},
+						"value": "USA-CWIX-MRN12345",
+						"system": "http://fhir.nld.example/sid"
+					}
+				],
+				"resourceType": "Patient"
+			},
+			"search": {
+				"mode": "match"
+			}
+		}
+	]
+}

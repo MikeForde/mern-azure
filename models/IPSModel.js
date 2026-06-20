@@ -1,5 +1,16 @@
-const { status } = require('@grpc/grpc-js');
+// const { status } = require('@grpc/grpc-js');
 const mongoose = require('mongoose');
+
+const fhirId = () => ({
+    type: String,
+    required: false,
+    trim: true,
+    maxlength: 64,
+    match: [
+        /^[A-Za-z0-9\-.]{1,64}$/,
+        'FHIR resource IDs may contain only letters, numbers, hyphens and periods'
+    ]
+});
 
 const IPSModel = mongoose.model(
     "ipsAlt",
@@ -8,11 +19,15 @@ const IPSModel = mongoose.model(
             type: String,
             required: true
         },
+        compositionResourceId: fhirId(),
         timeStamp: {
             type: Date,
             required: true
         },
         patient: {
+            resourceId: fhirId(),
+            organizationResourceId: fhirId(),
+            practitionerResourceId: fhirId(),
             name: {
                 type: String,
                 required: true
@@ -52,6 +67,8 @@ const IPSModel = mongoose.model(
         },
         medication: [
             {
+                medicationResourceId: fhirId(),
+                medicationRequestResourceId: fhirId(),
                 name: String,
                 date: Date,
                 dosage: String,
@@ -62,6 +79,7 @@ const IPSModel = mongoose.model(
         ],
         allergies: [
             {
+                resourceId: fhirId(),
                 name: String,
                 criticality: String,
                 date: Date,
@@ -71,6 +89,7 @@ const IPSModel = mongoose.model(
         ],
         conditions: [
             {
+                resourceId: fhirId(),
                 name: String,
                 date: Date,
                 system: String,
@@ -79,6 +98,7 @@ const IPSModel = mongoose.model(
         ],
         observations: [
             {
+                resourceId: fhirId(),
                 name: String,
                 date: Date,
                 system: String,
@@ -91,6 +111,7 @@ const IPSModel = mongoose.model(
         ],
         immunizations: [
             {
+                resourceId: fhirId(),
                 name: String,
                 system: String,
                 code: String,
@@ -100,6 +121,7 @@ const IPSModel = mongoose.model(
         ],
         procedures: [
             {
+                resourceId: fhirId(),
                 name: String,
                 system: String,
                 code: String,

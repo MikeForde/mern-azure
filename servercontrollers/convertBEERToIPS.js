@@ -3,7 +3,7 @@ const { parseBEER } = require('./servercontrollerfuncs/convertIPSBEERToSchema');
 const { pickIPSFormat } = require('../utils/ipsFormatPicker');
 
 
-function convertBEERToIPS(req, res) {
+async function convertBEERToIPS(req, res) {
   let beerMessage;
 
   // Check if 'data' is provided in the body, otherwise assume entire body is the HL7 message
@@ -19,7 +19,7 @@ function convertBEERToIPS(req, res) {
     const delimiter = '\n'; // Assuming newline delimiter
     const mongoData = parseBEER(beerMessage, delimiter);
     const generateBundleFunction = pickIPSFormat(req.headers['x-ips-format']);
-    const ipsBundle = generateBundleFunction(mongoData);
+    const ipsBundle = await generateBundleFunction(mongoData);
     res.json(ipsBundle);
   } catch (error) {
     console.error('Error converting IPS BEER to IPS JSON format:', error);

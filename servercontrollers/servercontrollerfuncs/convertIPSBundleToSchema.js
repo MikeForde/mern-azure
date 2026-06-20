@@ -34,6 +34,20 @@ function normalizeReferenceId(ref) {
   return ref;
 }
 
+function getOrCreateEntryResourceId(entryItem, resource) {
+  const resourceId = cleanString(resource?.id);
+
+  if (resourceId) {
+    return resourceId;
+  }
+
+  const fullUrlId = normalizeReferenceId(
+    cleanString(entryItem?.fullUrl)
+  );
+
+  return fullUrlId || uuidv4();
+}
+
 function findContained(resource, containedId) {
   if (!resource || !containedId) return undefined;
   return asArray(resource.contained).find(r => r?.id === containedId);
@@ -105,6 +119,8 @@ function convertIPSBundleToSchema(ipsBundle) {
 
   console.log('Starting conversion of IPS Bundle to schema...');
 
+  let compositionResourceId;
+
   const patient = {
     practitioner: 'Unknown'
   };
@@ -126,11 +142,19 @@ function convertIPSBundleToSchema(ipsBundle) {
     const resourceType = cleanString(resource.resourceType, '').toLowerCase();
     if (!resourceType) continue;
 
+    const resourceId = getOrCreateEntryResourceId(
+      entryItem,
+      resource
+    );
+
     switch (resourceType) {
-      case 'composition':
+      case 'composition': {
+        compositionResourceId = resourceId;
         break;
+      }
 
       case 'patient': {
+        patient.resourceId = resourceId;
         const patientName = getPatientName(resource);
         patient.name = patientName.family;
         patient.given = patientName.given;
@@ -154,16 +178,29 @@ function convertIPSBundleToSchema(ipsBundle) {
       }
 
       case 'practitioner': {
+        patient.practitionerResourceId = resourceId;
         patient.practitioner = getHumanNameDisplay(first(resource.name), 'Unknown');
         break;
       }
 
       case 'organization': {
+        /*
+         * HealthStaq returns Organization/bluestaq-healthstaq as the creator /
+         * custodian of the summary, not the patient's own organisation.
+         *
+         * Do not merge this into IPS MERN patient.organization fields.
+         */
+        if (resourceId === 'bluestaq-healthstaq') {
+          break;
+        }
+
+        patient.organizationResourceId = resourceId;
         patient.organization = cleanString(resource.name, 'Unknown');
         break;
       }
 
       case 'medicationstatement': {
+        let medicationResourceId;
         let dosage = 'Unknown';
         const d0 = first(resource.dosage);
 
@@ -192,6 +229,8 @@ function convertIPSBundleToSchema(ipsBundle) {
         if (medRefRaw?.startsWith('#')) {
           const containedMed = findContained(resource, medRefId);
           if (containedMed?.resourceType?.toLowerCase() === 'medication') {
+            medicationResourceId =
+              cleanString(containedMed.id) || uuidv4();
             name = getCodeableConceptDisplay(containedMed.code, name);
             medsystem = getCodeableConceptSystem(containedMed.code, null);
             medcode = getCodeableConceptCode(containedMed.code, null);
@@ -205,6 +244,8 @@ function convertIPSBundleToSchema(ipsBundle) {
           null;
 
         medication.push({
+          medicationRequestResourceId: resourceId,
+          medicationResourceId,
           name,
           date: dt ? safeToISOString(dt) : ZERO_ISO_DATETIME,
           dosage,
@@ -217,6 +258,7 @@ function convertIPSBundleToSchema(ipsBundle) {
       }
 
       case 'medicationrequest': {
+        let medicationResourceId;
         let dosage = 'Unknown';
         const di0 = first(resource.dosageInstruction);
 
@@ -243,6 +285,8 @@ function convertIPSBundleToSchema(ipsBundle) {
             r => r?.resourceType?.toLowerCase() === 'medication'
           );
           if (containedMed) {
+            medicationResourceId =
+              cleanString(containedMed.id) || uuidv4();
             name = getCodeableConceptDisplay(containedMed.code, 'Unknown');
             medsystem = getCodeableConceptSystem(containedMed.code, null);
             medcode = getCodeableConceptCode(containedMed.code, null);
@@ -250,6 +294,8 @@ function convertIPSBundleToSchema(ipsBundle) {
         }
 
         medication.push({
+          medicationRequestResourceId: resourceId,
+          medicationResourceId,
           name,
           date: safeToISOString(resource.authoredOn),
           dosage,
@@ -262,13 +308,27 @@ function convertIPSBundleToSchema(ipsBundle) {
       }
 
       case 'medication': {
-        if (!cleanString(resource.id)) break;
-
-        medicationResourceMap[resource.id] = {
+        const mappedMedication = {
+          medicationResourceId: resourceId,
           name: getCodeableConceptDisplay(resource.code, null),
           system: getCodeableConceptSystem(resource.code, null),
           code: getCodeableConceptCode(resource.code, null)
         };
+
+        /*
+         * Normally references use resource.id, but a document Bundle
+         * may reference the entry's fullUrl instead. Index both.
+         */
+        medicationResourceMap[resourceId] = mappedMedication;
+
+        const fullUrlId = normalizeReferenceId(
+          cleanString(entryItem.fullUrl)
+        );
+
+        if (fullUrlId) {
+          medicationResourceMap[fullUrlId] = mappedMedication;
+        }
+
         break;
       }
 
@@ -338,6 +398,7 @@ function convertIPSBundleToSchema(ipsBundle) {
         const allergyDate = getBestDateTime(resource, ['onsetDateTime', 'recordedDate']);
 
         allergies.push({
+          resourceId,
           name: alName,
           criticality: cleanString(resource.criticality, 'high'),
           date: allergyDate,
@@ -351,11 +412,12 @@ function convertIPSBundleToSchema(ipsBundle) {
         const condDisplay = getCodeableConceptDisplay(resource.code, null);
         const condCode = getCodeableConceptCode(resource.code, null);
         const condSystem = getCodeableConceptSystem(resource.code, null);
-        
+
         // For date, prefer onsetDateTime, but fallback to recordedDate if onsetDateTime is not available
         const conditionDate = getBestDateTime(resource, ['onsetDateTime', 'recordedDate']);
 
         conditions.push({
+          resourceId,
           name: condDisplay,
           date: conditionDate,
           system: condSystem,
@@ -366,6 +428,7 @@ function convertIPSBundleToSchema(ipsBundle) {
 
       case 'observation': {
         const observation = {
+          resourceId,
           name: getCodeableConceptDisplay(resource.code, null),
           code: getCodeableConceptCode(resource.code, null),
           system: getCodeableConceptSystem(resource.code, null),
@@ -400,6 +463,7 @@ function convertIPSBundleToSchema(ipsBundle) {
 
       case 'immunization': {
         immunizations.push({
+          resourceId,
           name: getCodeableConceptDisplay(resource.vaccineCode, 'Unknown'),
           date: safeToISOString(resource.occurrenceDateTime),
           system: getCodeableConceptSystem(resource.vaccineCode, null),
@@ -411,6 +475,7 @@ function convertIPSBundleToSchema(ipsBundle) {
 
       case 'procedure': {
         procedures.push({
+          resourceId,
           name: getCodeableConceptDisplay(resource.code, null),
           date: getBestDateTime(resource, [
             'performedDateTime',
@@ -430,14 +495,40 @@ function convertIPSBundleToSchema(ipsBundle) {
   }
 
   medication = medication.map((med) => {
-    if (med.medRef && medicationResourceMap[med.medRef]) {
-      med.system = med.system || medicationResourceMap[med.medRef].system;
-      med.code = med.code || medicationResourceMap[med.medRef].code;
-      med.name = med.name === 'Unknown'
-        ? (medicationResourceMap[med.medRef].name || med.name)
-        : med.name;
+    const linkedMedication = med.medRef
+      ? medicationResourceMap[med.medRef]
+      : undefined;
+
+    if (linkedMedication) {
+      med.medicationResourceId =
+        med.medicationResourceId ||
+        linkedMedication.medicationResourceId;
+
+      med.system =
+        med.system ||
+        linkedMedication.system;
+
+      med.code =
+        med.code ||
+        linkedMedication.code;
+
+      med.name =
+        med.name === 'Unknown'
+          ? linkedMedication.name || med.name
+          : med.name;
     }
+
+    /*
+     * The schema medication entry will be converted into a
+     * Medication resource later, even where the source Bundle used
+     * medicationCodeableConcept rather than a separate Medication.
+     */
+    if (!med.medicationResourceId) {
+      med.medicationResourceId = uuidv4();
+    }
+
     delete med.medRef;
+
     return med;
   });
 
@@ -445,6 +536,7 @@ function convertIPSBundleToSchema(ipsBundle) {
 
   return {
     packageUUID,
+    compositionResourceId,
     timeStamp,
     patient,
     medication,

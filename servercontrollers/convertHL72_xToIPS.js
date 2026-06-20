@@ -26,7 +26,7 @@ async function convertHL72_xToIPS(req, res) {
 
         // Generate IPS JSON bundle from MongoDB schema format
         const generateBundleFunction = pickIPSFormat(req.headers['x-ips-format']);
-        const ipsBundle = generateBundleFunction(ipsRecord);
+        const ipsBundle = await generateBundleFunction(ipsRecord);
 
         // Send the generated IPS JSON bundle as response
         res.json(ipsBundle);

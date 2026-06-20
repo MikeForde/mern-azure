@@ -84,7 +84,11 @@ const pmrRoutes = require('./mmp/pmr');
 const takRoutes = require('./tak/takRoutes');
 
 // ───────────── HealthStaq ─────────────────────────────
-const healthStaqRoutes = require('./healthstaq/healthstaqRoutes');
+const {
+    healthStaqRouter,
+    ipsMernRouter,
+} = require('./healthstaq/healthstaqRoutes');
+const { convertIPSToHealthStaq } = require('./servercontrollers/convertIPSToHealthStaq');
 
 // ───────────── GraphQL Apollo ─────────────────────────────
 const { ApolloServer } = require('@apollo/server');
@@ -142,7 +146,13 @@ api.use((req, res, next) => {
     if (req.headers['x-encrypted'] === 'true') {
         next();
     } else {
-        express.json({ limit: BODY_LIMIT })(req, res, next);
+        express.json({
+            limit: BODY_LIMIT,
+            type: [
+                'application/json',
+                'application/*+json',
+            ],
+        })(req, res, next);
     }
 });
 
@@ -196,6 +206,7 @@ api.post('/converthl72xtomongo', convertHL72_xToMongo);
 api.post('/converthl72xtoips', convertHL72_xToIPS);
 api.post('/convertxml', convertXmlEndpoint);
 api.post('/convertfhirxml', convertFhirXmlEndpoint);
+api.post('/convertips2healthstaq', convertIPSToHealthStaq);
 
 // Add a /test POST endpoint for echoing back request data
 api.post('/test', (req, res) => {
@@ -261,8 +272,11 @@ api.get('/debug/inbound-ip', (req, res) => {
 
 
 
-// HealthStaq FHIR endpoints
-api.use('/healthstaq', healthStaqRoutes);
+// IPS MERN-specific HealthStaq helper operations
+api.use('/ipsmern', ipsMernRouter);
+
+// Transparent authenticated HealthStaq proxy
+api.use('/healthstaq', healthStaqRouter);
 
 // XMPP endpoints
 api.use("/xmpp", xmppRoutes);
@@ -284,30 +298,30 @@ api.delete("/ipsdeletebypractitioner/:practitioner", deleteIPSbyPractitioner);
 // GraphQL
 // GraphQL Playground with clickable example tabs
 api.get('/playground', playground({
-  endpoint: '/graphql',
-  settings: {
-    'editor.theme': 'dark',
-    'editor.cursorShape': 'line',
-    'request.credentials': 'same-origin',
-    'tracing.hideTracingResponse': true,
-    'schema.polling.enable': false,
-  },
-  tabs: [
-    {
-      name: 'Get all IPS',
-      endpoint: '/graphql',
-      query: `query {
+    endpoint: '/graphql',
+    settings: {
+        'editor.theme': 'dark',
+        'editor.cursorShape': 'line',
+        'request.credentials': 'same-origin',
+        'tracing.hideTracingResponse': true,
+        'schema.polling.enable': false,
+    },
+    tabs: [
+        {
+            name: 'Get all IPS',
+            endpoint: '/graphql',
+            query: `query {
   getAllIPS {
     id
     status
     contentType
   }
 }`
-    },
-    {
-      name: 'Expanded IPS by ID',
-      endpoint: '/graphql',
-      query: `query {
+        },
+        {
+            name: 'Expanded IPS by ID',
+            endpoint: '/graphql',
+            query: `query {
   getIPSExpanded(id: "12345", narrative: 1, resourceNarrative: 0) {
     id
     status
@@ -315,41 +329,41 @@ api.get('/playground', playground({
     content
   }
 }`
-    },
-    {
-      name: 'Unified IPS by ID',
-      endpoint: '/graphql',
-      query: `query {
+        },
+        {
+            name: 'Unified IPS by ID',
+            endpoint: '/graphql',
+            query: `query {
   getIPSUnified(id: "12345") {
     id
     content
   }
 }`
-    },
-    {
-      name: 'IPS by name',
-      endpoint: '/graphql',
-      query: `query {
+        },
+        {
+            name: 'IPS by name',
+            endpoint: '/graphql',
+            query: `query {
   getIPSByName(name: "Smith", given: "John", format: "unified") {
     id
     content
   }
 }`
-    },
-    {
-      name: 'BEER by ID',
-      endpoint: '/graphql',
-      query: `query {
+        },
+        {
+            name: 'BEER by ID',
+            endpoint: '/graphql',
+            query: `query {
   getIPSBeer(id: "12345", delim: "pipe") {
     id
     content
   }
 }`
-    },
-    {
-      name: 'Create IPS',
-      endpoint: '/graphql',
-      query: `mutation {
+        },
+        {
+            name: 'Create IPS',
+            endpoint: '/graphql',
+            query: `mutation {
   addIPS(
     json: "{\\"packageUUID\\":\\"abc-123\\",\\"timeStamp\\":\\"2026-03-12T10:00:00.000Z\\",\\"patient\\":{\\"name\\":\\"Smith\\",\\"given\\":\\"John\\",\\"dob\\":\\"1980-01-01\\"}}"
   ) {
@@ -358,24 +372,24 @@ api.get('/playground', playground({
     content
   }
 }`
-    }
-  ]
+        }
+    ]
 }));
 
 async function startApolloServer() {
-  const apolloServer = new ApolloServer({
-    typeDefs,
-    resolvers,
-    introspection: true,
-  });
+    const apolloServer = new ApolloServer({
+        typeDefs,
+        resolvers,
+        introspection: true,
+    });
 
-  await apolloServer.start();
+    await apolloServer.start();
 
-  api.use(
-    '/graphql',
-    express.json({ limit: BODY_LIMIT }),
-    expressMiddleware(apolloServer)
-  );
+    api.use(
+        '/graphql',
+        express.json({ limit: BODY_LIMIT }),
+        expressMiddleware(apolloServer)
+    );
 }
 
 startApolloServer();

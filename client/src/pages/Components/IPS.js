@@ -32,6 +32,11 @@ export function IPS({ ips, remove, update }) {
   const [takAlertVariant, setTakAlertVariant] = useState("success");
   const [showTakAlert, setShowTakAlert] = useState(false);
 
+  const [healthStaqMessage, setHealthStaqMessage] = useState("");
+  const [healthStaqAlertVariant, setHealthStaqAlertVariant] = useState("success");
+  const [showHealthStaqAlert, setShowHealthStaqAlert] = useState(false);
+  const [showHealthStaqDeleteModal, setShowHealthStaqDeleteModal] = useState(false);
+
   const [showEditAlert, setShowEditAlert] = useState(false);
   const [editAlertMessage, setEditAlertMessage] = useState("");
 
@@ -51,10 +56,60 @@ export function IPS({ ips, remove, update }) {
   const [pmrUiError, setPmrUiError] = useState("");
 
   const handleRemove = () => setShowConfirmModal(true);
+  const handleHealthStaqDelete = () => setShowHealthStaqDeleteModal(true);
 
   const handleConfirmDelete = () => {
     remove(ips._id);
     setShowConfirmModal(false);
+  };
+
+  const handleConfirmHealthStaqDelete = () => {
+    if (!ips.packageUUID) {
+      setHealthStaqMessage(
+        "This NPS record does not contain a packageUUID."
+      );
+      setHealthStaqAlertVariant("danger");
+      setShowHealthStaqAlert(true);
+      setShowHealthStaqDeleteModal(false);
+      return;
+    }
+
+    setShowHealthStaqDeleteModal(false);
+    startLoading();
+
+    axios
+      .delete(
+        `/ipsmern/deleteipshealthstaq/${encodeURIComponent(ips.packageUUID)}`
+      )
+      .then((response) => {
+        setHealthStaqMessage(
+          "HealthStaq Delete Response:\n" +
+          JSON.stringify(response.data, null, 2)
+        );
+        setHealthStaqAlertVariant(
+          response.status === 207 ? "warning" : "success"
+        );
+        setShowHealthStaqAlert(true);
+      })
+      .catch((error) => {
+        const data = error.response?.data;
+
+        const message =
+          typeof data === "string"
+            ? data
+            : data?.error
+              ? data.error
+              : data
+                ? JSON.stringify(data, null, 2)
+                : error.message;
+
+        console.error("Error deleting NPS from HealthStaq:", message);
+
+        setHealthStaqMessage(message);
+        setHealthStaqAlertVariant("danger");
+        setShowHealthStaqAlert(true);
+      })
+      .finally(() => stopLoading());
   };
 
   const handleSelection = () => {
@@ -160,6 +215,51 @@ export function IPS({ ips, remove, update }) {
       .finally(() => stopLoading());
   };
 
+  const handleSendHealthStaq = () => {
+    if (!ips.packageUUID) {
+      setHealthStaqMessage(
+        "This NPS record does not contain a packageUUID."
+      );
+      setHealthStaqAlertVariant("danger");
+      setShowHealthStaqAlert(true);
+      return;
+    }
+
+    startLoading();
+
+    axios
+      .post("/ipsmern/fetchandpushipshealthstaq", {
+        packageUUID: ips.packageUUID,
+      })
+      .then((response) => {
+        setHealthStaqMessage(
+          "HealthStaq Response:\n" +
+          JSON.stringify(response.data, null, 2)
+        );
+        setHealthStaqAlertVariant("success");
+        setShowHealthStaqAlert(true);
+      })
+      .catch((error) => {
+        const data = error.response?.data;
+
+        const message =
+          typeof data === "string"
+            ? data
+            : data?.error
+              ? data.error
+              : data
+                ? JSON.stringify(data, null, 2)
+                : error.message;
+
+        console.error("Error sending NPS to HealthStaq:", message);
+
+        setHealthStaqMessage(message);
+        setHealthStaqAlertVariant("danger");
+        setShowHealthStaqAlert(true);
+      })
+      .finally(() => stopLoading());
+  };
+
   const openXMPPModal = () => {
     setShowXMPPModal(true);
     setXmppMessageStatus("");
@@ -240,6 +340,8 @@ export function IPS({ ips, remove, update }) {
         onOpenPMR={openPMRModal}
         onOpenXMPP={openXMPPModal}
         onSendTAK={handleSendTAK}
+        onSendHealthStaq={handleSendHealthStaq}
+        onDeleteHealthStaq={handleHealthStaqDelete}
         onEdit={handleEdit}
         onRemove={handleRemove}
       />
@@ -252,6 +354,37 @@ export function IPS({ ips, remove, update }) {
         onConfirm={handleConfirmDelete}
       />
 
+      <IPSDeleteModal
+        show={showConfirmModal}
+        onCancel={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmDelete}
+      />
+
+      <IPSDeleteModal
+        show={showHealthStaqDeleteModal}
+        onCancel={() => setShowHealthStaqDeleteModal(false)}
+        onConfirm={handleConfirmHealthStaqDelete}
+        title="Delete from HealthStaq"
+        body={
+          <>
+            <p>
+              This will attempt to delete this patient&apos;s HealthStaq resources
+              using the IPS packageUUID.
+            </p>
+            <p>
+              HealthStaq does not provide a single cascade delete. IPS MERN will
+              regenerate the NPS Bundle, find known resources with UUID logical IDs,
+              and delete them one by one.
+            </p>
+            <p className="mb-0">
+              This does not delete the local IPS MERN record.
+            </p>
+          </>
+        }
+        confirmText="Delete from HealthStaq"
+        confirmVariant="warning"
+      />
+
       <IPSResponseToasts
         showPmrAlert={showPmrAlert}
         setShowPmrAlert={setShowPmrAlert}
@@ -261,6 +394,10 @@ export function IPS({ ips, remove, update }) {
         setShowTakAlert={setShowTakAlert}
         takAlertVariant={takAlertVariant}
         takMessage={takMessage}
+        showHealthStaqAlert={showHealthStaqAlert}
+        setShowHealthStaqAlert={setShowHealthStaqAlert}
+        healthStaqAlertVariant={healthStaqAlertVariant}
+        healthStaqMessage={healthStaqMessage}
       />
 
       <IPSEditModal

@@ -11,7 +11,7 @@ async function convertCDAToIPS(req, res) {
         // Convert CDA JSON to IPS schema
         const ipsRecord = convertCDAToSchema(cdaJSON);
         const generateBundleFunction = pickIPSFormat(req.headers['x-ips-format']);
-        const ipsBundle = generateBundleFunction(ipsRecord);
+        const ipsBundle = await generateBundleFunction(ipsRecord);
 
 
         res.json(ipsBundle);

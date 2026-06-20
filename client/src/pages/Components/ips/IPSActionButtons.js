@@ -10,6 +10,8 @@ import {
   faEdit,
   faFileExport,
   faUpload,
+  faCloudUploadAlt,
+  faUserSlash,
   faCommentDots,
   faEye,
   faAmbulance,
@@ -26,6 +28,8 @@ export default function IPSActionButtons({
   onOpenPMR,
   onOpenXMPP,
   onSendTAK,
+  onSendHealthStaq,
+  onDeleteHealthStaq,
   onEdit,
   onRemove,
 }) {
@@ -92,6 +96,32 @@ export default function IPSActionButtons({
       <OverlayTrigger placement="top" overlay={renderTooltip("Send to TAK")}>
         <Button variant="outline-secondary" className="qr-button custom-button" onClick={onSendTAK}>
           <FontAwesomeIcon icon={faMapMarked} />
+        </Button>
+      </OverlayTrigger>
+
+      <OverlayTrigger
+        placement="top"
+        overlay={renderTooltip("Push NPS to HealthStaq")}
+      >
+        <Button
+          variant="outline-primary"
+          className="qr-button custom-button"
+          onClick={onSendHealthStaq}
+        >
+          <FontAwesomeIcon icon={faCloudUploadAlt} />
+        </Button>
+      </OverlayTrigger>
+
+      <OverlayTrigger
+        placement="top"
+        overlay={renderTooltip("Delete from HealthStaq")}
+      >
+        <Button
+          variant="outline-warning"
+          className="custom-button"
+          onClick={onDeleteHealthStaq}
+        >
+          <FontAwesomeIcon icon={faUserSlash} />
         </Button>
       </OverlayTrigger>
 

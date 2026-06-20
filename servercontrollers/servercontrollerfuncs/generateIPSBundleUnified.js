@@ -45,22 +45,34 @@ function pruneNulls(value) {
 }
 
 
-function generateIPSBundleUnified(ips) {
+async function generateIPSBundleUnified(ips) {
 
-    const ptId = "pt1";
+    let resourceIdsAdded = false;
 
-    var medcount = 0;
-    var algcount = 0;
-    var condcount = 0;
-    var obscount = 0;
-    var proccount = 0;
+    const getOrCreateResourceId = (target, fieldName = "resourceId") => {
+        if (target[fieldName]) {
+            return target[fieldName];
+        }
+
+        const newId = uuidv4();
+        target[fieldName] = newId;
+        resourceIdsAdded = true;
+
+        return newId;
+    };
+
+    const ptId = getOrCreateResourceId(ips.patient);
+    const orgId = getOrCreateResourceId(
+        ips.patient,
+        "organizationResourceId"
+    );
 
     const ipsBundle = {
         resourceType: "Bundle",
         id: ips.packageUUID, // First ID is the packageUUID
         timestamp: stripMilliseconds(ips.timeStamp),
         type: "collection",
-        total: 2 + (ips.medication.length * 2) + ips.allergies.length + ips.conditions.length + ips.observations.length,
+        total: 2 + (ips.medication.length * 2) + ips.allergies.length + ips.conditions.length + ips.observations.length + ips.procedures.length,
         entry: [
             {
                 resource: {
@@ -94,93 +106,115 @@ function generateIPSBundleUnified(ips) {
             {
                 resource: {
                     resourceType: "Organization",
-                    id: "org1",
+                    id: orgId,
                     name: ips.patient.organization,
                 },
             },
             // Medication entries
-            ...ips.medication.flatMap((med) => [
-                {
-                    resource: {
-                        resourceType: "MedicationRequest",
-                        id: "medreq" + ++medcount,
-                        status: med.status ? med.status.toLowerCase() : "active",
-                        medicationReference: {
-                            reference: "Medication/med" + medcount,
-                            display: med.name,
-                        },
-                        subject: {
-                            reference: "Patient/" + ptId,
-                        },
-                        authoredOn: stripMilliseconds(med.date),
-                        dosageInstruction: [
-                            {
-                                text: med.dosage,
+            ...ips.medication.flatMap((med) => {
+                const medicationRequestId = getOrCreateResourceId(
+                    med,
+                    "medicationRequestResourceId"
+                );
+
+                const medicationId = getOrCreateResourceId(
+                    med,
+                    "medicationResourceId"
+                );
+
+                return [
+                    {
+                        resource: {
+                            resourceType: "MedicationRequest",
+                            id: medicationRequestId,
+                            status: med.status ? med.status.toLowerCase() : "active",
+                            medicationReference: {
+                                reference: `Medication/${medicationId}`,
+                                display: med.name,
                             },
-                        ],
-                    },
-                },
-                {
-                    resource: {
-                        resourceType: "Medication",
-                        id: "med" + medcount,
-                        code: {
-                            coding: [
+                            subject: {
+                                reference: `Patient/${ptId}`,
+                            },
+                            authoredOn: stripMilliseconds(med.date),
+                            dosageInstruction: [
                                 {
-                                    display: med.name,
-                                    system: med.system,
-                                    code: med.code,
+                                    text: med.dosage,
                                 },
                             ],
                         },
                     },
-                },
-            ]),
+                    {
+                        resource: {
+                            resourceType: "Medication",
+                            id: medicationId,
+                            code: {
+                                coding: [
+                                    {
+                                        display: med.name,
+                                        system: med.system,
+                                        code: med.code,
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                ];
+            }),
             // Allergy entries
-            ...ips.allergies.map((allergy) => ({
-                resource: {
-                    resourceType: "AllergyIntolerance",
-                    id: "allergy" + ++algcount,
-                    category: ["medication"],
-                    criticality: allergy.criticality ? allergy.criticality.toLowerCase() : "high",
-                    code: {
-                        coding: [
-                            {
-                                display: allergy.name,
-                                system: allergy.system,
-                                code: allergy.code,
-                            },
-                        ],
+            ...ips.allergies.map((allergy) => {
+                const allergyId = getOrCreateResourceId(allergy);
+
+                return {
+                    resource: {
+                        resourceType: "AllergyIntolerance",
+                        id: allergyId,
+                        category: ["medication"],
+                        criticality: allergy.criticality
+                            ? allergy.criticality.toLowerCase()
+                            : "high",
+                        code: {
+                            coding: [
+                                {
+                                    display: allergy.name,
+                                    system: allergy.system,
+                                    code: allergy.code,
+                                },
+                            ],
+                        },
+                        patient: {
+                            reference: `Patient/${ptId}`,
+                        },
+                        onsetDateTime: stripMilliseconds(allergy.date),
                     },
-                    patient: {
-                        reference: "Patient/" + ptId,
-                    },
-                    onsetDateTime: stripMilliseconds(allergy.date),
-                },
-            })),
+                };
+            }),
             // Condition entries
-            ...ips.conditions.map((condition) => ({
-                resource: {
-                    resourceType: "Condition",
-                    id: "condition" + ++condcount,
-                    code: {
-                        coding: [
-                            {
-                                display: condition.name,
-                                system: condition.system,
-                                code: condition.code,
-                            },
-                        ],
+            ...ips.conditions.map((condition) => {
+                const conditionId = getOrCreateResourceId(condition);
+
+                return {
+                    resource: {
+                        resourceType: "Condition",
+                        id: conditionId,
+                        code: {
+                            coding: [
+                                {
+                                    display: condition.name,
+                                    system: condition.system,
+                                    code: condition.code,
+                                },
+                            ],
+                        },
+                        subject: {
+                            reference: `Patient/${ptId}`,
+                        },
+                        onsetDateTime: stripMilliseconds(condition.date),
                     },
-                    subject: {
-                        reference: "Patient/" + ptId,
-                    },
-                    onsetDateTime: stripMilliseconds(condition.date),
-                },
-            })),
+                };
+            }),
             // Observation entries
             ...ips.observations.map((observation) => {
-                const observationUUID = "ob" + ++obscount;
+                const observationUUID = getOrCreateResourceId(observation);
                 let observationResource = {
                     resource: {
                         resourceType: "Observation",
@@ -316,30 +350,42 @@ function generateIPSBundleUnified(ips) {
                 return observationResource;
             }),
             // Procedure entries
-            ...ips.procedures.map((procedure) => ({
-                resource: {
-                    resourceType: "Procedure",
-                    id: "proc" + ++proccount,
-                    status: procedure.status ? procedure.status.toLowerCase() : "completed",
-                    code: {
-                        coding: [
-                            {
-                                display: procedure.name,
-                                system: procedure.system,
-                                code: procedure.code,
-                            },
-                        ],
+            ...ips.procedures.map((procedure) => {
+                const procedureId = getOrCreateResourceId(procedure);
+
+                return {
+                    resource: {
+                        resourceType: "Procedure",
+                        id: procedureId,
+                        status: procedure.status
+                            ? procedure.status.toLowerCase()
+                            : "completed",
+                        code: {
+                            coding: [
+                                {
+                                    display: procedure.name,
+                                    system: procedure.system,
+                                    code: procedure.code,
+                                },
+                            ],
+                        },
+                        subject: {
+                            reference: `Patient/${ptId}`,
+                        },
+                        performedDateTime: stripMilliseconds(procedure.date),
                     },
-                    subject: {
-                        reference: "Patient/" + ptId,
-                    },
-                    performedDateTime: stripMilliseconds(procedure.date),
-                },
-            })),
+                };
+            }),
         ],
     };
 
-    return pruneNulls(ipsBundle);
+    const prunedBundle = pruneNulls(ipsBundle);
+
+    if (resourceIdsAdded && typeof ips.save === 'function') {
+        await ips.save();
+    }
+
+    return prunedBundle;
 }
 
 // Async post-process: apply 'jwe' or 'omit'

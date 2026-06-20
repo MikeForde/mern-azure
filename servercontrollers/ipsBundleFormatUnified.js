@@ -31,7 +31,7 @@ async function getIPSUnifiedBundle(req, res) {
         }
 
         // Constructing the JSON structure
-        const bundle = generateIPSBundleUnified(ips);
+        const bundle = await generateIPSBundleUnified(ips);
 
         const protectedBundle = await protectIPSBundle(bundle, protectMethod);
 
