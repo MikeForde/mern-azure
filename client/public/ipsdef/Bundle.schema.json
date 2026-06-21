@@ -54,8 +54,7 @@
                 { "$ref": "/ipsdef/AllergyIntolerance.schema.json" },
                 { "$ref": "/ipsdef/Condition.schema.json" },
                 { "$ref": "/ipsdef/Observation.schema.json" },
-                { "$ref": "/ipsdef/Procedure.schema.json" },
-                { "$ref": "/ipsdef/Coverage.schema.json" }
+                { "$ref": "/ipsdef/Procedure.schema.json" }
               ]
             }
           },

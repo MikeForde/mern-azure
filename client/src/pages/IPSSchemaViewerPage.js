@@ -132,12 +132,12 @@ const extensionExamples = [
       subject: { reference: 'Patient/pt1' },
       performedDateTime: '2025-05-16T09:00:00Z'
     },
-    Coverage: {
-      resourceType: 'Coverage',
-      id: 'cov1',
-      beneficiary: { reference: 'Patient/pt1' },
-      payor: { display: 'Example Insurance Co.' }
-    },
+    // Coverage: {
+    //   resourceType: 'Coverage',
+    //   id: 'cov1',
+    //   beneficiary: { reference: 'Patient/pt1' },
+    //   payor: { display: 'Example Insurance Co.' }
+    // },
     Extension: extensionExamples
   };
 
@@ -167,7 +167,7 @@ const extensionExamples = [
           'Condition.schema.json',
           'Observation.schema.json',
           'Procedure.schema.json',
-          'Coverage.schema.json',
+          // 'Coverage.schema.json',
           'Extension.schema.json'
         ];
 

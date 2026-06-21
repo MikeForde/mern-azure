@@ -19,7 +19,7 @@ const schemaFiles = [
   'Condition.schema.json',
   'Observation.schema.json',
   'Procedure.schema.json',
-  'Coverage.schema.json'
+  // 'Coverage.schema.json'
 ];
 
 const FHIR_SCHEMA_KEY = 'fhirR4';
