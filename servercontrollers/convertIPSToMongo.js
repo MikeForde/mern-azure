@@ -11,13 +11,13 @@ function convertIPSToMongo(req, res) {
       typeof req.body === 'object' &&
       req.body.resourceType === 'Bundle'
     ) {
-      console.log('Handling direct JSON request');
+      //('Handling direct JSON request');
       ipsBundle = req.body;
     }
 
     // 2) Otherwise assume the request body has a "data" field containing JSON as a string
     else if (req.body && req.body.data) {
-      console.log("Handling 'data' field with JSON string");
+      //console.log("Handling 'data' field with JSON string");
       ipsBundle = JSON.parse(req.body.data);
     }
 
@@ -29,7 +29,7 @@ function convertIPSToMongo(req, res) {
       !req.body.resourceType &&
       Object.keys(req.body).length === 1
     ) {
-      console.log('Handling XML -> JSON conversion');
+      //console.log('Handling XML -> JSON conversion');
       ipsBundle = convertFhirXmlToJson(req.body);
     }
 

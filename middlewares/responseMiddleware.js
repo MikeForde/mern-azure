@@ -26,7 +26,7 @@ function responseMiddleware(req, res, next) {
 
             // 5A. If client requests raw binary, we handle it separately
             if (isBinaryRequested) {
-                console.log("Returning response as encrypted + compressed binary.");
+                //console.log("Returning response as encrypted + compressed binary.");
 
                 // Convert to string if it's an object
                 if (typeof modifiedBody === "object") {
@@ -55,7 +55,7 @@ function responseMiddleware(req, res, next) {
                 || acceptEncoding.includes("insomzip")
                 || acceptExtra.includes("insomzip")) {
                 gzipReq = true;
-                console.log("Returning response using gzip compression...");
+                //("Returning response using gzip compression...");
 
                 // Convert body to string if it's an object
                 if (typeof modifiedBody === "object") {
@@ -74,7 +74,7 @@ function responseMiddleware(req, res, next) {
 
             // Apply JSON-based encryption if requested
             if (acceptEncryption === "aes256") {
-                console.log("Returning response using AES-256 encryption. Base64 flag is:", isBase64);
+                //console.log("Returning response using AES-256 encryption. Base64 flag is:", isBase64);
 
                 if (!gzipReq) {
                     if (typeof modifiedBody === "object" || Buffer.isBuffer(modifiedBody)) {

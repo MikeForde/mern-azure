@@ -30,6 +30,8 @@ export default function IPSActionButtons({
   onSendTAK,
   onSendHealthStaq,
   onDeleteHealthStaq,
+  onSendMedOrange,
+  onDeleteMedOrange,
   onEdit,
   onRemove,
 }) {
@@ -120,6 +122,32 @@ export default function IPSActionButtons({
           variant="outline-warning"
           className="custom-button"
           onClick={onDeleteHealthStaq}
+        >
+          <FontAwesomeIcon icon={faUserSlash} />
+        </Button>
+      </OverlayTrigger>
+
+      <OverlayTrigger
+        placement="top"
+        overlay={renderTooltip("Push NPS to MedicalCloud Orange")}
+      >
+        <Button
+          variant="outline-primary"
+          className="qr-button custom-button"
+          onClick={onSendMedOrange}
+        >
+          <FontAwesomeIcon icon={faCloudUploadAlt} />
+        </Button>
+      </OverlayTrigger>
+
+      <OverlayTrigger
+        placement="top"
+        overlay={renderTooltip("Delete from MedCloud Orange")}
+      >
+        <Button
+          variant="outline-warning"
+          className="custom-button"
+          onClick={onDeleteMedOrange}
         >
           <FontAwesomeIcon icon={faUserSlash} />
         </Button>

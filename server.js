@@ -90,6 +90,13 @@ const {
 } = require('./healthstaq/healthstaqRoutes');
 const { convertIPSToHealthStaq } = require('./servercontrollers/convertIPSToHealthStaq');
 
+// ───────────── Med Orange ─────────────────────────────
+const {
+    medOrangeRouter,
+    medOrangeIpsMernRouter,
+} = require('./medorange/medorangeRoutes');
+
+
 // ───────────── GraphQL Apollo ─────────────────────────────
 const { ApolloServer } = require('@apollo/server');
 const { expressMiddleware } = require('@apollo/server/express4');
@@ -270,10 +277,14 @@ api.get('/debug/inbound-ip', (req, res) => {
     });
 });
 
-
+// Transparent authenticated MedOrange proxy
+api.use('/medorange', medOrangeRouter);
 
 // IPS MERN-specific HealthStaq helper operations
-api.use('/ipsmern', ipsMernRouter);
+api.use('/ipsmernmedorange', medOrangeIpsMernRouter);
+
+// IPS MERN-specific HealthStaq helper operations
+api.use('/ipsmernhealthstaq', ipsMernRouter);
 
 // Transparent authenticated HealthStaq proxy
 api.use('/healthstaq', healthStaqRouter);
@@ -406,7 +417,7 @@ api.get("/*", (req, res) => {
 initXMPP_WebSocket()
     .then((xmppInstance) => {
         if (xmppInstance) {
-            console.log("XMPP connection initialized.");
+            //console.log("XMPP connection initialized.");
             // Start the XMPP server
             const portXmpp = process.env.PORT || 5052;
             api.listen(portXmpp, '0.0.0.0', () => {
@@ -434,9 +445,9 @@ const io = new Server(httpServer, {
 api.set('io', io);
 
 io.on('connection', (socket) => {
-    console.log('⚡️  New WS client connected', socket.id);
+    //console.log('⚡️  New WS client connected', socket.id);
     socket.on('disconnect', () => {
-        console.log('✌️  WS client disconnected', socket.id);
+        //console.log('✌️  WS client disconnected', socket.id);
     });
 });
 

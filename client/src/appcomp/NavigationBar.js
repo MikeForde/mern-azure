@@ -46,7 +46,7 @@ function NavigationBar() {
     setExpanded(false);
   };
 
-  console.log(window.location.href);
+  //console.log(window.location.href);
  const isHostedOnAzure = window.location.href.includes("azure");
 const isHostedOnCWIX = window.location.href.includes("medis");
 

@@ -6,7 +6,7 @@ const { generateIPSBundleUnified, protectIPSBundle } = require('./servercontroll
 async function getIPSUnifiedBundle(req, res) {
     const id = req.params.id;
 
-    console.log("getIPSUnifiedBundle called with ID:", id);
+    //console.log("getIPSUnifiedBundle called with ID:", id);
 
     try {
         const ips = await resolveId(id);

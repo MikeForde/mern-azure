@@ -210,7 +210,7 @@ function generateIPSBundle(ipsRecord, options = {}) {
             "onsetDateTime": allergy.date
         };
 
-        console.log("Constructed AllergyIntolerance resource:", JSON.stringify(resource, null, 2));
+        //console.log("Constructed AllergyIntolerance resource:", JSON.stringify(resource, null, 2));
 
         if (includeResourceNarrative) {
             resource.text = {

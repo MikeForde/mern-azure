@@ -1,0 +1,330 @@
+{
+	"resourceType": "Bundle",
+	"id": "a7b91397-6137-4d61-b80d-a1b375c40903",
+	"meta": {
+		"lastUpdated": "2026-06-22T12:37:18.708+00:00"
+	},
+	"type": "searchset",
+	"total": 6,
+	"link": [
+		{
+			"relation": "self",
+			"url": "https://medicalcloud-test-int.orange-synapse.nl/fhir/Patient"
+		}
+	],
+	"entry": [
+		{
+			"fullUrl": "https://medicalcloud-test-int.orange-synapse.nl/fhir/Patient/0591a29d-3063-4458-8920-ceb6cfec829f",
+			"resource": {
+				"resourceType": "Patient",
+				"id": "0591a29d-3063-4458-8920-ceb6cfec829f",
+				"meta": {
+					"versionId": "1",
+					"lastUpdated": "2026-06-10T08:27:50.045+00:00",
+					"profile": [
+						"http://hl7.org/fhir/uv/ips/StructureDefinition/Patient-uv-ips"
+					],
+					"security": [
+						{
+							"system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality",
+							"code": "R",
+							"display": "restricted"
+						},
+						{
+							"system": "https://bluestaq.com/fhir/CodeSystem/nato-classification",
+							"code": "NATO_UNCLASSIFIED",
+							"display": "NATO UNCLASSIFIED"
+						},
+						{
+							"system": "https://bluestaq.com/fhir/CodeSystem/release-to",
+							"code": "NLD"
+						},
+						{
+							"system": "https://bluestaq.com/fhir/CodeSystem/release-to",
+							"code": "USA"
+						}
+					]
+				},
+				"identifier": [
+					{
+						"system": "http://fhir.nld.example/sid",
+						"value": "NLD-DEMO-001"
+					}
+				],
+				"name": [
+					{
+						"family": "Demo",
+						"given": [
+							"Coalition"
+						]
+					}
+				],
+				"gender": "female",
+				"birthDate": "1985-07-04"
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "https://medicalcloud-test-int.orange-synapse.nl/fhir/Patient/d1000000-0000-4000-8000-000000000001",
+			"resource": {
+				"resourceType": "Patient",
+				"id": "d1000000-0000-4000-8000-000000000001",
+				"meta": {
+					"versionId": "1",
+					"lastUpdated": "2026-06-11T14:11:30.884+00:00",
+					"profile": [
+						"http://hl7.org/fhir/uv/ips/StructureDefinition/Patient-uv-ips"
+					]
+				},
+				"identifier": [
+					{
+						"system": "http://fhir.nl/fhir/NamingSystem/bsn",
+						"value": "999999151"
+					}
+				],
+				"name": [
+					{
+						"use": "official",
+						"family": "van den Berg",
+						"given": [
+							"Sara"
+						]
+					}
+				],
+				"gender": "female",
+				"birthDate": "1989-04-15",
+				"address": [
+					{
+						"use": "home",
+						"city": "Den Haag",
+						"country": "NL"
+					}
+				]
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "https://medicalcloud-test-int.orange-synapse.nl/fhir/Patient/IPS-ESP-2026-5F4MLT",
+			"resource": {
+				"resourceType": "Patient",
+				"id": "IPS-ESP-2026-5F4MLT",
+				"meta": {
+					"versionId": "1",
+					"lastUpdated": "2026-06-17T11:38:46.856+00:00",
+					"profile": [
+						"http://hl7.org/fhir/uv/ips/StructureDefinition/Patient-uv-ips"
+					]
+				},
+				"language": "es",
+				"extension": [
+					{
+						"url": "http://hl7.org/fhir/StructureDefinition/patient-nationality",
+						"extension": [
+							{
+								"url": "code",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "urn:iso:std:iso:3166",
+											"code": "ESP"
+										}
+									]
+								}
+							}
+						]
+					}
+				],
+				"identifier": [
+					{
+						"system": "urn:nato:national-id",
+						"value": "12345678M"
+					},
+					{
+						"system": "urn:nato:work-id",
+						"value": "12345678WORK"
+					},
+					{
+						"system": "urn:nato:id",
+						"value": "12345678M"
+					}
+				],
+				"name": [
+					{
+						"use": "official",
+						"family": "GARCIA",
+						"given": [
+							"MANOLO"
+						]
+					}
+				],
+				"gender": "male",
+				"birthDate": "1980-10-10",
+				"managingOrganization": {
+					"reference": "Organization/org-1",
+					"display": "ESP"
+				}
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "https://medicalcloud-test-int.orange-synapse.nl/fhir/Patient/23d91d73-7dff-4afa-87d3-0ac8278b2002",
+			"resource": {
+				"resourceType": "Patient",
+				"id": "23d91d73-7dff-4afa-87d3-0ac8278b2002",
+				"meta": {
+					"versionId": "1",
+					"lastUpdated": "2026-06-17T18:52:49.003+00:00",
+					"profile": [
+						"http://hl7.org/fhir/uv/ips/StructureDefinition/Patient-uv-ips"
+					],
+					"security": [
+						{
+							"system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality",
+							"code": "R",
+							"display": "restricted"
+						},
+						{
+							"system": "https://bluestaq.com/fhir/CodeSystem/nato-classification",
+							"code": "NATO_UNCLASSIFIED",
+							"display": "NATO UNCLASSIFIED"
+						},
+						{
+							"system": "https://bluestaq.com/fhir/CodeSystem/release-to",
+							"code": "NLD"
+						},
+						{
+							"system": "https://bluestaq.com/fhir/CodeSystem/release-to",
+							"code": "USA"
+						}
+					]
+				},
+				"identifier": [
+					{
+						"type": {
+							"coding": [
+								{
+									"system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+									"code": "NI",
+									"display": "National identifier"
+								}
+							]
+						},
+						"system": "http://fhir.nl/fhir/NamingSystem/bsn",
+						"value": "999994025"
+					},
+					{
+						"type": {
+							"coding": [
+								{
+									"system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+									"code": "PI",
+									"display": "Patient internal identifier"
+								}
+							]
+						},
+						"system": "http://fhir.nld.example/sid",
+						"value": "NLD-999994025"
+					},
+					{
+						"type": {
+							"coding": [
+								{
+									"system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+									"code": "PI",
+									"display": "Patient internal identifier"
+								}
+							]
+						},
+						"value": "2.16.840.1.113883.2.4.3.124.71234567890"
+					}
+				],
+				"name": [
+					{
+						"use": "official",
+						"family": "van der Berg",
+						"given": [
+							"Lars"
+						]
+					}
+				],
+				"gender": "male",
+				"birthDate": "1985-07-22"
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "https://medicalcloud-test-int.orange-synapse.nl/fhir/Patient/IPS-ESP-2026-TK98PZ",
+			"resource": {
+				"resourceType": "Patient",
+				"id": "IPS-ESP-2026-TK98PZ",
+				"meta": {
+					"versionId": "1",
+					"lastUpdated": "2026-06-19T09:44:44.969+00:00",
+					"profile": [
+						"http://hl7.org/fhir/uv/ips/StructureDefinition/Patient-uv-ips"
+					]
+				},
+				"language": "en",
+				"identifier": [
+					{
+						"system": "urn:nato:national-id",
+						"value": "112222222Y"
+					}
+				],
+				"name": [
+					{
+						"use": "official",
+						"family": "MORO",
+						"given": [
+							"CARLOS"
+						]
+					}
+				],
+				"gender": "male",
+				"birthDate": "1972-10-10",
+				"managingOrganization": {
+					"reference": "Organization/org-1",
+					"display": "ESP"
+				}
+			},
+			"search": {
+				"mode": "match"
+			}
+		},
+		{
+			"fullUrl": "https://medicalcloud-test-int.orange-synapse.nl/fhir/Patient/6657020d-932f-49b7-8356-b6f2c052c475",
+			"resource": {
+				"resourceType": "Patient",
+				"id": "6657020d-932f-49b7-8356-b6f2c052c475",
+				"meta": {
+					"versionId": "1",
+					"lastUpdated": "2026-06-19T14:04:22.951+00:00",
+					"profile": [
+						"http://hl7.org/fhir/uv/ips/StructureDefinition/Patient-uv-ips"
+					]
+				},
+				"name": [
+					{
+						"family": "All",
+						"given": [
+							"LILY"
+						]
+					}
+				],
+				"gender": "female",
+				"birthDate": "1980-06-19"
+			},
+			"search": {
+				"mode": "match"
+			}
+		}
+	]
+}

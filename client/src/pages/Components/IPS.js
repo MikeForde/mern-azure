@@ -37,6 +37,11 @@ export function IPS({ ips, remove, update }) {
   const [showHealthStaqAlert, setShowHealthStaqAlert] = useState(false);
   const [showHealthStaqDeleteModal, setShowHealthStaqDeleteModal] = useState(false);
 
+  const [medOrangeMessage, setMedOrangeMessage] = useState("");
+  const [medOrangeAlertVariant, setMedOrangeAlertVariant] = useState("success");
+  const [showMedOrangeAlert, setShowMedOrangeAlert] = useState(false);
+  const [showMedOrangeDeleteModal, setShowMedOrangeDeleteModal] = useState(false);
+
   const [showEditAlert, setShowEditAlert] = useState(false);
   const [editAlertMessage, setEditAlertMessage] = useState("");
 
@@ -55,8 +60,35 @@ export function IPS({ ips, remove, update }) {
   const [pmrTo, setPmrTo] = useState("");
   const [pmrUiError, setPmrUiError] = useState("");
 
+  const getAxiosErrorMessage = (error, fallbackMessage) => {
+    const data = error.response?.data;
+
+    if (typeof data === "string") {
+      return data;
+    }
+
+    if (data?.resourceType === "OperationOutcome") {
+      return JSON.stringify(data, null, 2);
+    }
+
+    if (data?.issue) {
+      return JSON.stringify(data, null, 2);
+    }
+
+    if (data?.error) {
+      return data.error;
+    }
+
+    if (data) {
+      return JSON.stringify(data, null, 2);
+    }
+
+    return error.message || fallbackMessage;
+  };
+
   const handleRemove = () => setShowConfirmModal(true);
   const handleHealthStaqDelete = () => setShowHealthStaqDeleteModal(true);
+  const handleMedOrangeDelete = () => setShowMedOrangeDeleteModal(true);
 
   const handleConfirmDelete = () => {
     remove(ips._id);
@@ -108,6 +140,55 @@ export function IPS({ ips, remove, update }) {
         setHealthStaqMessage(message);
         setHealthStaqAlertVariant("danger");
         setShowHealthStaqAlert(true);
+      })
+      .finally(() => stopLoading());
+  };
+
+  const handleConfirmMedOrangeDelete = () => {
+    if (!ips.packageUUID) {
+      setMedOrangeMessage(
+        "This NPS record does not contain a packageUUID."
+      );
+      setMedOrangeAlertVariant("danger");
+      setShowMedOrangeAlert(true);
+      setShowMedOrangeDeleteModal(false);
+      return;
+    }
+
+    setShowMedOrangeDeleteModal(false);
+    startLoading();
+
+    axios
+      .delete(
+        `/ipsmern/deleteipsmedorange/${encodeURIComponent(ips.packageUUID)}`
+      )
+      .then((response) => {
+        setMedOrangeMessage(
+          "MedOrange Delete Response:\n" +
+          JSON.stringify(response.data, null, 2)
+        );
+        setMedOrangeAlertVariant(
+          response.status === 207 ? "warning" : "success"
+        );
+        setShowMedOrangeAlert(true);
+      })
+      .catch((error) => {
+        const data = error.response?.data;
+
+        const message =
+          typeof data === "string"
+            ? data
+            : data?.error
+              ? data.error
+              : data
+                ? JSON.stringify(data, null, 2)
+                : error.message;
+
+        console.error("Error deleting NPS from MedOrange:", message);
+
+        setMedOrangeMessage(message);
+        setMedOrangeAlertVariant("danger");
+        setShowMedOrangeAlert(true);
       })
       .finally(() => stopLoading());
   };
@@ -228,7 +309,7 @@ export function IPS({ ips, remove, update }) {
     startLoading();
 
     axios
-      .post("/ipsmern/fetchandpushipshealthstaq", {
+      .post("/ipsmernhealthstaq/fetchandpushipshealthstaq", {
         packageUUID: ips.packageUUID,
       })
       .then((response) => {
@@ -256,6 +337,45 @@ export function IPS({ ips, remove, update }) {
         setHealthStaqMessage(message);
         setHealthStaqAlertVariant("danger");
         setShowHealthStaqAlert(true);
+      })
+      .finally(() => stopLoading());
+  };
+
+  const handleSendMedOrange = () => {
+    if (!ips.packageUUID) {
+      setMedOrangeMessage(
+        "This NPS record does not contain a packageUUID."
+      );
+      setMedOrangeAlertVariant("danger");
+      setShowMedOrangeAlert(true);
+      return;
+    }
+
+    startLoading();
+
+    axios
+      .post("/ipsmernmedorange/fetchandpushipsmedorange", {
+        packageUUID: ips.packageUUID,
+      })
+      .then((response) => {
+        setMedOrangeMessage(
+          "MedOrange Response:\n" +
+          JSON.stringify(response.data, null, 2)
+        );
+        setMedOrangeAlertVariant("success");
+        setShowMedOrangeAlert(true);
+      })
+      .catch((error) => {
+        const message = getAxiosErrorMessage(
+          error,
+          "Failed to send NPS to MedOrange"
+        );
+
+        console.error("Error sending NPS to MedOrange:", message);
+
+        setMedOrangeMessage(message);
+        setMedOrangeAlertVariant("danger");
+        setShowMedOrangeAlert(true);
       })
       .finally(() => stopLoading());
   };
@@ -342,17 +462,13 @@ export function IPS({ ips, remove, update }) {
         onSendTAK={handleSendTAK}
         onSendHealthStaq={handleSendHealthStaq}
         onDeleteHealthStaq={handleHealthStaqDelete}
+        onSendMedOrange={handleSendMedOrange}
+        onDeleteMedOrange={handleMedOrangeDelete}
         onEdit={handleEdit}
         onRemove={handleRemove}
       />
 
       <IPSDetails ips={ips} expanded={expanded} setExpanded={setExpanded} />
-
-      <IPSDeleteModal
-        show={showConfirmModal}
-        onCancel={() => setShowConfirmModal(false)}
-        onConfirm={handleConfirmDelete}
-      />
 
       <IPSDeleteModal
         show={showConfirmModal}
@@ -385,6 +501,35 @@ export function IPS({ ips, remove, update }) {
         confirmVariant="warning"
       />
 
+      <IPSDeleteModal
+        show={showMedOrangeDeleteModal}
+        onCancel={() => setShowMedOrangeDeleteModal(false)}
+        onConfirm={handleConfirmMedOrangeDelete}
+        title="Delete from MedOrange"
+        body={
+          <>
+            <p>
+              This will attempt to delete this patient&apos;s MedOrange resources
+              using the IPS packageUUID.
+            </p>
+            <p>
+              MedOrange does not provide a single cascade delete. IPS MERN will
+              regenerate the NPS Bundle, find known supported resources with FHIR
+              logical IDs, and delete them one by one.
+            </p>
+            <p>
+              Unlike HealthStaq, MedOrange does not require UUID logical IDs, so
+              resources such as <code>Patient/pt1</code> can also be deleted.
+            </p>
+            <p className="mb-0">
+              This does not delete the local IPS MERN record.
+            </p>
+          </>
+        }
+        confirmText="Delete from MedOrange"
+        confirmVariant="warning"
+      />
+
       <IPSResponseToasts
         showPmrAlert={showPmrAlert}
         setShowPmrAlert={setShowPmrAlert}
@@ -398,6 +543,10 @@ export function IPS({ ips, remove, update }) {
         setShowHealthStaqAlert={setShowHealthStaqAlert}
         healthStaqAlertVariant={healthStaqAlertVariant}
         healthStaqMessage={healthStaqMessage}
+        showMedOrangeAlert={showMedOrangeAlert}
+        setShowMedOrangeAlert={setShowMedOrangeAlert}
+        medOrangeAlertVariant={medOrangeAlertVariant}
+        medOrangeMessage={medOrangeMessage}
       />
 
       <IPSEditModal

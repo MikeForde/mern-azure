@@ -218,7 +218,7 @@ function APIGETPage() {
           endpoint += (endpoint.includes('?') ? '&' : '?') + 'narrative=1';
         }
 
-        console.log('Fetching data from:', endpoint);
+        //console.log('Fetching data from:', endpoint);
         try {
           const headers = {};
           if (useCompressionAndEncryption) {

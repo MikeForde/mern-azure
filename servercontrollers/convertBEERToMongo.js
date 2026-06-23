@@ -12,12 +12,12 @@ function convertBEERToMongo(req, res) {
     beerMessage = req.body;
   }
 
-  console.log(beerMessage);
+  //console.log(beerMessage);
 
   try {
     const delimiter = '\n'; // Assuming newline delimiter
     const mongoData = parseBEER(beerMessage, delimiter);
-    console.log('mongoData:', mongoData);
+    //console.log('mongoData:', mongoData);
     res.json(mongoData);
   } catch (error) {
     console.error('Error converting to MongoDB format:', error);

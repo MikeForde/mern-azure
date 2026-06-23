@@ -6,7 +6,7 @@ const { gzipEncode } = require('../compression/gzipUtils');
 async function getIPSDataSplitPOC(req, res) {
   const id = req.params.id;
 
-  console.log("getIPSDataSplitPOC called with ID:", id);
+  //console.log("getIPSDataSplitPOC called with ID:", id);
 
   try {
     const ips = await resolveId(id);

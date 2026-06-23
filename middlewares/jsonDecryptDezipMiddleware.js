@@ -38,11 +38,11 @@ async function jsonDecryptDezipMiddleware(req, res, next) {
 
             // If encrypted, decrypt the data (JSON-based approach)
             if (isEncrypted) {
-                console.log('Incoming data claims to be encrypted. Base64 flag is:', isBase64);
+                //console.log('Incoming data claims to be encrypted. Base64 flag is:', isBase64);
 
                 try {
                     const encryptedPayload = JSON.parse(data.toString('utf8'));
-                    console.log('Parsed Encrypted Payload:', encryptedPayload);
+                    //console.log('Parsed Encrypted Payload:', encryptedPayload);
 
                     // Ensure payload contains necessary fields
                     if (!encryptedPayload.encryptedData || !encryptedPayload.iv) {
@@ -51,7 +51,7 @@ async function jsonDecryptDezipMiddleware(req, res, next) {
 
                     // Decrypt using our existing JSON-based approach in aesUtils
                     data = decrypt(encryptedPayload, isBase64);
-                    console.log('Decrypted Data:', data.toString('utf8'));
+                    //console.log('Decrypted Data:', data.toString('utf8'));
                 } catch (error) {
                     console.error('Decryption failed:', error.message);
                     throw new Error('Failed to decrypt request data.');
@@ -60,9 +60,9 @@ async function jsonDecryptDezipMiddleware(req, res, next) {
 
             // If gzip encoded, decompress the data
             if (isGzip) {
-                console.log('Incoming data claims to be gzip...', data);
+                //console.log('Incoming data claims to be gzip...', data);
                 data = await gzipDecode(data);
-                console.log('Decompressed Data:', data);
+                //console.log('Decompressed Data:', data);
             }
 
             // Attempt to parse as JSON, fallback to plain text

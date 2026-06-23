@@ -13,7 +13,7 @@ async function convertBEERToIPS(req, res) {
     beerMessage = req.body;
   }
 
-  console.log(beerMessage);
+  //console.log(beerMessage);
 
   try {
     const delimiter = '\n'; // Assuming newline delimiter

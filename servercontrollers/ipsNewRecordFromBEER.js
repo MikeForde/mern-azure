@@ -6,7 +6,7 @@ async function addIPSFromBEER(req, res) {
     // Extract IPS Bundle from request body
     const ipsBEER = req.body;
 
-    console.log(ipsBEER);
+   //console.log(ipsBEER);
 
     const delimiter = req.query.delim || 'newline';
 
@@ -14,7 +14,7 @@ async function addIPSFromBEER(req, res) {
     try {
         const ipsRecord = parseBEER(ipsBEER, delimiter);
 
-        console.log(ipsRecord);
+        //console.log(ipsRecord);
 
         // Create a new IPS record using the converted schema
         const result = await upsertIPS(ipsRecord);

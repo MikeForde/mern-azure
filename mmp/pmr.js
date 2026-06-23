@@ -69,10 +69,10 @@ async function fetchActiveMtfCodes() {
 }
 
 router.get('/pmr/mtfs', async (req, res) => {
-  console.log("/pmr/mtfs invoked")
+  //console.log("/pmr/mtfs invoked")
   try {
     const mtfs = await fetchActiveMtfCodes(); 
-    console.log(mtfs);
+    //console.log(mtfs);
     res.json({ mtfs });
   } catch (e) {
     res.status(500).send(`Failed to load MTFs: ${e.message}`);

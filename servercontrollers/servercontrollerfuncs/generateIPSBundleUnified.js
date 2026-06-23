@@ -396,7 +396,7 @@ async function protectIPSBundle(ipsBundle, protectMethod = "none") {
     if (!patientEntry?.resource) return ipsBundle;
     const patient = patientEntry.resource;
 
-    console.log(`Applying protection method: ${protectMethod}`);
+    //console.log(`Applying protection method: ${protectMethod}`);
 
     if (protectMethod === "jwe") {
         try {
@@ -466,7 +466,7 @@ async function protectIPSBundle(ipsBundle, protectMethod = "none") {
         // All other resources still reference Patient/pt1 — that remains valid.
     }
 
-    console.log('Protection applied successfully.');
+    //console.log('Protection applied successfully.');
 
     return ipsBundle;
 }

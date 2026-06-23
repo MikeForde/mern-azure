@@ -121,7 +121,7 @@ function parseBEER(dataPacket, delimiter) {
             currentIndex--;
             // return todays date minus 20 years
             const fakeDate = new Date(new Date().getFullYear() - 20, 0, 1)
-            console.log(`Error parsing date: ${line}. Using fake date: ${fakeDate}`);
+            //console.log(`Error parsing date: ${line}. Using fake date: ${fakeDate}`);
             return fakeDate;
         }
     }

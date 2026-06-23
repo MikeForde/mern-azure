@@ -3,7 +3,7 @@ const { upsertIPS } = require('./servercontrollerfuncs/ipsService');
 
 async function addIPS(req, res) {
   try {
-    console.log("req.body", req.body);
+    //console.log("req.body", req.body);
     const result = await upsertIPS(req.body);
 
     // emit the new/updated record
@@ -20,7 +20,7 @@ async function addIPS(req, res) {
 
 async function addIPSMany(req, res) {
   try {
-    console.log("req.body (many)", req.body);
+    //console.log("req.body (many)", req.body);
     // run all in parallel; if you want bulkWrite for perf, you can swap in a bulk implementation here
     const results = await Promise.all(req.body.map(ipsData => upsertIPS(ipsData)));
 

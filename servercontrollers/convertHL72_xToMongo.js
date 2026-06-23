@@ -10,7 +10,7 @@ function convertHL72_xToMongo(req, res) {
     hl7Message = req.body;
   }
 
-  console.log(hl7Message);
+  //console.log(hl7Message);
 
   // Ensure hl7Message is a valid string
   if (typeof hl7Message !== 'string' || !hl7Message.trim()) {

@@ -30,13 +30,13 @@ function buildHealthStaqTransaction(sourceBundle) {
     delete transactionBundle.total;
 
     transactionBundle.entry = transactionBundle.entry
-        .filter((entry) => {
-            const resourceType = entry?.resource?.resourceType;
+        // .filter((entry) => {
+        //     const resourceType = entry?.resource?.resourceType;
 
-            // HealthStaq owns/creates its own Organization resource in returned summaries.
-            // Do not push IPS MERN Organization resources to HealthStaq.
-            return resourceType !== 'Organization';
-        })
+        //     // HealthStaq owns/creates its own Organization resource in returned summaries.
+        //     // Do not push IPS MERN Organization resources to HealthStaq.
+        //     return resourceType !== 'Organization';
+        // })
         .map(
             (entry, index) => {
                 const resource = entry?.resource;

@@ -3,7 +3,7 @@ const axios = require('axios');
 
 const getORABundleByName = async (req, res) => {
   const { name, givenName } = req.params;
-  console.log('name:', name, 'givenName:', givenName);
+  //console.log('name:', name, 'givenName:', givenName);
 
   try {
     const response = await axios.get(`https://4202xiwc.offroadapps.dev:62444/Fhir/ips/json/${name}/${givenName}`);

@@ -14,6 +14,10 @@ export default function IPSResponseToasts({
   setShowHealthStaqAlert,
   healthStaqAlertVariant,
   healthStaqMessage,
+  showMedOrangeAlert,
+  setShowMedOrangeAlert,
+  medOrangeAlertVariant,
+  medOrangeMessage,
 }) {
   return (
     <ToastContainer
@@ -92,6 +96,32 @@ export default function IPSResponseToasts({
             }}
           >
             {healthStaqMessage}
+          </pre>
+        </Toast.Body>
+      </Toast>
+
+      <Toast
+        show={showMedOrangeAlert}
+        onClose={() => setShowMedOrangeAlert(false)}
+        delay={10000}
+        autohide={false}
+        bg={medOrangeAlertVariant}
+      >
+        <Toast.Header>
+          <strong className="me-auto">MedOrange</strong>
+        </Toast.Header>
+
+        <Toast.Body
+          className={
+            medOrangeAlertVariant === "danger" ||
+              medOrangeAlertVariant === "success" ||
+              medOrangeAlertVariant === "warning"
+              ? "text-white"
+              : ""
+          }
+        >
+          <pre className="mb-0" style={{ whiteSpace: "pre-wrap" }}>
+            {medOrangeMessage}
           </pre>
         </Toast.Body>
       </Toast>

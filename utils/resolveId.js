@@ -13,14 +13,14 @@ const { IPSModel } = require('../models/IPSModel');
  */
 async function resolveId(id) {
     if (isValidUUID(id)) {
-        console.log("Valid UUID, searching by packageUUID");
+        //console.log("Valid UUID, searching by packageUUID");
         return await IPSModel.findOne({ packageUUID: id });
     }
 
-    console.log("Not a valid UUID, searching by packageUUID...");
+    //console.log("Not a valid UUID, searching by packageUUID...");
     const record = await IPSModel.findOne({ packageUUID: id });
     if (!record && isValidObjectId(id)) {
-        console.log("Searching by _id (MongoDB ObjectId)...");
+        //console.log("Searching by _id (MongoDB ObjectId)...");
         return await IPSModel.findById(id);
     }
 

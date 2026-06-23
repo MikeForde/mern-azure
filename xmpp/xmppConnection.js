@@ -131,7 +131,7 @@ async function initXMPP_WebSocket() {
   const port = parseInt(portString || '5222', 10);
 
   if (!(await canReach(hostname, port))) {
-    console.log(`✖  XMPP server ${hostname}:${port} unreachable — skipping.`);
+    //console.log(`✖  XMPP server ${hostname}:${port} unreachable — skipping.`);
     return null;
   }
 
@@ -222,7 +222,7 @@ async function initXMPP_WebSocket() {
       }
 
       if (body) {
-        console.log(`${messageType} from ${from}: ${body}`);
+        //console.log(`${messageType} from ${from}: ${body}`);
 
         try {
           // 2) Check if 'body' is a valid IPS record id

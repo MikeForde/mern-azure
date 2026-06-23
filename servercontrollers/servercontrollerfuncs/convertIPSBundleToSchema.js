@@ -117,7 +117,7 @@ function convertIPSBundleToSchema(ipsBundle) {
     ? safeToISOString(bundle.timestamp)
     : new Date().toISOString();
 
-  console.log('Starting conversion of IPS Bundle to schema...');
+  //console.log('Starting conversion of IPS Bundle to schema...');
 
   let compositionResourceId;
 
@@ -374,7 +374,7 @@ function convertIPSBundleToSchema(ipsBundle) {
       }
 
       case 'allergyintolerance': {
-        console.log('Processing Allergy resource');
+        //console.log('Processing Allergy resource');
 
         let alName = null;
         let alCode = null;
@@ -532,7 +532,7 @@ function convertIPSBundleToSchema(ipsBundle) {
     return med;
   });
 
-  console.log('Conversion complete. Final structured data:');
+  //console.log('Conversion complete. Final structured data:');
 
   return {
     packageUUID,

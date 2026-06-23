@@ -4,10 +4,49 @@ import { Form, Button, DropdownButton, Dropdown } from 'react-bootstrap';
 import { useLoading } from '../contexts/LoadingContext';
 import { PatientContext } from '../PatientContext';
 
-const FHIR_UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const FHIR_UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-const getHealthStaqPatientResourceId = (record) => {
+const FHIR_SUMMARY_TARGETS = {
+  HealthStaq: {
+    label: 'HealthStaq',
+    proxyBase: '/healthstaq',
+    idLabel: 'HealthStaq Patient Resource UUID',
+    idPlaceholder: '3b254934-46b1-43df-b326-3029af408e5e',
+    endpointPlaceholder: '/healthstaq/Patient/<HealthStaq Patient UUID>/$summary',
+    requireUuid: true,
+  },
+  MedOrange: {
+    label: 'MedOrange',
+    proxyBase: '/medorange',
+    idLabel: 'MedOrange Patient Resource ID',
+    idPlaceholder: 'pt1 or MedOrange Patient logical id',
+    endpointPlaceholder: '/medorange/Patient/<MedOrange Patient ID>/$summary',
+    requireUuid: false,
+  },
+};
+
+const getExternalPatientResourceId = (record, target) => {
   if (!record) return '';
+
+  if (target === 'MedOrange') {
+    return (
+      record.patient?.medOrangeId ||
+      record.patient?.medOrangePatientId ||
+      record.patient?.medorangeId ||
+      record.patient?.medorangePatientId ||
+      record.medOrangePatientId ||
+      record.medorangePatientId ||
+      record.patient?.resourceId ||
+      record.patient?.resourceID ||
+      record.patient?.fhirId ||
+      record.patient?.fhirID ||
+      record.patientResourceId ||
+      record.patientId ||
+      record.fhirPatientId ||
+      ''
+    );
+  }
 
   return (
     record.patient?.resourceId ||
@@ -43,7 +82,8 @@ const UnifiedIPSGetPage = () => {
     const baseMap = {
       'IPS SERN': 'https://ips-d2s-uksc-medsnomed-medsno.apps.ocp1.azure.dso.digital.mod.uk/ipsbyname',
       VitalsIQ: 'https://4202xiwc.offroadapps.dev:62444/Fhir/ips/json',
-      HealthStaq: '/healthstaq/Patient/<HealthStaq Patient UUID>/$summary',
+      HealthStaq: FHIR_SUMMARY_TARGETS.HealthStaq.endpointPlaceholder,
+      MedOrange: FHIR_SUMMARY_TARGETS.MedOrange.endpointPlaceholder,
     };
 
     if (isLocalhost) {
@@ -53,29 +93,41 @@ const UnifiedIPSGetPage = () => {
     return baseMap;
   }, [isLocalhost]);
 
-  const [target, setTarget] = useState('HealthStaq');
-  const [endpoint, setEndpoint] = useState(endpointMap['HealthStaq']);
+  const [target, setTarget] = useState('MedOrange');
+  const [endpoint, setEndpoint] = useState(endpointMap['MedOrange']);
 
-  const isHealthStaq = target === 'HealthStaq';
+  const summaryTargetConfig = FHIR_SUMMARY_TARGETS[target] || null;
+  const isFhirSummaryTarget = Boolean(summaryTargetConfig);
 
-  const healthStaqEndpoint = patientResourceId.trim()
-    ? `/healthstaq/Patient/${patientResourceId.trim()}/$summary`
-    : '/healthstaq/Patient/<HealthStaq Patient UUID>/$summary';
+  const summaryEndpoint = summaryTargetConfig
+    ? patientResourceId.trim()
+      ? `${summaryTargetConfig.proxyBase}/Patient/${patientResourceId.trim()}/$summary`
+      : summaryTargetConfig.endpointPlaceholder
+    : '';
 
 
   useEffect(() => {
     if (!selectedPatient) return;
 
-    const resourceId = getHealthStaqPatientResourceId(selectedPatient);
+    const resourceId = getExternalPatientResourceId(selectedPatient, target);
 
     if (resourceId) {
       setPatientResourceId(resourceId);
     }
-  }, [selectedPatient]);
+  }, [selectedPatient, target]);
 
   const handleTargetChange = (selectedTarget) => {
     setTarget(selectedTarget);
     setEndpoint(endpointMap[selectedTarget] || '');
+
+    const resourceId = getExternalPatientResourceId(
+      selectedPatient,
+      selectedTarget
+    );
+
+    if (resourceId) {
+      setPatientResourceId(resourceId);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -83,27 +135,39 @@ const UnifiedIPSGetPage = () => {
     startLoading();
 
     try {
-      if (isHealthStaq) {
+      if (isFhirSummaryTarget) {
         const patientId = patientResourceId.trim();
 
-        if (!FHIR_UUID_REGEX.test(patientId)) {
+        if (!patientId) {
           setError(
-            'HealthStaq fetch requires a valid HealthStaq Patient resource UUID, not a packageUUID or MRN.'
+            `${summaryTargetConfig.label} fetch requires a Patient resource ID.`
           );
           setIpsData(null);
           return;
         }
 
-        const response = await axios.get(
-          `/healthstaq/Patient/${encodeURIComponent(patientId)}/$summary`,
-          {
-            headers: {
-              Accept: 'application/fhir+json',
-            },
-          }
-        );
+        if (
+          summaryTargetConfig.requireUuid &&
+          !FHIR_UUID_REGEX.test(patientId)
+        ) {
+          setError(
+            `${summaryTargetConfig.label} fetch requires a valid Patient resource UUID, not a packageUUID or MRN.`
+          );
+          setIpsData(null);
+          return;
+        }
 
-        setEndpoint(`/healthstaq/Patient/${patientId}/$summary`);
+        const requestPath =
+          `${summaryTargetConfig.proxyBase}/Patient/` +
+          `${encodeURIComponent(patientId)}/$summary`;
+
+        const response = await axios.get(requestPath, {
+          headers: {
+            Accept: 'application/fhir+json',
+          },
+        });
+
+        setEndpoint(requestPath);
         setIpsData(response.data);
         setError(null);
         return;
@@ -150,7 +214,7 @@ const UnifiedIPSGetPage = () => {
       <div className="container">
         <h3>External IPS API - GET (Pull)</h3>
         <Form onSubmit={handleSubmit}>
-          {!isHealthStaq && (
+          {!isFhirSummaryTarget && (
             <>
               <Form.Group controlId="name">
                 <Form.Control
@@ -174,22 +238,23 @@ const UnifiedIPSGetPage = () => {
             </>
           )}
 
-          {isHealthStaq && (
+          {isFhirSummaryTarget && (
             <Form.Group controlId="patientResourceId" className="mb-2">
-              <Form.Label>HealthStaq Patient Resource UUID</Form.Label>
+              <Form.Label>{summaryTargetConfig.idLabel}</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="3b254934-46b1-43df-b326-3029af408e5e"
+                placeholder={summaryTargetConfig.idPlaceholder}
                 value={patientResourceId}
                 onChange={(e) => setPatientResourceId(e.target.value)}
                 required
                 isInvalid={
+                  summaryTargetConfig.requireUuid &&
                   patientResourceId.trim().length > 0 &&
                   !FHIR_UUID_REGEX.test(patientResourceId.trim())
                 }
               />
               <Form.Control.Feedback type="invalid">
-                Enter a valid HealthStaq Patient UUID. This is not the IPS packageUUID.
+                Enter a valid {summaryTargetConfig.label} Patient UUID. This is not the IPS packageUUID.
               </Form.Control.Feedback>
             </Form.Group>
           )}
@@ -217,6 +282,10 @@ const UnifiedIPSGetPage = () => {
 
               <Dropdown.Item eventKey="HealthStaq" active={target === 'HealthStaq'}>
                 HealthStaq
+              </Dropdown.Item>
+
+              <Dropdown.Item eventKey="MedOrange" active={target === 'MedOrange'}>
+                MedOrange
               </Dropdown.Item>
             </DropdownButton>
           </div>
@@ -254,9 +323,9 @@ const UnifiedIPSGetPage = () => {
             <Form.Label>Endpoint</Form.Label>
             <Form.Control
               type="text"
-              value={isHealthStaq ? healthStaqEndpoint : endpoint}
+              value={isFhirSummaryTarget ? summaryEndpoint : endpoint}
               onChange={(e) => setEndpoint(e.target.value)}
-              disabled={isHealthStaq}
+              disabled={isFhirSummaryTarget}
             />
           </Form.Group>
 

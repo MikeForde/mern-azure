@@ -14,13 +14,13 @@ async function addIPSFromBundle(req, res) {
             !ipsBundle.resourceType &&
             Object.keys(ipsBundle).length === 1
         ) {
-            console.log("Converted incoming FHIR XML to IPS JSON");
+            //console.log("Converted incoming FHIR XML to IPS JSON");
             ipsBundle = convertFhirXmlToJson(ipsBundle);
         }
 
         // Convert IPS Bundle to desired schema
         const ipsRecord = convertIPSBundleToSchema(ipsBundle);
-        console.log("Converted IPS record:", ipsRecord);
+        //console.log("Converted IPS record:", ipsRecord);
 
         const result = await upsertIPS(ipsRecord);
 
