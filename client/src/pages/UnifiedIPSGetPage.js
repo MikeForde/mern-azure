@@ -24,10 +24,44 @@ const FHIR_SUMMARY_TARGETS = {
     endpointPlaceholder: '/medorange/Patient/<MedOrange Patient ID>/$summary',
     requireUuid: false,
   },
+  VigiaCC: {
+    label: 'VigiaCC',
+    proxyBase: '/ipsmernvigia',
+    idLabel: 'VigiaCC ID_PATIENT_CLOUD UUID',
+    idPlaceholder: '8bef7902-fbac-42da-94f5-0a8353d0fa7c',
+    endpointPlaceholder:
+      '/ipsmernvigia/fetchvigianps?return=vigia&retainOrganization=true → /patientNPS/<VigiaCC Patient UUID>',
+    requireUuid: true,
+    fetchMode: 'vigiaNps',
+  },
 };
 
 const getExternalPatientResourceId = (record, target) => {
   if (!record) return '';
+
+  if (target === 'VigiaCC') {
+    return (
+      record.patient?.vigiaId ||
+      record.patient?.vigiaPatientId ||
+      record.patient?.vigiaPatientUUID ||
+      record.patient?.vigiaPatientUuid ||
+      record.patient?.idPatientCloud ||
+      record.patient?.ID_PATIENT_CLOUD ||
+      record.vigiaPatientId ||
+      record.vigiaPatientUUID ||
+      record.vigiaPatientUuid ||
+      record.idPatientCloud ||
+      record.ID_PATIENT_CLOUD ||
+      record.patient?.resourceId ||
+      record.patient?.resourceID ||
+      record.patient?.fhirId ||
+      record.patient?.fhirID ||
+      record.patientResourceId ||
+      record.patientId ||
+      record.fhirPatientId ||
+      ''
+    );
+  }
 
   if (target === 'MedOrange') {
     return (
@@ -84,6 +118,7 @@ const UnifiedIPSGetPage = () => {
       VitalsIQ: 'https://4202xiwc.offroadapps.dev:62444/Fhir/ips/json',
       HealthStaq: FHIR_SUMMARY_TARGETS.HealthStaq.endpointPlaceholder,
       MedOrange: FHIR_SUMMARY_TARGETS.MedOrange.endpointPlaceholder,
+      VigiaCC: FHIR_SUMMARY_TARGETS.VigiaCC.endpointPlaceholder,
     };
 
     if (isLocalhost) {
@@ -98,11 +133,16 @@ const UnifiedIPSGetPage = () => {
 
   const summaryTargetConfig = FHIR_SUMMARY_TARGETS[target] || null;
   const isFhirSummaryTarget = Boolean(summaryTargetConfig);
+  const isVigiaTarget = summaryTargetConfig?.fetchMode === 'vigiaNps';
 
   const summaryEndpoint = summaryTargetConfig
-    ? patientResourceId.trim()
-      ? `${summaryTargetConfig.proxyBase}/Patient/${patientResourceId.trim()}/$summary`
-      : summaryTargetConfig.endpointPlaceholder
+    ? isVigiaTarget
+      ? patientResourceId.trim()
+        ? `/ipsmernvigia/fetchvigianps?return=vigia&retainOrganization=true → /patientNPS/${patientResourceId.trim()}`
+        : summaryTargetConfig.endpointPlaceholder
+      : patientResourceId.trim()
+        ? `${summaryTargetConfig.proxyBase}/Patient/${patientResourceId.trim()}/$summary`
+        : summaryTargetConfig.endpointPlaceholder
     : '';
 
 
@@ -154,6 +194,32 @@ const UnifiedIPSGetPage = () => {
             `${summaryTargetConfig.label} fetch requires a valid Patient resource UUID, not a packageUUID or MRN.`
           );
           setIpsData(null);
+          return;
+        }
+
+        if (isVigiaTarget) {
+          const requestPath =
+            '/ipsmernvigia/fetchvigianps?return=vigia&retainOrganization=true';
+
+          const vigiaPath = `/patientNPS/${encodeURIComponent(patientId)}`;
+
+          const response = await axios.post(
+            requestPath,
+            {
+              method: 'GET',
+              path: vigiaPath,
+            },
+            {
+              headers: {
+                Accept: 'application/fhir+json',
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+
+          setEndpoint(`${requestPath} → ${vigiaPath}`);
+          setIpsData(response.data);
+          setError(null);
           return;
         }
 
@@ -286,6 +352,10 @@ const UnifiedIPSGetPage = () => {
 
               <Dropdown.Item eventKey="MedOrange" active={target === 'MedOrange'}>
                 MedOrange
+              </Dropdown.Item>
+
+              <Dropdown.Item eventKey="VigiaCC" active={target === 'VigiaCC'}>
+                VigiaCC
               </Dropdown.Item>
             </DropdownButton>
           </div>

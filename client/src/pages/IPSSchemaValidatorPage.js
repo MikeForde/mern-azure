@@ -825,7 +825,7 @@ const validate = async () => {
 const addAsRecord = async () => {
   setSubmitResult(null)
 
-  const prepared = preparePayload()
+  const prepared = await preparePayload()
   if (!prepared.ok) {
     setSubmitResult({
       ok: false,

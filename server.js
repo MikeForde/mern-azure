@@ -96,6 +96,12 @@ const {
     medOrangeIpsMernRouter,
 } = require('./medorange/medorangeRoutes');
 
+// ───────────── Vigia Combat Care ─────────────────────────────
+const {
+    vigiaRouter,
+    vigiaIpsMernRouter
+} = require('./vigiacc/vigiaCCRoutes');
+
 
 // ───────────── GraphQL Apollo ─────────────────────────────
 const { ApolloServer } = require('@apollo/server');
@@ -277,7 +283,13 @@ api.get('/debug/inbound-ip', (req, res) => {
     });
 });
 
-// Transparent authenticated MedOrange proxy
+// Transparent Vigia proxy
+api.use('/vigia', vigiaRouter);
+
+// IPS MERN-specific Vigia helper operations
+api.use('/ipsmernvigia', vigiaIpsMernRouter);
+
+// Transparent MedOrange proxy
 api.use('/medorange', medOrangeRouter);
 
 // IPS MERN-specific HealthStaq helper operations

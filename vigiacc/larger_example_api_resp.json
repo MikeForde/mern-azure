@@ -1,0 +1,443 @@
+{
+	"resourceType": "Bundle",
+	"id": "fc5ef7bb-f095-4b14-a677-857f7f826bbf",
+	"identifier": {
+		"system": "urn:oid:2.16.724.4.8.10.200.10",
+		"value": "b0e5bc4e-705c-473f-b352-9465a0fcb49d"
+	},
+	"timestamp": "2026-06-24T06:57:59.025Z",
+	"type": "collection",
+	"total": 22,
+	"entry": [
+		{
+			"fullUrl": "urn:uuid:3968d56c-346a-4725-9f52-779da91ebdb4",
+			"resource": {
+				"resourceType": "Patient",
+				"id": "3968d56c-346a-4725-9f52-779da91ebdb4",
+				"identifier": [
+					{
+						"system": "NATO_Id",
+						"value": "b2f9bbc3"
+					},
+					{
+						"system": "National_Id",
+						"value": "2be5fb5c"
+					},
+					{
+						"system": "ID_PATIENT_CLOUD",
+						"value": "8704da78-3723-4a5f-9235-ecffe46b275d"
+					},
+					{
+						"system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+						"value": "VC593716"
+					}
+				],
+				"name": [
+					{
+						"family": "Aaah",
+						"given": [
+							"Big"
+						],
+						"use": "official"
+					}
+				],
+				"gender": "male",
+				"birthDate": "1970-11-10",
+				"address": [
+					{
+						"country": "GBR"
+					}
+				]
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:5c1b50de-43b3-400a-b951-c4e0cf75e75c",
+			"resource": {
+				"resourceType": "Organization",
+				"id": "5c1b50de-43b3-400a-b951-c4e0cf75e75c",
+				"name": "UK DMS"
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f68c6",
+			"resource": {
+				"resourceType": "MedicationRequest",
+				"id": "6a3a77c3c3edfc39986f68c6",
+				"status": "active",
+				"intent": "order",
+				"subject": {
+					"reference": "Patient/3968d56c-346a-4725-9f52-779da91ebdb4"
+				},
+				"medicationReference": {
+					"reference": "Medication/6a3a77c3c3edfc39986f6890",
+					"display": ""
+				},
+				"authoredOn": "1970-01-01T00:00:00.000Z",
+				"dosageInstruction": [
+					{
+						"text": "Unknown"
+					}
+				]
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f6890",
+			"resource": {
+				"resourceType": "Medication",
+				"id": "6a3a77c3c3edfc39986f6890",
+				"code": {
+					"coding": []
+				}
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f68c0",
+			"resource": {
+				"resourceType": "MedicationRequest",
+				"id": "6a3a77c3c3edfc39986f68c0",
+				"status": "active",
+				"intent": "order",
+				"subject": {
+					"reference": "Patient/3968d56c-346a-4725-9f52-779da91ebdb4"
+				},
+				"medicationReference": {
+					"reference": "Medication/6a3a77c3c3edfc39986f688a",
+					"display": "OldMed2 20mg"
+				},
+				"authoredOn": "2023-06-02T00:00:00.000Z",
+				"dosageInstruction": [
+					{
+						"text": "1 TDS"
+					}
+				]
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f688a",
+			"resource": {
+				"resourceType": "Medication",
+				"id": "6a3a77c3c3edfc39986f688a",
+				"code": {
+					"coding": [
+						{
+							"code": "1029384757",
+							"display": "OldMed2 20mg",
+							"system": "http://snomed.info/sct"
+						}
+					]
+				}
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f68ba",
+			"resource": {
+				"resourceType": "MedicationRequest",
+				"id": "6a3a77c3c3edfc39986f68ba",
+				"status": "active",
+				"intent": "order",
+				"subject": {
+					"reference": "Patient/3968d56c-346a-4725-9f52-779da91ebdb4"
+				},
+				"medicationReference": {
+					"reference": "Medication/6a3a77c3c3edfc39986f6884",
+					"display": "OldMed1 500mg"
+				},
+				"authoredOn": "2024-05-01T00:00:00.000Z",
+				"dosageInstruction": [
+					{
+						"text": "1 QDS"
+					}
+				]
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f6884",
+			"resource": {
+				"resourceType": "Medication",
+				"id": "6a3a77c3c3edfc39986f6884",
+				"code": {
+					"coding": [
+						{
+							"code": "1029384756",
+							"display": "OldMed1 500mg",
+							"system": "http://snomed.info/sct"
+						}
+					]
+				}
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f68b4",
+			"resource": {
+				"resourceType": "MedicationRequest",
+				"id": "6a3a77c3c3edfc39986f68b4",
+				"status": "active",
+				"intent": "order",
+				"subject": {
+					"reference": "Patient/3968d56c-346a-4725-9f52-779da91ebdb4"
+				},
+				"medicationReference": {
+					"reference": "Medication/6a3a77c3c3edfc39986f687e",
+					"display": "NewMed1 20mg"
+				},
+				"authoredOn": "2024-06-02T16:11:00.000Z",
+				"dosageInstruction": [
+					{
+						"text": "Stat"
+					}
+				]
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f687e",
+			"resource": {
+				"resourceType": "Medication",
+				"id": "6a3a77c3c3edfc39986f687e",
+				"code": {
+					"coding": [
+						{
+							"code": "487561903",
+							"display": "NewMed1 20mg",
+							"system": "http://snomed.info/sct"
+						}
+					]
+				}
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f68ae",
+			"resource": {
+				"resourceType": "MedicationRequest",
+				"id": "6a3a77c3c3edfc39986f68ae",
+				"status": "active",
+				"intent": "order",
+				"subject": {
+					"reference": "Patient/3968d56c-346a-4725-9f52-779da91ebdb4"
+				},
+				"medicationReference": {
+					"reference": "Medication/6a3a77c3c3edfc39986f6878",
+					"display": "NewMed1 20mg"
+				},
+				"authoredOn": "2024-06-02T16:09:00.000Z",
+				"dosageInstruction": [
+					{
+						"text": "Stat"
+					}
+				]
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f6878",
+			"resource": {
+				"resourceType": "Medication",
+				"id": "6a3a77c3c3edfc39986f6878",
+				"code": {
+					"coding": [
+						{
+							"code": "487561903",
+							"display": "NewMed1 20mg",
+							"system": "http://snomed.info/sct"
+						}
+					]
+				}
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f68a8",
+			"resource": {
+				"resourceType": "MedicationRequest",
+				"id": "6a3a77c3c3edfc39986f68a8",
+				"status": "active",
+				"intent": "order",
+				"subject": {
+					"reference": "Patient/3968d56c-346a-4725-9f52-779da91ebdb4"
+				},
+				"medicationReference": {
+					"reference": "Medication/6a3a77c3c3edfc39986f6872",
+					"display": "NewMed1 10mg"
+				},
+				"authoredOn": "2024-06-02T14:26:00.000Z",
+				"dosageInstruction": [
+					{
+						"text": "Stat"
+					}
+				]
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f6872",
+			"resource": {
+				"resourceType": "Medication",
+				"id": "6a3a77c3c3edfc39986f6872",
+				"code": {
+					"coding": [
+						{
+							"code": "487561902",
+							"display": "NewMed1 10mg",
+							"system": "http://snomed.info/sct"
+						}
+					]
+				}
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f68a2",
+			"resource": {
+				"resourceType": "MedicationRequest",
+				"id": "6a3a77c3c3edfc39986f68a2",
+				"status": "active",
+				"intent": "order",
+				"subject": {
+					"reference": "Patient/3968d56c-346a-4725-9f52-779da91ebdb4"
+				},
+				"medicationReference": {
+					"reference": "Medication/6a3a77c3c3edfc39986f686c",
+					"display": "NewMed1 10mg"
+				},
+				"authoredOn": "2024-06-02T14:05:00.000Z",
+				"dosageInstruction": [
+					{
+						"text": "Stat"
+					}
+				]
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f686c",
+			"resource": {
+				"resourceType": "Medication",
+				"id": "6a3a77c3c3edfc39986f686c",
+				"code": {
+					"coding": [
+						{
+							"code": "487561902",
+							"display": "NewMed1 10mg",
+							"system": "http://snomed.info/sct"
+						}
+					]
+				}
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f689c",
+			"resource": {
+				"resourceType": "MedicationRequest",
+				"id": "6a3a77c3c3edfc39986f689c",
+				"status": "active",
+				"intent": "order",
+				"subject": {
+					"reference": "Patient/3968d56c-346a-4725-9f52-779da91ebdb4"
+				},
+				"medicationReference": {
+					"reference": "Medication/6a3a77c3c3edfc39986f6866",
+					"display": "OldMed2 20mg"
+				},
+				"authoredOn": "2023-06-02T13:09:00.000Z",
+				"dosageInstruction": [
+					{
+						"text": "1 TDS"
+					}
+				]
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f6866",
+			"resource": {
+				"resourceType": "Medication",
+				"id": "6a3a77c3c3edfc39986f6866",
+				"code": {
+					"coding": [
+						{
+							"code": "1029384757",
+							"display": "OldMed2 20mg",
+							"system": "http://snomed.info/sct"
+						}
+					]
+				}
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f6896",
+			"resource": {
+				"resourceType": "MedicationRequest",
+				"id": "6a3a77c3c3edfc39986f6896",
+				"status": "active",
+				"intent": "order",
+				"subject": {
+					"reference": "Patient/3968d56c-346a-4725-9f52-779da91ebdb4"
+				},
+				"medicationReference": {
+					"reference": "Medication/6a3a77c3c3edfc39986f6860",
+					"display": "OldMed1 500mg"
+				},
+				"authoredOn": "2024-05-01T13:08:00.000Z",
+				"dosageInstruction": [
+					{
+						"text": "1 QDS"
+					}
+				]
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f6860",
+			"resource": {
+				"resourceType": "Medication",
+				"id": "6a3a77c3c3edfc39986f6860",
+				"code": {
+					"coding": [
+						{
+							"code": "1029384756",
+							"display": "OldMed1 500mg",
+							"system": "http://snomed.info/sct"
+						}
+					]
+				}
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f6849",
+			"resource": {
+				"resourceType": "Condition",
+				"id": "6a3a77c3c3edfc39986f6849",
+				"subject": {
+					"reference": "Patient/3968d56c-346a-4725-9f52-779da91ebdb4"
+				},
+				"code": {
+					"coding": [
+						{
+							"code": "900183746",
+							"display": "Asthma",
+							"system": "http://snomed.info/sct"
+						}
+					]
+				},
+				"onsetDateTime": "2024-02-01T00:00:00.000Z"
+			}
+		},
+		{
+			"fullUrl": "urn:uuid:6a3a77c3c3edfc39986f684e",
+			"resource": {
+				"resourceType": "Condition",
+				"id": "6a3a77c3c3edfc39986f684e",
+				"subject": {
+					"reference": "Patient/3968d56c-346a-4725-9f52-779da91ebdb4"
+				},
+				"code": {
+					"coding": [
+						{
+							"code": "5612908473",
+							"display": "Knee Pain",
+							"system": "http://snomed.info/sct"
+						}
+					]
+				},
+				"onsetDateTime": "2024-09-22T14:29:27.000Z"
+			}
+		}
+	],
+	"organization": {
+		"resourceType": "Organization",
+		"id": "5c1b50de-43b3-400a-b951-c4e0cf75e75c",
+		"name": "UK DMS"
+	}
+}

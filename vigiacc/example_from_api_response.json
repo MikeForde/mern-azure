@@ -1,0 +1,67 @@
+{
+  "resourceType": "Bundle",
+  "id": "2d2c3e86-1ac8-4fbd-b758-3d8914b33581",
+  "identifier": {
+    "system": "urn:oid:2.16.724.4.8.10.200.10",
+    "value": "9b9a97ad-3d4c-4014-9b07-3a70553100cf"
+  },
+  "timestamp": "2026-06-23T11:29:58.470Z",
+  "type": "collection",
+  "total": 2,
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:10d995fc-3027-4ea6-ba8e-a1a41a184880",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "10d995fc-3027-4ea6-ba8e-a1a41a184880",
+        "identifier": [
+          {
+            "system": "NATO_Id",
+            "value": "a86fb457"
+          },
+          {
+            "system": "National_Id",
+            "value": "b63fd48a"
+          },
+          {
+            "system": "ID_PATIENT_CLOUD",
+            "value": "8bef7902-fbac-42da-94f5-0a8353d0fa7c"
+          },
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+            "value": "VC455443"
+          }
+        ],
+        "name": [
+          {
+            "family": "Forde",
+            "given": [
+              "Mike"
+            ],
+            "use": "official"
+          }
+        ],
+        "gender": "male",
+        "birthDate": "1972-11-02",
+        "address": [
+          {
+            "country": "GBR"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:acbab5b4-90d9-4ab3-8c7c-77db6695c3dc",
+      "resource": {
+        "resourceType": "Organization",
+        "id": "acbab5b4-90d9-4ab3-8c7c-77db6695c3dc",
+        "name": "GBR"
+      }
+    }
+  ],
+  "organization": {
+    "resourceType": "Organization",
+    "id": "acbab5b4-90d9-4ab3-8c7c-77db6695c3dc",
+    "name": "GBR"
+  }
+}
