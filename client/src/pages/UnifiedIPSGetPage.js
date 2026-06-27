@@ -128,8 +128,8 @@ const UnifiedIPSGetPage = () => {
     return baseMap;
   }, [isLocalhost]);
 
-  const [target, setTarget] = useState('MedOrange');
-  const [endpoint, setEndpoint] = useState(endpointMap['MedOrange']);
+  const [target, setTarget] = useState('VigiaCC');
+  const [endpoint, setEndpoint] = useState(endpointMap['VigiaCC']);
 
   const summaryTargetConfig = FHIR_SUMMARY_TARGETS[target] || null;
   const isFhirSummaryTarget = Boolean(summaryTargetConfig);
