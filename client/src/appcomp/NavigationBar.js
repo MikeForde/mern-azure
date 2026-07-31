@@ -165,6 +165,10 @@ return (
                 Validator: NPS
               </NavDropdown.Item>
 
+              <NavDropdown.Item as={Link} to="/schemavalidator?mode=npsprofile" onClick={() => handleNavItemSelect(false)}>
+                Validator: NPS Profile
+              </NavDropdown.Item>
+
               <NavDropdown.Item as={Link} to="/schemavalidator?mode=npsnfc" onClick={() => handleNavItemSelect(false)}>
                 Validator: NPS NFC
               </NavDropdown.Item>

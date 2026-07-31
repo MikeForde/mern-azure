@@ -57,7 +57,7 @@ export default function IPSchemaValidator() {
   const labels =
     mode === MODE_NPS_PROFILE
       ? {
-        title: 'NPS Profile Validator',
+        title: 'NPS Validator - against NPS Implementation FHIR Profile',
         helper: 'Paste your NPS Bundle here for NPS profile validation plus generic FHIR R4 validation.',
         schemaLabel: 'NPS Profile',
         resultValidKey: 'validProfile',
@@ -65,7 +65,7 @@ export default function IPSchemaValidator() {
       }
       : mode === MODE_NHS_SCR
       ? {
-        title: 'NHS SCR JSON Validator',
+        title: 'NHS SCR Validator',
         helper: 'Paste your NHS SCR IPS Bundle here JSON or FHIR XML (you can also paste a single resource e.g. Patient)',
         schemaLabel: 'NHS SCR',
         resultValidKey: 'validNhsScr',
@@ -73,7 +73,7 @@ export default function IPSchemaValidator() {
       }
       : mode === MODE_EPS
         ? {
-          title: 'EPS JSON Validator',
+          title: 'EPS Validator',
           helper: 'Paste your EPS Bundle here JSON or FHIR XML(you can also paste a single resource e.g. Patient)',
           schemaLabel: 'EPS',
           resultValidKey: 'validEps',
@@ -81,14 +81,14 @@ export default function IPSchemaValidator() {
         }
         : mode === MODE_NPS_NFC
           ? {
-            title: 'NPS NFC JSON Validator',
+            title: 'NPS NFC Validator',
             helper: 'Paste the Read Only (historical) and Read/Write (operational) NPS bundles here. They will be combined into one bundle before validation.',
             schemaLabel: 'NPS NFC',
             resultValidKey: 'validNps',
             resultErrorsKey: 'errorsNps'
           }
           : {
-            title: 'NPS JSON Validator',
+            title: 'NPS Validator - against NPS Schema',
             helper: 'Paste your NPS Bundle here (note, you can also paste a single resource e.g. Patient)',
             schemaLabel: 'NPS',
             resultValidKey: 'validNps',
