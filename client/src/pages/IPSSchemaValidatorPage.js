@@ -6,6 +6,7 @@ import { PatientContext } from '../PatientContext'
 const MAX_RESTORE_CHARS = 300000
 const MAX_VISIBLE_ERRORS = 100
 const MODE_NPS = 'NPS'
+const MODE_NPS_PROFILE = 'NPSPROFILE'
 const MODE_NPS_NFC = 'NPSNFC'
 const MODE_NHS_SCR = 'NHSSCR'
 const MODE_EPS = 'EPS'
@@ -13,6 +14,7 @@ const SPLIT_PART_RO = 'RO'
 const SPLIT_PART_RW = 'RW'
 const MODE_TO_QUERY = {
   [MODE_NPS]: 'nps',
+  [MODE_NPS_PROFILE]: 'npsprofile',
   [MODE_NPS_NFC]: 'npsnfc',
   [MODE_NHS_SCR]: 'nhsscr',
   [MODE_EPS]: 'eps'
@@ -44,14 +46,24 @@ export default function IPSchemaValidator() {
   const requestedMode = getModeFromQuery(searchParams.get('mode'))
 
   const endpoint =
-    mode === MODE_NHS_SCR
+    mode === MODE_NPS_PROFILE
+      ? '/npsProfileVal'
+      : mode === MODE_NHS_SCR
       ? '/ipsNhsScrVal'
       : mode === MODE_EPS
         ? '/epsVal'
         : '/ipsUniVal'
 
   const labels =
-    mode === MODE_NHS_SCR
+    mode === MODE_NPS_PROFILE
+      ? {
+        title: 'NPS Profile Validator',
+        helper: 'Paste your NPS Bundle here for NPS profile validation plus generic FHIR R4 validation.',
+        schemaLabel: 'NPS Profile',
+        resultValidKey: 'validProfile',
+        resultErrorsKey: 'errorsProfile'
+      }
+      : mode === MODE_NHS_SCR
       ? {
         title: 'NHS SCR JSON Validator',
         helper: 'Paste your NHS SCR IPS Bundle here JSON or FHIR XML (you can also paste a single resource e.g. Patient)',
@@ -98,6 +110,8 @@ export default function IPSchemaValidator() {
     warningsNps: body?.warningsNps || body?.warnings || [],
     validNps: false,
     errorsNps: body?.errorsNps || body?.errors || [],
+    validProfile: body?.validProfile || false,
+    errorsProfile: body?.errorsProfile || body?.errors || [],
     validNhsScr: false,
     errorsNhsScr: body?.errorsNhsScr || body?.errors || [],
     validEps: false,
@@ -120,6 +134,9 @@ export default function IPSchemaValidator() {
 
     validNps: schemaErrors.length === 0,
     errorsNps: schemaErrors,
+
+    validProfile: schemaErrors.length === 0,
+    errorsProfile: schemaErrors,
 
     validNhsScr: schemaErrors.length === 0,
     errorsNhsScr: schemaErrors,
@@ -572,7 +589,7 @@ useEffect(() => {
     const savedPayload = sessionStorage.getItem('ips:lastPayload')
     const savedMode = sessionStorage.getItem('ips:lastMode')
 
-    if (savedMode === MODE_NPS || savedMode === MODE_NPS_NFC || savedMode === MODE_NHS_SCR || savedMode === MODE_EPS) {
+    if (savedMode === MODE_NPS || savedMode === MODE_NPS_PROFILE || savedMode === MODE_NPS_NFC || savedMode === MODE_NHS_SCR || savedMode === MODE_EPS) {
       setMode(savedMode)
       setResult(null)
     }
@@ -915,6 +932,13 @@ return (
             onClick={() => setModeAndReset(MODE_NPS)}
           >
             NPS
+          </Button>
+
+          <Button
+            variant={mode === MODE_NPS_PROFILE ? 'primary' : 'outline-primary'}
+            onClick={() => setModeAndReset(MODE_NPS_PROFILE)}
+          >
+            NPS Profile
           </Button>
 
           <Button

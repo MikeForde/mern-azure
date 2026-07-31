@@ -58,6 +58,7 @@ const { convertHL72_xToIPS } = require("./servercontrollers/convertHL72_xToIPS")
 const ipsUniValRouter = require('./schema/ipsUniVal');
 const ipsNhsScrValRouter = require('./schema/ipsNhsScrVal');
 const epsValRouter = require('./schema/epsVal');
+const npsProfileValRouter = require('./schema/npsprofileVal');
 
 // ----- Middleware ---------
 const binaryDecryptMiddleware = require('./middlewares/binaryDecryptMiddleware');
@@ -230,6 +231,7 @@ api.post('/test', (req, res) => {
 // Schema validation endpoint
 api.use('/ipsUniVal', ipsUniValRouter);
 api.use('/npsVal', ipsUniValRouter);
+api.use('/npsProfileVal', npsProfileValRouter);
 api.use('/ipsNhsScrVal', ipsNhsScrValRouter);
 api.use('/epsVal', epsValRouter);
 
