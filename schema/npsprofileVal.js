@@ -306,6 +306,12 @@ function normalizeTargetProfiles(typeList = []) {
     .map(profileUrl => String(profileUrl).split('|')[0]);
 }
 
+function normalizeTypeProfiles(typeList = []) {
+  return typeList
+    .flatMap(type => asArray(type.profile))
+    .map(profileUrl => String(profileUrl).split('|')[0]);
+}
+
 function parseCanonicalTail(canonical) {
   const bare = String(canonical || '').split('|')[0];
   const parts = bare.split('/').filter(Boolean);
@@ -433,21 +439,89 @@ function validateReferenceTargets(resource, element, pathPrefix, bundleIndex, er
   });
 }
 
-function validateAgainstProfile(resource, expectedProfile, pathPrefix, bundleIndex) {
+function getProfileRootType(expectedProfile, instance) {
+  if (expectedProfile?.type) return expectedProfile.type;
+  if (instance && typeof instance === 'object' && typeof instance.resourceType === 'string') {
+    return instance.resourceType;
+  }
+
+  const firstPath = asArray(expectedProfile?.snapshot?.element)
+    .map(element => element?.path)
+    .find(value => typeof value === 'string' && value);
+
+  return firstPath ? String(firstPath).split('.')[0] : null;
+}
+
+function validateNestedTypeProfiles(instance, expectedProfile, pathPrefix, bundleIndex, errors, warnings, profileTrail) {
+  const snapshotElements = asArray(expectedProfile?.snapshot?.element)
+    .filter(element => typeof element.path === 'string')
+    .filter(element => !element.sliceName)
+    .filter(element => !String(element.id || '').includes(':'));
+
+  snapshotElements.forEach(element => {
+    const nestedProfileUrls = normalizeTypeProfiles(element.type);
+    if (nestedProfileUrls.length === 0) return;
+
+    const pathParts = String(element.path || '').split('.');
+    if (pathParts.length <= 1) return;
+
+    const valuesWithPaths = getContainerNodesWithPaths(instance, pathParts.slice(1), pathPrefix, element.type || []);
+    valuesWithPaths.forEach(({ value, path: valuePath }) => {
+      if (!value || typeof value !== 'object') return;
+
+      nestedProfileUrls.forEach(profileUrl => {
+        if (profileTrail.has(profileUrl)) return;
+
+        const nestedProfile = profiles.byCanonical.get(profileUrl);
+        if (!nestedProfile) {
+          warnings.push({
+            path: valuePath,
+            message: `Referenced datatype profile is not available: ${profileUrl}`
+          });
+          return;
+        }
+
+        const nestedResult = validateAgainstProfile(
+          value,
+          nestedProfile,
+          valuePath,
+          bundleIndex,
+          new Set([...profileTrail, profileUrl])
+        );
+
+        errors.push(...nestedResult.errors);
+        warnings.push(...nestedResult.warnings);
+      });
+    });
+  });
+}
+
+function validateAgainstProfile(instance, expectedProfile, pathPrefix, bundleIndex, profileTrail = new Set()) {
   const errors = [];
   const warnings = [];
+  const rootType = getProfileRootType(expectedProfile, instance);
+
+  if (!rootType) {
+    warnings.push({
+      path: pathPrefix || '',
+      message: 'Could not determine profile root type for validation'
+    });
+    return { errors, warnings };
+  }
 
   const snapshotElements = asArray(expectedProfile?.snapshot?.element)
     .filter(element => typeof element.path === 'string')
     .filter(element => !element.sliceName)
     .filter(element => !String(element.id || '').includes(':'))
-    .filter(element => element.path.startsWith(`${resource.resourceType}.`));
+    .filter(element => element.path.startsWith(`${rootType}.`));
 
   snapshotElements.forEach(element => {
-    validateElementCardinality(resource, element, pathPrefix, errors);
-    validateFixedValue(resource, element, pathPrefix, errors);
-    validateReferenceTargets(resource, element, pathPrefix, bundleIndex, errors);
+    validateElementCardinality(instance, element, pathPrefix, errors);
+    validateFixedValue(instance, element, pathPrefix, errors);
+    validateReferenceTargets(instance, element, pathPrefix, bundleIndex, errors);
   });
+
+  validateNestedTypeProfiles(instance, expectedProfile, pathPrefix, bundleIndex, errors, warnings, profileTrail);
 
   return { errors, warnings };
 }
