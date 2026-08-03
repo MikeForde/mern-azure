@@ -201,7 +201,7 @@ function APIGETPage() {
         }
 
         // add protect flag for ipsunified only
-        if (mode === 'ipsunified') {
+        if (mode === 'ipsunified' || mode === 'npsprofile') {
           if (useFieldEncrypt) {
             endpoint += (endpoint.includes('?') ? '&' : '?') + 'protect=1';
           } else if (useIdOmit) {
@@ -319,7 +319,7 @@ function APIGETPage() {
     // 4) Suffix for GE
     const ikSuffix = useIncludeKey && useCompressionAndEncryption ? '_ik' : '';
     const ceSuffix = useCompressionAndEncryption ? '_ce' : '';
-    const pmSuffix = mode === 'ipsunified' ? useFieldEncrypt ? '_jwefld' : (useIdOmit ? '_omit' : '') : '';
+    const pmSuffix = (mode === 'ipsunified' || mode === 'npsprofile') ? useFieldEncrypt ? '_jwefld' : (useIdOmit ? '_omit' : '') : '';
     const narSuffix =
       ((mode === 'ips' && useIpsNarrative) ||
         (mode === 'ipsnhsscr' && useIpsNhsscrNarrative) || (mode === 'ipseps' && useIpsEpsNarrative))
@@ -412,7 +412,10 @@ function APIGETPage() {
         setModeText('NPS Legacy JSON Bundle - /ipslegacy/:id');
         break;
       case 'ipsunified':
-        setModeText('NPS JSON Bundle - /nps/:id');
+        setModeText('NPS NFC Optimised JSON Bundle - /nps/:id');
+        break;
+      case 'npsprofile':
+        setModeText('NPS FHIR Server Compliant JSON Bundle - /npsprofile/:id');
         break;
       case 'ipsmongo':
         setModeText('IPS NoSQL - /ipsmongo/:id');
@@ -564,10 +567,10 @@ function APIGETPage() {
 
   // ---------- On-page validation helpers ----------
   const isJsonModeForValidation =
-    (mode === 'ipsunified' || mode === 'ipsnhsscr' || mode === 'ipseps') &&
+    (mode === 'ipsunified' || mode === 'ipsnhsscr' || mode === 'ipseps' || mode === 'npsprofile') &&
     !useCompressionAndEncryption; // avoid validating compressed/encrypted wrapper JSON
 
-  const validatorEndpoint = mode === 'ipseps' ? '/epsVal' : (mode === 'ipsnhsscr' ? '/ipsNhsScrVal' : '/npsVal');
+  const validatorEndpoint = mode === 'ipseps' ? '/epsVal' : (mode === 'ipsnhsscr' ? '/ipsNhsScrVal' : (mode === 'npsprofile' ? '/npsProfileVal' : '/npsVal'));
 
   useEffect(() => {
     let cancelled = false;
@@ -653,7 +656,7 @@ function APIGETPage() {
         }));
         sessionStorage.setItem('ips:lastMode', 'NPSNFC');
       } else {
-        const validatorMode = mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHSSCR' : 'NPS');
+        const validatorMode = mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHSSCR' : (mode === 'npsprofile' ? 'NPSPROFILE' : 'NPS') );
         sessionStorage.setItem('ips:lastPayload', data || '');
         sessionStorage.setItem('ips:lastMode', validatorMode);
       }
@@ -718,7 +721,7 @@ function APIGETPage() {
                   size="sm"
                   variant="secondary"
                 >
-                  <Dropdown.Item eventKey="ipsunified">NPS JSON Bundle - /nps/:id</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipsunified">NPS NFC Optimised JSON Bundle - /nps/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="npsprofile">NPS FHIR Server Compliant JSON Bundle - /npsprofile/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipsnhsscr">NHS SCR IPS JSON Bundle - /ipsnhsscr/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipseps">EPS JSON Bundle - /ipseps/:id</Dropdown.Item>
@@ -765,7 +768,7 @@ function APIGETPage() {
                   type="checkbox"
                   id="fldEnc"
                   label="Field-Level Id Encrypt"
-                  disabled={mode !== 'ipsunified'}
+                  disabled={mode !== 'ipsunified' && mode !== 'npsprofile'}
                   checked={useFieldEncrypt}
                   onChange={(e) => {
                     const v = e.target.checked;
@@ -780,7 +783,7 @@ function APIGETPage() {
                   type="checkbox"
                   id="idOmit"
                   label="Id Omit"
-                  disabled={mode !== 'ipsunified'}
+                  disabled={mode !== 'ipsunified' && mode !== 'npsprofile'}
                   checked={useIdOmit}
                   onChange={(e) => {
                     const v = e.target.checked;
@@ -932,7 +935,7 @@ function APIGETPage() {
             )}
 
             {/* ---------- On-page validation panel ---------- */}
-            {(mode === 'ipsunified' || mode === 'ipsnhsscr' || mode === 'ipseps') && (
+            {(mode === 'ipsunified' || mode === 'ipsnhsscr' || mode === 'ipseps' || mode === 'npsprofile') && (
               <div className="mt-2">
                 {useCompressionAndEncryption ? (
                   <Alert variant="secondary" className="mb-2">
@@ -940,7 +943,7 @@ function APIGETPage() {
                   </Alert>
                 ) : valLoading ? (
                   <Alert variant="secondary" className="mb-2">
-                    Validating ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : (showNpsNfcSplitView ? 'NPS NFC' : 'NPS'))})...
+                    Validating ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : (mode === 'npsprofile' ? 'NPS Profile' : 'NPS'))})...
                   </Alert>
                 ) : valError ? (
                   <Alert variant="warning" className="mb-2">
@@ -950,7 +953,7 @@ function APIGETPage() {
                   <Alert variant={valResult.valid ? "success" : "danger"} className="mb-2">
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                       <div>
-                        <strong>Validation ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : (showNpsNfcSplitView ? 'NPS NFC' : 'NPS'))}):</strong>
+                        <strong>Validation ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : (mode === 'npsprofile' ? 'NPS Profile' : 'NPS'))}):</strong>
                         {valResult.valid ? "✅ Valid" : "❌ Invalid"}
                         {!!valResult.errors?.length && (
                           <> — {valResult.errors.length} error(s)</>
@@ -964,7 +967,7 @@ function APIGETPage() {
                           onClick={openValidatorPage}
                           disabled={!data}
                         >
-                          Go to Validator ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : (showNpsNfcSplitView ? 'NPS NFC' : 'NPS'))})
+                          Go to Validator ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : (mode === 'npsprofile' ? 'NPS Profile' : 'NPS'))})
                         </Button>
 
                         {!valResult.valid && (
@@ -1017,7 +1020,7 @@ function APIGETPage() {
               </div>
             )}
 
-            {(mode === 'ips' || mode === 'ipsnhsscr' || mode === 'ipseps') && (
+            {(mode === 'ips' || mode === 'ipsnhsscr' || mode === 'ipseps' || mode === 'npsprofile') && (
               <div className="col-auto">
                 <Button
                   variant="primary"
