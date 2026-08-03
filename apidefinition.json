@@ -650,6 +650,48 @@
         }
       }
     },
+    "/npsProfileVal": {
+      "post": {
+        "tags": [
+          "Schema"
+        ],
+        "summary": "Validate NPS Profile FHIR JSON against profile rules",
+        "description": "Validates a pasted FHIR JSON payload (Bundle or single resource) against the NPS Profile rules and against the global FHIR R4 schema.",
+        "requestBody": {
+          "description": "FHIR JSON payload (Bundle or single resource).",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation report (NPS Profile validation + FHIR R4 structural validation).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/valschemas/NpsProfileValidationReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/valschemas/NpsProfileValidationReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/ipsNhsScrVal": {
       "post": {
         "tags": [
@@ -1314,6 +1356,56 @@
           },
           "404": {
             "description": "NPS record not found."
+          }
+        }
+      }
+    },
+    "/npsprofile/{id}": {
+      "get": {
+        "tags": [
+          "NPS"
+        ],
+        "summary": "Retrieve IPS record in NPS Profile format by ID",
+        "description": "Retrieve IPS record in NPS Profile format by ID (FHIR JSON). Optional protection can be applied via the protect query parameter.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "protect",
+            "in": "query",
+            "required": false,
+            "description": "Protection method to apply to identifiers. 0 = none, 1 = field-level encryption (JWE), 2 = omit identifiers.",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                0,
+                1,
+                2
+              ],
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "NPS Profile record in FHIR JSON format.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "FHIR Bundle (NPS Profile)."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NPS Profile record not found."
           }
         }
       }
@@ -2194,6 +2286,42 @@
             "required": [
               "validNhsScr",
               "errorsNhsScr",
+              "validFhirR4",
+              "errorsFhirR4"
+            ]
+          }
+        ]
+      },
+      "NpsProfileValidationReport": {
+        "allOf": [
+          {
+            "$ref": "#/components/valschemas/BaseValidationReport"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "validProfile": {
+                "type": "boolean"
+              },
+              "errorsProfile": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/valschemas/ValidationIssue"
+                }
+              },
+              "validFhirR4": {
+                "type": "boolean"
+              },
+              "errorsFhirR4": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/valschemas/ValidationIssue"
+                }
+              }
+            },
+            "required": [
+              "validProfile",
+              "errorsProfile",
               "validFhirR4",
               "errorsFhirR4"
             ]

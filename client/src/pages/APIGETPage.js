@@ -142,6 +142,20 @@ function getBundleDateOptions(bundle) {
     }));
 }
 
+function uint8ToBase64(u8) {
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let i = 0; i < u8.length; i += chunkSize) {
+    binary += String.fromCharCode(...u8.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
+}
+
+function gzipToBase64(str) {
+  const gz = pako.gzip(str); // Uint8Array
+  return uint8ToBase64(gz);
+}
+
 function APIGETPage() {
   const { selectedPatients, selectedPatient, setSelectedPatient } = useContext(PatientContext);
   const { startLoading, stopLoading } = useLoading();
@@ -151,6 +165,7 @@ function APIGETPage() {
   const [showNotification, setShowNotification] = useState(false);
   const [responseSize, setResponseSize] = useState(0);
   const [useCompressionAndEncryption, setUseCompressionAndEncryption] = useState(false);
+  const [useCompressionOnly, setUseCompressionOnly] = useState(false);
   const [useIncludeKey, setUseIncludeKey] = useState(false);
   // Toast state
   const [showToast, setShowToast] = useState(false);
@@ -235,6 +250,14 @@ function APIGETPage() {
           if (useCompressionAndEncryption) {
             setResponseSize(JSON.stringify(response.data).length);
             responseData = JSON.stringify(response.data, null, 2);
+          } else if (useCompressionOnly) {
+            const uncompressedText =
+              typeof response.data === 'string'
+                ? response.data
+                : JSON.stringify(response.data);
+
+            responseData = gzipToBase64(uncompressedText);
+            setResponseSize(responseData.length);
           } else if (mode === 'ipsbasic' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim' || mode === 'ipshl72x' || mode === 'ipsplaintext') {
             responseData = response.data;
             setResponseSize(responseData.length);
@@ -262,6 +285,7 @@ function APIGETPage() {
     selectedPatient,
     mode,
     useCompressionAndEncryption,
+    useCompressionOnly,
     stopLoading,
     startLoading,
     useIncludeKey,
@@ -339,7 +363,7 @@ function APIGETPage() {
     window.URL.revokeObjectURL(url);
   };
 
-    const handleDownloadNpsNfcSplitData = () => {
+  const handleDownloadNpsNfcSplitData = () => {
     if (!selectedPatient || !npsNfcSplitData) return;
 
     const today = new Date();
@@ -656,7 +680,7 @@ function APIGETPage() {
         }));
         sessionStorage.setItem('ips:lastMode', 'NPSNFC');
       } else {
-        const validatorMode = mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHSSCR' : (mode === 'npsprofile' ? 'NPSPROFILE' : 'NPS') );
+        const validatorMode = mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHSSCR' : (mode === 'npsprofile' ? 'NPSPROFILE' : 'NPS'));
         sessionStorage.setItem('ips:lastPayload', data || '');
         sessionStorage.setItem('ips:lastMode', validatorMode);
       }
@@ -743,12 +767,34 @@ function APIGETPage() {
               <div className="col-auto">
                 <Form.Check
                   type="checkbox"
+                  id="compressionOnly"
+                  label="Gzip only (no encryption)"
+                  checked={useCompressionOnly}
+                  onChange={(e) => {
+                    const v = e.target.checked;
+                    setUseCompressionOnly(v);
+                    if (v) {
+                      setUseCompressionAndEncryption(false);
+                      setUseIncludeKey(false);
+                    }
+                  }}
+                />
+              </div>
+
+
+              <div className="col-auto">
+                <Form.Check
+                  type="checkbox"
                   id="compressionEncryption"
                   label="Gzip + Encrypt (aes256 base64)"
                   checked={useCompressionAndEncryption}
                   onChange={(e) => {
                     const v = e.target.checked;
                     setUseCompressionAndEncryption(v);
+                    if (v) {
+                      setUseCompressionOnly(false);
+                      setUseIncludeKey(false);
+                    }
                   }}
                 />
               </div>
@@ -885,8 +931,8 @@ function APIGETPage() {
                     {npsNfcCutoff === NPS_NFC_EMPTY_RW_OPTION
                       ? 'RO contains all resources; RW contains no entries.'
                       : npsNfcCutoff
-                      ? `RO contains resources before ${npsNfcCutoff}; RW contains resources on and after ${npsNfcCutoff}.`
-                      : 'All resources are currently in the Read Only section.'}
+                        ? `RO contains resources before ${npsNfcCutoff}; RW contains resources on and after ${npsNfcCutoff}.`
+                        : 'All resources are currently in the Read Only section.'}
                   </div>
                   <div>
                     RO entries: {npsNfcSplitData.roBundle.total} | RW entries: {npsNfcSplitData.rwBundle.total}
@@ -937,9 +983,9 @@ function APIGETPage() {
             {/* ---------- On-page validation panel ---------- */}
             {(mode === 'ipsunified' || mode === 'ipsnhsscr' || mode === 'ipseps' || mode === 'npsprofile') && (
               <div className="mt-2">
-                {useCompressionAndEncryption ? (
+                {useCompressionAndEncryption || useCompressionOnly ? (
                   <Alert variant="secondary" className="mb-2">
-                    Validation disabled because <strong>Gzip + Encrypt</strong> is enabled (displayed JSON is a wrapper).
+                    Validation disabled because <strong>compression</strong> is enabled (displayed JSON is a wrapper).
                   </Alert>
                 ) : valLoading ? (
                   <Alert variant="secondary" className="mb-2">

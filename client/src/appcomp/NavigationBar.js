@@ -68,7 +68,7 @@ return (
           alt="IPS Logo"
           style={{ marginRight: "10px" }}
         />
-        IPS MERN{' '}{hostingEnvironment}{' 0_87'}
+        IPS MERN{' '}{hostingEnvironment}{' 0_88'}
       </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">
