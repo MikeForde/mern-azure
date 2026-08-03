@@ -25,6 +25,58 @@ const QUERY_TO_MODE = Object.fromEntries(
 
 const getModeFromQuery = (value) => QUERY_TO_MODE[String(value || '').trim().toLowerCase()] || null
 
+const getIssueResourcePath = (issue) => {
+  const rawPath = issue?.jumpPath || issue?.displayPath || issue?.path || ''
+  const trimmed = String(rawPath).trim()
+
+  if (!trimmed || trimmed === '/') return '/'
+
+  const lastSlash = trimmed.lastIndexOf('/')
+  return lastSlash > 0 ? trimmed.slice(0, lastSlash) : trimmed
+}
+
+const getIssueResourceType = (issue) => {
+  const rawPath = String(issue?.jumpPath || issue?.displayPath || issue?.path || '').trim()
+  const match = rawPath.match(/\/resource\/([^/]+)/)
+  return match?.[1] || null
+}
+
+const groupIssuesForCompactView = (issues) => {
+  const grouped = new Map()
+
+  ;(Array.isArray(issues) ? issues : []).forEach((issue, index) => {
+    const message = String(issue?.message || 'Unknown issue')
+    const sourcePart = issue?.sourcePart || ''
+    const groupKey = `${sourcePart}::${message}`
+    const resourcePath = getIssueResourcePath(issue)
+    const resourceType = getIssueResourceType(issue)
+
+    if (!grouped.has(groupKey)) {
+      grouped.set(groupKey, {
+        key: groupKey,
+        issue,
+        count: 0,
+        firstIndex: index,
+        resourcePaths: new Set(),
+        resourceTypes: new Set()
+      })
+    }
+
+    const group = grouped.get(groupKey)
+    group.count += 1
+    group.resourcePaths.add(resourcePath)
+    if (resourceType) group.resourceTypes.add(resourceType)
+  })
+
+  return Array.from(grouped.values())
+    .sort((a, b) => a.firstIndex - b.firstIndex)
+    .map((group) => ({
+      ...group,
+      resourceCount: group.resourcePaths.size,
+      resourceTypeLabel: group.resourceTypes.size === 1 ? Array.from(group.resourceTypes)[0] : null
+    }))
+}
+
 export default function IPSchemaValidator() {
   const { setSelectedPatient } = useContext(PatientContext)
   const [searchParams, setSearchParams] = useSearchParams()
@@ -33,6 +85,7 @@ export default function IPSchemaValidator() {
   const [mode, setMode] = useState(MODE_NPS)
   const [inputSizes, setInputSizes] = useState({ main: 0, ro: 0, rw: 0 })
   const [showAllErrors, setShowAllErrors] = useState(false)
+  const [useCompactIssueView, setUseCompactIssueView] = useState(false)
   const [submitResult, setSubmitResult] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [nhsScrLenient, setNhsScrLenient] = useState(false)
@@ -913,10 +966,14 @@ const npsWarnings = showNpsWarnings && result ? (result.warningsNps || result.wa
 const visibleSchemaErrors = showAllErrors ? schemaErrors : schemaErrors.slice(0, MAX_VISIBLE_ERRORS)
 const visibleFhirErrors = showAllErrors ? fhirErrors : fhirErrors.slice(0, MAX_VISIBLE_ERRORS)
 
-const visibleNpsWarnings = showAllErrors ? npsWarnings : npsWarnings.slice(0, MAX_VISIBLE_ERRORS)
+  const visibleNpsWarnings = showAllErrors ? npsWarnings : npsWarnings.slice(0, MAX_VISIBLE_ERRORS)
 
-const hiddenSchemaCount = Math.max(0, schemaErrors.length - visibleSchemaErrors.length)
-const hiddenFhirCount = Math.max(0, fhirErrors.length - visibleFhirErrors.length)
+  const compactSchemaErrors = groupIssuesForCompactView(visibleSchemaErrors)
+  const compactFhirErrors = groupIssuesForCompactView(visibleFhirErrors)
+  const compactNpsWarnings = groupIssuesForCompactView(visibleNpsWarnings)
+
+  const hiddenSchemaCount = Math.max(0, schemaErrors.length - visibleSchemaErrors.length)
+  const hiddenFhirCount = Math.max(0, fhirErrors.length - visibleFhirErrors.length)
 const hiddenNpsWarningCount = Math.max(0, npsWarnings.length - visibleNpsWarnings.length)
 
 return (
@@ -1097,6 +1154,14 @@ return (
           {mode === MODE_NHS_SCR && (
             <div><strong>Mode:</strong> {result.validationMode === 'lenient' ? 'Lenient' : 'Strict'}</div>
           )}
+          <Form.Check
+            className="mt-2"
+            type="switch"
+            id="compact-issue-view"
+            label="Compact repeated messages"
+            checked={useCompactIssueView}
+            onChange={(e) => setUseCompactIssueView(e.target.checked)}
+          />
         </Alert>
 
         {showNpsWarnings && npsWarnings.length > 0 && (
@@ -1107,7 +1172,17 @@ return (
             </div>
 
             <ul className="mb-0">
-              {visibleNpsWarnings.map((warn, i) => (
+              {useCompactIssueView ? compactNpsWarnings.map((group, i) => (
+                <li
+                  key={`nps-warning-compact-${i}`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => jumpToPath(group.issue.jumpPath || group.issue.path, group.issue.jumpPart || 'main')}
+                >
+                  {group.issue.sourcePart && <strong>[{group.issue.sourcePart}] </strong>}
+                  {group.issue.message} in {group.resourceCount} {group.resourceTypeLabel || ''}{group.resourceTypeLabel ? ' ' : ''}resource{group.resourceCount === 1 ? '' : 's'}
+                  {group.count !== group.resourceCount && ` (${group.count} occurrence${group.count === 1 ? '' : 's'})`}
+                </li>
+              )) : visibleNpsWarnings.map((warn, i) => (
                 <li
                   key={`nps-warning-${i}`}
                   style={{ cursor: 'pointer' }}
@@ -1151,7 +1226,17 @@ return (
               <>
                 <h6 className="mt-2">{labels.schemaLabel}</h6>
                 <ul>
-                  {visibleSchemaErrors.map((err, i) => (
+                  {useCompactIssueView ? compactSchemaErrors.map((group, i) => (
+                    <li
+                      key={`schema-compact-${i}`}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => jumpToPath(group.issue.jumpPath || group.issue.path, group.issue.jumpPart || 'main')}
+                    >
+                      {group.issue.sourcePart && <strong>[{group.issue.sourcePart}] </strong>}
+                      {group.issue.message} in {group.resourceCount} {group.resourceTypeLabel || ''}{group.resourceTypeLabel ? ' ' : ''}resource{group.resourceCount === 1 ? '' : 's'}
+                      {group.count !== group.resourceCount && ` (${group.count} occurrence${group.count === 1 ? '' : 's'})`}
+                    </li>
+                  )) : visibleSchemaErrors.map((err, i) => (
                     <li
                       key={`schema-${i}`}
                       style={{ cursor: 'pointer' }}
@@ -1174,7 +1259,17 @@ return (
               <>
                 <h6 className="mt-2">FHIR R4</h6>
                 <ul>
-                  {visibleFhirErrors.map((err, i) => (
+                  {useCompactIssueView ? compactFhirErrors.map((group, i) => (
+                    <li
+                      key={`fhir-compact-${i}`}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => jumpToPath(group.issue.jumpPath || group.issue.path, group.issue.jumpPart || 'main')}
+                    >
+                      {group.issue.sourcePart && <strong>[{group.issue.sourcePart}] </strong>}
+                      {group.issue.message} in {group.resourceCount} {group.resourceTypeLabel || ''}{group.resourceTypeLabel ? ' ' : ''}resource{group.resourceCount === 1 ? '' : 's'}
+                      {group.count !== group.resourceCount && ` (${group.count} occurrence${group.count === 1 ? '' : 's'})`}
+                    </li>
+                  )) : visibleFhirErrors.map((err, i) => (
                     <li
                       key={`fhir-${i}`}
                       style={{ cursor: 'pointer' }}
