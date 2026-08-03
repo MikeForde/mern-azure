@@ -41,13 +41,28 @@ const getIssueResourceType = (issue) => {
   return match?.[1] || null
 }
 
+const getIssueFieldPath = (issue) => {
+  const rawPath = String(issue?.jumpPath || issue?.displayPath || issue?.path || '').trim()
+  const match = rawPath.match(/\/resource\/([^/]+)\/(.+)$/)
+  if (!match) return null
+
+  const resourceType = match[1]
+  const tail = match[2]
+    .split('/')
+    .filter((part) => !/^\d+$/.test(part))
+    .join('/')
+
+  return tail ? `${resourceType}/${tail}` : resourceType
+}
+
 const groupIssuesForCompactView = (issues) => {
   const grouped = new Map()
 
   ;(Array.isArray(issues) ? issues : []).forEach((issue, index) => {
     const message = String(issue?.message || 'Unknown issue')
     const sourcePart = issue?.sourcePart || ''
-    const groupKey = `${sourcePart}::${message}`
+    const fieldPath = getIssueFieldPath(issue)
+    const groupKey = `${sourcePart}::${message}::${fieldPath || ''}`
     const resourcePath = getIssueResourcePath(issue)
     const resourceType = getIssueResourceType(issue)
 
@@ -58,7 +73,8 @@ const groupIssuesForCompactView = (issues) => {
         count: 0,
         firstIndex: index,
         resourcePaths: new Set(),
-        resourceTypes: new Set()
+        resourceTypes: new Set(),
+        fieldPath
       })
     }
 
@@ -1179,7 +1195,7 @@ return (
                   onClick={() => jumpToPath(group.issue.jumpPath || group.issue.path, group.issue.jumpPart || 'main')}
                 >
                   {group.issue.sourcePart && <strong>[{group.issue.sourcePart}] </strong>}
-                  {group.issue.message} in {group.resourceCount} {group.resourceTypeLabel || ''}{group.resourceTypeLabel ? ' ' : ''}resource{group.resourceCount === 1 ? '' : 's'}
+                  {group.issue.message}{group.fieldPath ? ` for ${group.fieldPath}` : ''} in {group.resourceCount} resource{group.resourceCount === 1 ? '' : 's'}
                   {group.count !== group.resourceCount && ` (${group.count} occurrence${group.count === 1 ? '' : 's'})`}
                 </li>
               )) : visibleNpsWarnings.map((warn, i) => (
@@ -1233,7 +1249,7 @@ return (
                       onClick={() => jumpToPath(group.issue.jumpPath || group.issue.path, group.issue.jumpPart || 'main')}
                     >
                       {group.issue.sourcePart && <strong>[{group.issue.sourcePart}] </strong>}
-                      {group.issue.message} in {group.resourceCount} {group.resourceTypeLabel || ''}{group.resourceTypeLabel ? ' ' : ''}resource{group.resourceCount === 1 ? '' : 's'}
+                      {group.issue.message}{group.fieldPath ? ` for ${group.fieldPath}` : ''} in {group.resourceCount} resource{group.resourceCount === 1 ? '' : 's'}
                       {group.count !== group.resourceCount && ` (${group.count} occurrence${group.count === 1 ? '' : 's'})`}
                     </li>
                   )) : visibleSchemaErrors.map((err, i) => (
@@ -1266,7 +1282,7 @@ return (
                       onClick={() => jumpToPath(group.issue.jumpPath || group.issue.path, group.issue.jumpPart || 'main')}
                     >
                       {group.issue.sourcePart && <strong>[{group.issue.sourcePart}] </strong>}
-                      {group.issue.message} in {group.resourceCount} {group.resourceTypeLabel || ''}{group.resourceTypeLabel ? ' ' : ''}resource{group.resourceCount === 1 ? '' : 's'}
+                      {group.issue.message}{group.fieldPath ? ` for ${group.fieldPath}` : ''} in {group.resourceCount} resource{group.resourceCount === 1 ? '' : 's'}
                       {group.count !== group.resourceCount && ` (${group.count} occurrence${group.count === 1 ? '' : 's'})`}
                     </li>
                   )) : visibleFhirErrors.map((err, i) => (
