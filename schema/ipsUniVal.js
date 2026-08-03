@@ -245,6 +245,17 @@ function findRootFieldsNotInSchema(obj, schema, prefix = '') {
     }));
 }
 
+function dedupeIssues(issues) {
+  const seen = new Set();
+
+  return (Array.isArray(issues) ? issues : []).filter((issue) => {
+    const key = `${issue?.path || ''}::${issue?.message || ''}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 // POST /ipsUniVal
 router.post('/', (req, res) => {
   const ajv = new Ajv({ allErrors: true, strict: false });
@@ -478,12 +489,7 @@ router.post('/', (req, res) => {
       const resObj = en.resource;
       const schemaName = resObj?.resourceType;
 
-      if (!schemaName || !schemas[schemaName]) {
-        errorsNps.push({
-          path: `/entry/${idx}/resource/${schemaName}`,
-          message: 'Unknown or missing resourceType'
-        });
-      } else {
+      if (schemaName && schemas[schemaName]) {
         warningsNps.push(
           ...findRootFieldsNotInSchema(
             resObj,
@@ -491,12 +497,6 @@ router.post('/', (req, res) => {
             `/entry/${idx}/resource/${schemaName}`
           )
         );
-
-        if (!ajv.validate(schemaName, resObj)) {
-          errorsNps.push(
-            ...prettifyAjvErrors(ajv.errors || [], `/entry/${idx}/resource/${schemaName}`)
-          );
-        }
       }
     });
   } else {
@@ -515,18 +515,22 @@ router.post('/', (req, res) => {
     }
   }
 
+  const uniqueErrorsNps = dedupeIssues(errorsNps);
+  const uniqueErrorsFhir = dedupeIssues(errorsFhir);
+  const uniqueWarningsNps = dedupeIssues(warningsNps);
+
   res.json({
-    valid: errorsNps.length === 0 && errorsFhir.length === 0,
-    errors: [...errorsNps, ...errorsFhir],
+    valid: uniqueErrorsNps.length === 0 && uniqueErrorsFhir.length === 0,
+    errors: [...uniqueErrorsNps, ...uniqueErrorsFhir],
 
-    warnings: warningsNps,
+    warnings: uniqueWarningsNps,
 
-    validNps: errorsNps.length === 0,
-    errorsNps,
-    warningsNps,
+    validNps: uniqueErrorsNps.length === 0,
+    errorsNps: uniqueErrorsNps,
+    warningsNps: uniqueWarningsNps,
     
-    validFhirR4: errorsFhir.length === 0,
-    errorsFhirR4: errorsFhir
+    validFhirR4: uniqueErrorsFhir.length === 0,
+    errorsFhirR4: uniqueErrorsFhir
   });
 });
 
