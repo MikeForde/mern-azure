@@ -719,6 +719,7 @@ function APIGETPage() {
                   variant="secondary"
                 >
                   <Dropdown.Item eventKey="ipsunified">NPS JSON Bundle - /nps/:id</Dropdown.Item>
+                  <Dropdown.Item eventKey="npsprofile">NPS FHIR Server Compliant JSON Bundle - /npsprofile/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipsnhsscr">NHS SCR IPS JSON Bundle - /ipsnhsscr/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipseps">EPS JSON Bundle - /ipseps/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipshl72x">IPS HL7 2.3 - /ipshl72x/:id</Dropdown.Item>
