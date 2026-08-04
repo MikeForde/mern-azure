@@ -10,6 +10,7 @@ const MODE_NPS_PROFILE = 'NPSPROFILE'
 const MODE_NPS_NFC = 'NPSNFC'
 const MODE_NHS_SCR = 'NHSSCR'
 const MODE_EPS = 'EPS'
+const MODE_EXTERNAL = 'EXTERNAL'
 const SPLIT_PART_RO = 'RO'
 const SPLIT_PART_RW = 'RW'
 const MODE_TO_QUERY = {
@@ -17,7 +18,8 @@ const MODE_TO_QUERY = {
   [MODE_NPS_PROFILE]: 'npsprofile',
   [MODE_NPS_NFC]: 'npsnfc',
   [MODE_NHS_SCR]: 'nhsscr',
-  [MODE_EPS]: 'eps'
+  [MODE_EPS]: 'eps',
+  [MODE_EXTERNAL]: 'external'
 }
 const QUERY_TO_MODE = Object.fromEntries(
   Object.entries(MODE_TO_QUERY).map(([mode, query]) => [query, mode])
@@ -121,6 +123,8 @@ export default function IPSchemaValidator() {
       ? '/ipsNhsScrVal'
       : mode === MODE_EPS
         ? '/epsVal'
+        : mode === MODE_EXTERNAL
+          ? '/ipsexternalVal'
         : '/ipsUniVal'
 
   const labels =
@@ -148,6 +152,21 @@ export default function IPSchemaValidator() {
           resultValidKey: 'validEps',
           resultErrorsKey: 'errorsEps'
         }
+        : mode === MODE_EXTERNAL
+          ? {
+            title: 'External IPS Validator',
+            helper: (
+              <>
+                <div>Paste your IPS Bundle here for external generic profile validation.</div>
+                <div className="text-muted small mt-1">
+                  This sends the bundle to two external FHIR validators: HL7 IPS (<code>hl7-ips-server.hl7.org</code>) and Ontoserver terminology (<code>tx.ontoserver.csiro.au</code>). We combine both results, keep only errors, remove warnings / information / best-practice messages, and deduplicate issues reported by both services. This is not validation against our local NPS schema or NPS profiles.
+                </div>
+              </>
+            ),
+            schemaLabel: 'External Validators',
+            resultValidKey: 'validExternal',
+            resultErrorsKey: 'errorsExternal'
+          }
         : mode === MODE_NPS_NFC
           ? {
             title: 'NPS NFC Validator',
@@ -185,9 +204,21 @@ export default function IPSchemaValidator() {
     errorsNhsScr: body?.errorsNhsScr || body?.errors || [],
     validEps: false,
     errorsEps: body?.errorsEps || body?.errors || [],
+    validExternal: body?.validExternal ?? body?.validNps ?? false,
+    errorsExternal: body?.errorsExternal || body?.errorsNps || body?.errors || [],
     validFhirR4: body?.validFhirR4 || false,
     errorsFhirR4: body?.errorsFhirR4 || []
   })
+
+  const normalizeSuccessResult = (body) => {
+    if (mode !== MODE_EXTERNAL) return body
+
+    return {
+      ...body,
+      validExternal: body?.validExternal ?? body?.validNps ?? body?.valid ?? false,
+      errorsExternal: body?.errorsExternal || body?.errorsNps || body?.errors || []
+    }
+  }
 
   const buildClientValidationResult = ({
     schemaErrors = [],
@@ -212,6 +243,9 @@ export default function IPSchemaValidator() {
 
     validEps: schemaErrors.length === 0,
     errorsEps: schemaErrors,
+
+    validExternal: schemaErrors.length === 0,
+    errorsExternal: schemaErrors,
 
     validFhirR4: fhirErrors.length === 0,
     errorsFhirR4: fhirErrors,
@@ -658,7 +692,7 @@ useEffect(() => {
     const savedPayload = sessionStorage.getItem('ips:lastPayload')
     const savedMode = sessionStorage.getItem('ips:lastMode')
 
-    if (savedMode === MODE_NPS || savedMode === MODE_NPS_PROFILE || savedMode === MODE_NPS_NFC || savedMode === MODE_NHS_SCR || savedMode === MODE_EPS) {
+    if (savedMode === MODE_NPS || savedMode === MODE_NPS_PROFILE || savedMode === MODE_NPS_NFC || savedMode === MODE_NHS_SCR || savedMode === MODE_EPS || savedMode === MODE_EXTERNAL) {
       setMode(savedMode)
       setResult(null)
     }
@@ -881,7 +915,8 @@ const validate = async () => {
 
     if (resp.ok) {
       if (body) {
-        setResult(isSplitMode ? decorateSplitResult(body, prepared.splitMeta) : body)
+        const normalizedBody = normalizeSuccessResult(body)
+        setResult(isSplitMode ? decorateSplitResult(normalizedBody, prepared.splitMeta) : normalizedBody)
       } else {
         setResult(
           normalizeErrorResult(
@@ -975,6 +1010,7 @@ const addAsRecord = async () => {
 const schemaValid = result ? !!result[labels.resultValidKey] : false
 const schemaErrors = result ? (result[labels.resultErrorsKey] || []) : []
 const fhirErrors = result ? (result.errorsFhirR4 || []) : []
+const showSecondaryValidation = mode !== MODE_EXTERNAL
 
 const showNpsWarnings = mode === MODE_NPS || mode === MODE_NPS_NFC
 const npsWarnings = showNpsWarnings && result ? (result.warningsNps || result.warnings || []) : []
@@ -1033,6 +1069,13 @@ return (
             onClick={() => setModeAndReset(MODE_EPS)}
           >
             EPS
+          </Button>
+
+          <Button
+            variant={mode === MODE_EXTERNAL ? 'primary' : 'outline-primary'}
+            onClick={() => setModeAndReset(MODE_EXTERNAL)}
+          >
+            External
           </Button>
         </ButtonGroup>
         {mode === MODE_NHS_SCR && (
@@ -1166,9 +1209,16 @@ return (
               <> · ⚠️ {npsWarnings.length} accepted but unused</>
             )}
           </div>
-          <div><strong>FHIR R4:</strong> {result.validFhirR4 ? '✅ Valid' : '❌ Invalid'}</div>
+          {showSecondaryValidation && (
+            <div><strong>FHIR R4:</strong> {result.validFhirR4 ? '✅ Valid' : '❌ Invalid'}</div>
+          )}
           {mode === MODE_NHS_SCR && (
             <div><strong>Mode:</strong> {result.validationMode === 'lenient' ? 'Lenient' : 'Strict'}</div>
+          )}
+          {mode === MODE_EXTERNAL && (
+            <div className="small mt-1 text-muted">
+              External mode uses generic external validation services rather than our own NPS schema/profile validators.
+            </div>
           )}
           <Form.Check
             className="mt-2"
@@ -1225,9 +1275,9 @@ return (
           </Alert>
         )}
 
-        {(schemaValid && result.validFhirR4) ? (
+        {(schemaValid && (mode === MODE_EXTERNAL || result.validFhirR4)) ? (
           <Alert variant="success" className="mt-3">
-            ✅ Valid ({labels.schemaLabel} + FHIR R4)!
+            ✅ Valid {mode === MODE_EXTERNAL ? `(${labels.schemaLabel})` : `(${labels.schemaLabel} + FHIR R4)`}!
             {showNpsWarnings && npsWarnings.length > 0 && (
               <div className="mt-1">
                 ⚠️ Some accepted fields are not currently used by NPS.
@@ -1271,7 +1321,7 @@ return (
               </>
             )}
 
-            {!result.validFhirR4 && fhirErrors.length > 0 && (
+            {showSecondaryValidation && !result.validFhirR4 && fhirErrors.length > 0 && (
               <>
                 <h6 className="mt-2">FHIR R4</h6>
                 <ul>
@@ -1304,7 +1354,7 @@ return (
               </>
             )}
 
-            {(hiddenSchemaCount > 0 || hiddenFhirCount > 0) && (
+            {(hiddenSchemaCount > 0 || (showSecondaryValidation && hiddenFhirCount > 0)) && (
               <Button
                 variant="outline-light"
                 size="sm"

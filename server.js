@@ -60,6 +60,7 @@ const ipsUniValRouter = require('./schema/ipsUniVal');
 const ipsNhsScrValRouter = require('./schema/ipsNhsScrVal');
 const epsValRouter = require('./schema/epsVal');
 const npsProfileValRouter = require('./schema/npsprofileVal');
+const ipsExternalValRouter = require('./schema/ipsExternalVal');
 
 // ----- Middleware ---------
 const binaryDecryptMiddleware = require('./middlewares/binaryDecryptMiddleware');
@@ -235,6 +236,7 @@ api.use('/npsVal', ipsUniValRouter);
 api.use('/npsProfileVal', npsProfileValRouter);
 api.use('/ipsNhsScrVal', ipsNhsScrValRouter);
 api.use('/epsVal', epsValRouter);
+api.use('/ipsexternalVal', ipsExternalValRouter);
 
 // API GET - CRUD Read
 api.get("/ips/all", getAllIPS);
