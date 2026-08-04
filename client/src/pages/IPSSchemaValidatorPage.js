@@ -101,7 +101,7 @@ export default function IPSchemaValidator() {
   const [mode, setMode] = useState(MODE_NPS)
   const [inputSizes, setInputSizes] = useState({ main: 0, ro: 0, rw: 0 })
   const [showAllErrors, setShowAllErrors] = useState(false)
-  const [useCompactIssueView, setUseCompactIssueView] = useState(false)
+  const [useCompactIssueView, setUseCompactIssueView] = useState(true)
   const [submitResult, setSubmitResult] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [nhsScrLenient, setNhsScrLenient] = useState(false)
