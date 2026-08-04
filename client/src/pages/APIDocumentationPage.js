@@ -55,6 +55,7 @@ function APIDocumentationPage() {
     { method: "POST", endpoint: "/npsProfileVal", description: "Validates NPS Profile JSON format against profile rules plus FHIR R4 checks", request: "FHIR JSON", response: "Validation report as JSON" },
     { method: "POST", endpoint: "/ipsNhsScrVal", description: "Validates NHS SCR IPS JSON format against schema", request: "FHIR JSON", response: "Validation report as JSON" },
     { method: "POST", endpoint: "/epsVal", description: "Validates EPS IPS JSON format against schema", request: "FHIR JSON", response: "Validation report as JSON" },
+    { method: "POST", endpoint: "/ipsexternalVal", description: "Validates IPS FHIR JSON using external generic validators (HL7 IPS and Ontoserver), returns merged deduplicated error-only results, and does not use local NPS schema/profile rules", request: "FHIR JSON", response: "Validation report as JSON" },
     { method: "GET", endpoint: "/ips/all", description: "Retrieve all IPS records.", request: "None.", response: "Array of JSON objects representing IPS records." },
     { method: "GET", endpoint: "/ipsraw/:id", description: "Retrieve raw IPS record by ID.", request: "IPS record ID as URL parameter.", response: "JSON object of the raw IPS record." },
     { method: "GET", endpoint: "/ipsmongo/:id", description: "Retrieve IPS record in MongoDB format by ID.", request: "IPS record ID as URL parameter.", response: "MongoDB - JSON" },

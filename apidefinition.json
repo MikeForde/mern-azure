@@ -776,6 +776,48 @@
         }
       }
     },
+    "/ipsexternalVal": {
+      "post": {
+        "tags": [
+          "Schema"
+        ],
+        "summary": "Validate IPS FHIR JSON using external generic validators",
+        "description": "Sends a FHIR JSON payload (normally an IPS Bundle) to two external generic validators, HL7 IPS and Ontoserver terminology, then merges the results, keeps only error/fatal issues, removes warnings/information/best-practice messages, and deduplicates matching issues. This does not validate against local NPS schema or NPS profile rules.",
+        "requestBody": {
+          "description": "FHIR JSON payload, typically an IPS Bundle.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation report containing merged external validator errors only.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/valschemas/NpsValidationReport"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "External validator request failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/valschemas/NpsValidationReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/ips/all": {
       "get": {
         "tags": [

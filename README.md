@@ -38,7 +38,8 @@ The backend exposes REST, Swagger, GraphQL, validation, and integration endpoint
 - NPS profile validation with FHIR R4 checks: `/npsProfileVal`
 - NHS SCR validation with FHIR R4 checks: `/ipsNhsScrVal`
 - EPS validation: `/epsVal`
-- Frontend schema viewers and validator modes for NPS, NPS Profile, NHS SCR, EPS, and NPS NFC split workflows
+- External generic validation via HL7 IPS plus Ontoserver terminology checks: `/ipsexternalVal`
+- Frontend schema viewers and validator modes for NPS, NPS Profile, NHS SCR, EPS, External, and NPS NFC split workflows
 
 ### Exchange and Transport
 - Standard JSON over HTTP
@@ -165,6 +166,7 @@ The tables below focus on the main documented endpoints. For interactive testing
 | `/npsProfileVal` | Validate NPS profile JSON against profile rules plus FHIR R4 checks. |
 | `/ipsNhsScrVal` | Validate NHS SCR IPS JSON. |
 | `/epsVal` | Validate EPS IPS JSON. |
+| `/ipsexternalVal` | Validate IPS FHIR JSON using external generic HL7 IPS and Ontoserver validators, returning merged deduplicated error-only results rather than local NPS schema/profile validation. |
 | `/test` | Echo/test endpoint used for encryption, compression, and binary workflow testing. |
 
 ### Core GET Endpoints
