@@ -1,6 +1,8 @@
 const express = require('express');
 const Ajv = require('ajv');
 const addFormats = require('ajv-formats');
+const fhirpath = require('fhirpath');
+const fhirpathR4Model = require('fhirpath/fhir-context/r4');
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
@@ -439,6 +441,50 @@ function validateReferenceTargets(resource, element, pathPrefix, bundleIndex, er
   });
 }
 
+function asConstraintBoolean(result) {
+  if (!Array.isArray(result) || result.length === 0) return false;
+  if (result.length === 1 && typeof result[0] === 'boolean') return result[0];
+  return result.every(Boolean);
+}
+
+function validateConstraints(instance, rootResource, element, pathPrefix, errors, warnings) {
+  const constraints = asArray(element?.constraint).filter(constraint => typeof constraint?.expression === 'string');
+  if (constraints.length === 0) return;
+
+  const pathParts = String(element.path || '').split('.');
+  const relativeParts = pathParts.slice(1);
+  const valuesWithPaths = relativeParts.length === 0
+    ? [{ value: instance, path: pathPrefix || '' }]
+    : getContainerNodesWithPaths(rootResource, relativeParts, pathPrefix, element.type || []);
+
+  valuesWithPaths.forEach(({ value, path: valuePath }) => {
+    constraints.forEach(constraint => {
+      try {
+        const result = fhirpath.evaluate(
+          value,
+          {
+            base: element.path,
+            expression: constraint.expression
+          },
+          { resource: rootResource },
+          fhirpathR4Model,
+          { traceFn: () => {} }
+        );
+
+        if (asConstraintBoolean(result)) return;
+
+        const target = String(constraint.severity || '').toLowerCase() === 'warning' ? warnings : errors;
+        addError(target, valuePath || pathPrefix || '', constraint.human || `Constraint ${constraint.key || constraint.expression} failed`);
+      } catch (error) {
+        warnings.push({
+          path: valuePath || pathPrefix || '',
+          message: `Could not evaluate constraint ${constraint.key || constraint.expression}: ${error.message}`
+        });
+      }
+    });
+  });
+}
+
 function getProfileRootType(expectedProfile, instance) {
   if (expectedProfile?.type) return expectedProfile.type;
   if (instance && typeof instance === 'object' && typeof instance.resourceType === 'string') {
@@ -513,12 +559,13 @@ function validateAgainstProfile(instance, expectedProfile, pathPrefix, bundleInd
     .filter(element => typeof element.path === 'string')
     .filter(element => !element.sliceName)
     .filter(element => !String(element.id || '').includes(':'))
-    .filter(element => element.path.startsWith(`${rootType}.`));
+    .filter(element => element.path === rootType || element.path.startsWith(`${rootType}.`));
 
   snapshotElements.forEach(element => {
     validateElementCardinality(instance, element, pathPrefix, errors);
     validateFixedValue(instance, element, pathPrefix, errors);
     validateReferenceTargets(instance, element, pathPrefix, bundleIndex, errors);
+    validateConstraints(instance, instance, element, pathPrefix, errors, warnings);
   });
 
   validateNestedTypeProfiles(instance, expectedProfile, pathPrefix, bundleIndex, errors, warnings, profileTrail);
@@ -638,3 +685,4 @@ router.post('/', (req, res) => {
 });
 
 module.exports = router;
+module.exports.validateBundle = validateBundle;
