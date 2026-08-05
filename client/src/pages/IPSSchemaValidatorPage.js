@@ -159,7 +159,7 @@ export default function IPSchemaValidator() {
               <>
                 <div>Paste your IPS Bundle here for external generic profile validation.</div>
                 <div className="text-muted small mt-1">
-                  This sends the bundle to two external FHIR validators: HL7 IPS (<code>hl7-ips-server.hl7.org</code>) and Ontoserver terminology (<code>tx.ontoserver.csiro.au</code>). We combine both results, keep only errors, remove warnings / information / best-practice messages, and deduplicate issues reported by both services. This is not validation against our local NPS schema or NPS profiles.
+                  This sends the bundle to two external FHIR validators: HL7 IPS (<code>hl7-ips-server.hl7.org</code>) and Ontoserver terminology (<code>tx.ontoserver.csiro.au</code>). Both results are combined with only errors reported(i.e.,warnings / information / best-practice messages are removed). No validation occurs against the local NPS schema or NPS profiles.
                 </div>
               </>
             ),
@@ -1083,7 +1083,7 @@ return (
             className="mt-3"
             type="switch"
             id="nhsscr-lenient-mode"
-            label="Lenient NHS SCR validation (allow additional properties outside schema)"
+            label="Allow properties outside schema"
             checked={nhsScrLenient}
             onChange={(e) => {
               setNhsScrLenient(e.target.checked)

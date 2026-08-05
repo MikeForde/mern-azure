@@ -180,6 +180,10 @@ return (
               <NavDropdown.Item as={Link} to="/schemavalidator?mode=eps" onClick={() => handleNavItemSelect(false)}>
                 Validator: EPS
               </NavDropdown.Item>
+
+              <NavDropdown.Item as={Link} to="/schemavalidator?mode=external" onClick={() => handleNavItemSelect(false)}>
+                Validator: External
+              </NavDropdown.Item>
             </NavDropdown>
 
             <NavDropdown title={<span><FontAwesomeIcon icon={faInfoCircle} /> Info</span>} id="info-nav-dropdown">
