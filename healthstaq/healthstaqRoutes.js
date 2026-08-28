@@ -102,6 +102,8 @@ async function mintAccessToken() {
 
     const accessToken = response.data?.access_token;
 
+    console.log("access token = " + accessToken);
+
     if (!accessToken) {
         const error = new Error(
             'HealthStaq token response did not contain an access_token.'

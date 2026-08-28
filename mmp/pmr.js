@@ -157,9 +157,11 @@ router.post('/pmr/:id', async (req, res) => {
       new URLSearchParams({
         grant_type: 'client_credentials',
         // client_id: 'IPS2',
-        client_id: 'IPS1',
+        // client_id: 'IPS1',
+        client_id: 'abmc2',
         // client_secret: 'd1b0051f-4fd1-4aca-9a89-ba42a966a88c',
-        client_secret: '009efe3d-7553-4ee6-acb4-f548790d63e9',
+        //client_secret: '009efe3d-7553-4ee6-acb4-f548790d63e9',
+        client_secret: '198a864c-ca49-4b9b-8dfd-c02fcba1ed32',
         scope: 'medmmapi'
       }).toString(),
       {
