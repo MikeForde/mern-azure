@@ -45,7 +45,7 @@ function pruneNulls(value) {
 }
 
 
-async function generateIPSBundleUnified(ips) {
+async function generateIPSBundleNPSProfile(ips) {
 
     let resourceIdsAdded = false;
 
@@ -72,19 +72,19 @@ async function generateIPSBundleUnified(ips) {
         id: ips.packageUUID, // First ID is the packageUUID
         timestamp: stripMilliseconds(ips.timeStamp),
         type: "collection",
-        //total: 2 + (ips.medication.length * 2) + ips.allergies.length + ips.conditions.length + ips.observations.length + ips.procedures.length,
         entry: [
             {
+                fullUrl: `urn:uuid:${ptId}`,
                 resource: {
                     resourceType: "Patient",
                     id: ptId,
                     identifier: [
                         {
-                            system: "NATO_Id",
+                            system: "http://nato.int/NATO_Id",
                             value: ips.patient.identifier ? ips.patient.identifier : uuidv4().split("-")[0],
                         },
                         {
-                            system: "National_Id",
+                            system: "http://nato.int/National_Id",
                             value: ips.patient.identifier2 ? ips.patient.identifier2 : uuidv4().split("-")[0],
                         },
                     ],
@@ -104,6 +104,7 @@ async function generateIPSBundleUnified(ips) {
                 },
             },
             {
+                fullUrl: `urn:uuid:${orgId}`,
                 resource: {
                     resourceType: "Organization",
                     id: orgId,
@@ -124,10 +125,12 @@ async function generateIPSBundleUnified(ips) {
 
                 return [
                     {
+                        fullUrl: `urn:uuid:${medicationRequestId}`,
                         resource: {
                             resourceType: "MedicationRequest",
                             id: medicationRequestId,
                             status: med.status ? med.status.toLowerCase() : "active",
+                            intent: "original-order",
                             medicationReference: {
                                 reference: `Medication/${medicationId}`,
                                 display: med.name,
@@ -144,6 +147,7 @@ async function generateIPSBundleUnified(ips) {
                         },
                     },
                     {
+                        fullUrl: `urn:uuid:${medicationId}`,
                         resource: {
                             resourceType: "Medication",
                             id: medicationId,
@@ -165,9 +169,19 @@ async function generateIPSBundleUnified(ips) {
                 const allergyId = getOrCreateResourceId(allergy);
 
                 return {
+                    fullUrl: `urn:uuid:${allergyId}`,
                     resource: {
                         resourceType: "AllergyIntolerance",
                         id: allergyId,
+                        clinicalStatus: {
+                            coding: [
+                                {
+                                    system: "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+                                    code: "active",
+                                },
+                            ],
+                        },
+                        category: ["medication"],
                         criticality: allergy.criticality
                             ? allergy.criticality.toLowerCase()
                             : "high",
@@ -192,6 +206,7 @@ async function generateIPSBundleUnified(ips) {
                 const conditionId = getOrCreateResourceId(condition);
 
                 return {
+                    fullUrl: `urn:uuid:${conditionId}`,
                     resource: {
                         resourceType: "Condition",
                         id: conditionId,
@@ -215,6 +230,7 @@ async function generateIPSBundleUnified(ips) {
             ...ips.observations.map((observation) => {
                 const observationUUID = getOrCreateResourceId(observation);
                 let observationResource = {
+                    fullUrl: `urn:uuid:${observationUUID}`,
                     resource: {
                         resourceType: "Observation",
                         id: observationUUID,
@@ -231,6 +247,11 @@ async function generateIPSBundleUnified(ips) {
                         subject: {
                             reference: "Patient/" + ptId,
                         },
+                        performer: [
+                            {
+                                reference: "Organization/" + orgId,
+                            },
+                        ],
                         effectiveDateTime: stripMilliseconds(observation.date),
                     }
                 };
@@ -355,6 +376,7 @@ async function generateIPSBundleUnified(ips) {
                 const procedureId = getOrCreateResourceId(procedure);
 
                 return {
+                    fullUrl: `urn:uuid:${procedureId}`,
                     resource: {
                         resourceType: "Procedure",
                         id: procedureId,
@@ -472,4 +494,4 @@ async function protectIPSBundle(ipsBundle, protectMethod = "none") {
     return ipsBundle;
 }
 
-module.exports = { generateIPSBundleUnified, protectIPSBundle };
+module.exports = { generateIPSBundleNPSProfile, protectIPSBundle };

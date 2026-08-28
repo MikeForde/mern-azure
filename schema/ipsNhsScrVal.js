@@ -142,6 +142,17 @@ function prettyAjvError(e, prefix = '') {
   };
 }
 
+function dedupeIssues(issues) {
+  const seen = new Set();
+
+  return (Array.isArray(issues) ? issues : []).filter((issue) => {
+    const key = `${issue?.path || ''}::${issue?.message || ''}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 // POST /ipsNhsScrVal
 router.post('/', (req, res) => {
   const lenient = isLenientRequest(req);
@@ -338,15 +349,18 @@ router.post('/', (req, res) => {
     }
   }
 
+  const uniqueErrorsScr = dedupeIssues(errorsScr);
+  const uniqueErrorsFhir = dedupeIssues(errorsFhir);
+
   res.json({
-    valid: errorsScr.length === 0 && errorsFhir.length === 0,
-    errors: [...errorsScr, ...errorsFhir],
+    valid: uniqueErrorsScr.length === 0 && uniqueErrorsFhir.length === 0,
+    errors: [...uniqueErrorsScr, ...uniqueErrorsFhir],
 
-    validNhsScr: errorsScr.length === 0,
-    errorsNhsScr: errorsScr,
+    validNhsScr: uniqueErrorsScr.length === 0,
+    errorsNhsScr: uniqueErrorsScr,
 
-    validFhirR4: errorsFhir.length === 0,
-    errorsFhirR4: errorsFhir,
+    validFhirR4: uniqueErrorsFhir.length === 0,
+    errorsFhirR4: uniqueErrorsFhir,
 
     validationMode: lenient ? 'lenient' : 'strict'
   });

@@ -142,6 +142,20 @@ function getBundleDateOptions(bundle) {
     }));
 }
 
+function uint8ToBase64(u8) {
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let i = 0; i < u8.length; i += chunkSize) {
+    binary += String.fromCharCode(...u8.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
+}
+
+function gzipToBase64(str) {
+  const gz = pako.gzip(str); // Uint8Array
+  return uint8ToBase64(gz);
+}
+
 function APIGETPage() {
   const { selectedPatients, selectedPatient, setSelectedPatient } = useContext(PatientContext);
   const { startLoading, stopLoading } = useLoading();
@@ -151,6 +165,7 @@ function APIGETPage() {
   const [showNotification, setShowNotification] = useState(false);
   const [responseSize, setResponseSize] = useState(0);
   const [useCompressionAndEncryption, setUseCompressionAndEncryption] = useState(false);
+  const [useCompressionOnly, setUseCompressionOnly] = useState(false);
   const [useIncludeKey, setUseIncludeKey] = useState(false);
   // Toast state
   const [showToast, setShowToast] = useState(false);
@@ -201,7 +216,7 @@ function APIGETPage() {
         }
 
         // add protect flag for ipsunified only
-        if (mode === 'ipsunified') {
+        if (mode === 'ipsunified' || mode === 'npsprofile') {
           if (useFieldEncrypt) {
             endpoint += (endpoint.includes('?') ? '&' : '?') + 'protect=1';
           } else if (useIdOmit) {
@@ -235,6 +250,14 @@ function APIGETPage() {
           if (useCompressionAndEncryption) {
             setResponseSize(JSON.stringify(response.data).length);
             responseData = JSON.stringify(response.data, null, 2);
+          } else if (useCompressionOnly) {
+            const uncompressedText =
+              typeof response.data === 'string'
+                ? response.data
+                : JSON.stringify(response.data);
+
+            responseData = gzipToBase64(uncompressedText);
+            setResponseSize(responseData.length);
           } else if (mode === 'ipsbasic' || mode === 'ipsbeer' || mode === 'ipsbeerwithdelim' || mode === 'ipshl72x' || mode === 'ipsplaintext') {
             responseData = response.data;
             setResponseSize(responseData.length);
@@ -262,6 +285,7 @@ function APIGETPage() {
     selectedPatient,
     mode,
     useCompressionAndEncryption,
+    useCompressionOnly,
     stopLoading,
     startLoading,
     useIncludeKey,
@@ -319,7 +343,7 @@ function APIGETPage() {
     // 4) Suffix for GE
     const ikSuffix = useIncludeKey && useCompressionAndEncryption ? '_ik' : '';
     const ceSuffix = useCompressionAndEncryption ? '_ce' : '';
-    const pmSuffix = mode === 'ipsunified' ? useFieldEncrypt ? '_jwefld' : (useIdOmit ? '_omit' : '') : '';
+    const pmSuffix = (mode === 'ipsunified' || mode === 'npsprofile') ? useFieldEncrypt ? '_jwefld' : (useIdOmit ? '_omit' : '') : '';
     const narSuffix =
       ((mode === 'ips' && useIpsNarrative) ||
         (mode === 'ipsnhsscr' && useIpsNhsscrNarrative) || (mode === 'ipseps' && useIpsEpsNarrative))
@@ -339,7 +363,7 @@ function APIGETPage() {
     window.URL.revokeObjectURL(url);
   };
 
-    const handleDownloadNpsNfcSplitData = () => {
+  const handleDownloadNpsNfcSplitData = () => {
     if (!selectedPatient || !npsNfcSplitData) return;
 
     const today = new Date();
@@ -412,7 +436,10 @@ function APIGETPage() {
         setModeText('NPS Legacy JSON Bundle - /ipslegacy/:id');
         break;
       case 'ipsunified':
-        setModeText('NPS JSON Bundle - /nps/:id');
+        setModeText('NPS NFC Optimised JSON Bundle - /nps/:id');
+        break;
+      case 'npsprofile':
+        setModeText('NPS FHIR Server Compliant JSON Bundle - /npsprofile/:id');
         break;
       case 'ipsmongo':
         setModeText('IPS NoSQL - /ipsmongo/:id');
@@ -564,10 +591,10 @@ function APIGETPage() {
 
   // ---------- On-page validation helpers ----------
   const isJsonModeForValidation =
-    (mode === 'ipsunified' || mode === 'ipsnhsscr' || mode === 'ipseps') &&
+    (mode === 'ipsunified' || mode === 'ipsnhsscr' || mode === 'ipseps' || mode === 'npsprofile') &&
     !useCompressionAndEncryption; // avoid validating compressed/encrypted wrapper JSON
 
-  const validatorEndpoint = mode === 'ipseps' ? '/epsVal' : (mode === 'ipsnhsscr' ? '/ipsNhsScrVal' : '/npsVal');
+  const validatorEndpoint = mode === 'ipseps' ? '/epsVal' : (mode === 'ipsnhsscr' ? '/ipsNhsScrVal' : (mode === 'npsprofile' ? '/npsProfileVal' : '/npsVal'));
 
   useEffect(() => {
     let cancelled = false;
@@ -653,7 +680,7 @@ function APIGETPage() {
         }));
         sessionStorage.setItem('ips:lastMode', 'NPSNFC');
       } else {
-        const validatorMode = mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHSSCR' : 'NPS');
+        const validatorMode = mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHSSCR' : (mode === 'npsprofile' ? 'NPSPROFILE' : 'NPS'));
         sessionStorage.setItem('ips:lastPayload', data || '');
         sessionStorage.setItem('ips:lastMode', validatorMode);
       }
@@ -718,7 +745,8 @@ function APIGETPage() {
                   size="sm"
                   variant="secondary"
                 >
-                  <Dropdown.Item eventKey="ipsunified">NPS JSON Bundle - /nps/:id</Dropdown.Item>
+                  <Dropdown.Item eventKey="ipsunified">NPS NFC Optimised JSON Bundle - /nps/:id</Dropdown.Item>
+                  <Dropdown.Item eventKey="npsprofile">NPS FHIR Server Compliant JSON Bundle - /npsprofile/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipsnhsscr">NHS SCR IPS JSON Bundle - /ipsnhsscr/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipseps">EPS JSON Bundle - /ipseps/:id</Dropdown.Item>
                   <Dropdown.Item eventKey="ipshl72x">IPS HL7 2.3 - /ipshl72x/:id</Dropdown.Item>
@@ -739,12 +767,34 @@ function APIGETPage() {
               <div className="col-auto">
                 <Form.Check
                   type="checkbox"
+                  id="compressionOnly"
+                  label="Gzip only (no encryption)"
+                  checked={useCompressionOnly}
+                  onChange={(e) => {
+                    const v = e.target.checked;
+                    setUseCompressionOnly(v);
+                    if (v) {
+                      setUseCompressionAndEncryption(false);
+                      setUseIncludeKey(false);
+                    }
+                  }}
+                />
+              </div>
+
+
+              <div className="col-auto">
+                <Form.Check
+                  type="checkbox"
                   id="compressionEncryption"
                   label="Gzip + Encrypt (aes256 base64)"
                   checked={useCompressionAndEncryption}
                   onChange={(e) => {
                     const v = e.target.checked;
                     setUseCompressionAndEncryption(v);
+                    if (v) {
+                      setUseCompressionOnly(false);
+                      setUseIncludeKey(false);
+                    }
                   }}
                 />
               </div>
@@ -764,7 +814,7 @@ function APIGETPage() {
                   type="checkbox"
                   id="fldEnc"
                   label="Field-Level Id Encrypt"
-                  disabled={mode !== 'ipsunified'}
+                  disabled={mode !== 'ipsunified' && mode !== 'npsprofile'}
                   checked={useFieldEncrypt}
                   onChange={(e) => {
                     const v = e.target.checked;
@@ -779,7 +829,7 @@ function APIGETPage() {
                   type="checkbox"
                   id="idOmit"
                   label="Id Omit"
-                  disabled={mode !== 'ipsunified'}
+                  disabled={mode !== 'ipsunified' && mode !== 'npsprofile'}
                   checked={useIdOmit}
                   onChange={(e) => {
                     const v = e.target.checked;
@@ -881,8 +931,8 @@ function APIGETPage() {
                     {npsNfcCutoff === NPS_NFC_EMPTY_RW_OPTION
                       ? 'RO contains all resources; RW contains no entries.'
                       : npsNfcCutoff
-                      ? `RO contains resources before ${npsNfcCutoff}; RW contains resources on and after ${npsNfcCutoff}.`
-                      : 'All resources are currently in the Read Only section.'}
+                        ? `RO contains resources before ${npsNfcCutoff}; RW contains resources on and after ${npsNfcCutoff}.`
+                        : 'All resources are currently in the Read Only section.'}
                   </div>
                   <div>
                     RO entries: {npsNfcSplitData.roBundle.total} | RW entries: {npsNfcSplitData.rwBundle.total}
@@ -931,15 +981,15 @@ function APIGETPage() {
             )}
 
             {/* ---------- On-page validation panel ---------- */}
-            {(mode === 'ipsunified' || mode === 'ipsnhsscr' || mode === 'ipseps') && (
+            {(mode === 'ipsunified' || mode === 'ipsnhsscr' || mode === 'ipseps' || mode === 'npsprofile') && (
               <div className="mt-2">
-                {useCompressionAndEncryption ? (
+                {useCompressionAndEncryption || useCompressionOnly ? (
                   <Alert variant="secondary" className="mb-2">
-                    Validation disabled because <strong>Gzip + Encrypt</strong> is enabled (displayed JSON is a wrapper).
+                    Validation disabled because <strong>compression</strong> is enabled (displayed JSON is a wrapper).
                   </Alert>
                 ) : valLoading ? (
                   <Alert variant="secondary" className="mb-2">
-                    Validating ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : (showNpsNfcSplitView ? 'NPS NFC' : 'NPS'))})...
+                    Validating ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : (mode === 'npsprofile' ? 'NPS Profile' : 'NPS'))})...
                   </Alert>
                 ) : valError ? (
                   <Alert variant="warning" className="mb-2">
@@ -949,7 +999,7 @@ function APIGETPage() {
                   <Alert variant={valResult.valid ? "success" : "danger"} className="mb-2">
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                       <div>
-                        <strong>Validation ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : (showNpsNfcSplitView ? 'NPS NFC' : 'NPS'))}):</strong>
+                        <strong>Validation ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : (mode === 'npsprofile' ? 'NPS Profile' : 'NPS'))}):</strong>
                         {valResult.valid ? "✅ Valid" : "❌ Invalid"}
                         {!!valResult.errors?.length && (
                           <> — {valResult.errors.length} error(s)</>
@@ -963,7 +1013,7 @@ function APIGETPage() {
                           onClick={openValidatorPage}
                           disabled={!data}
                         >
-                          Go to Validator ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : (showNpsNfcSplitView ? 'NPS NFC' : 'NPS'))})
+                          Go to Validator ({mode === 'ipseps' ? 'EPS' : (mode === 'ipsnhsscr' ? 'NHS SCR IPS' : (mode === 'npsprofile' ? 'NPS Profile' : 'NPS'))})
                         </Button>
 
                         {!valResult.valid && (
@@ -1016,7 +1066,7 @@ function APIGETPage() {
               </div>
             )}
 
-            {(mode === 'ips' || mode === 'ipsnhsscr' || mode === 'ipseps') && (
+            {(mode === 'ips' || mode === 'ipsnhsscr' || mode === 'ipseps' || mode === 'npsprofile') && (
               <div className="col-auto">
                 <Button
                   variant="primary"

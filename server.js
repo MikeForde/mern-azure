@@ -23,6 +23,7 @@ const { getORABundleByName } = require('./servercontrollers/oraBundleByName');
 const { getIPSBundleGeneric } = require('./servercontrollers/fetchips');
 const { getIPSLegacyBundle } = require('./servercontrollers/ipsBundleFormat_old');
 const { getIPSUnifiedBundle } = require('./servercontrollers/ipsBundleFormatUnified');
+const { getIPSNPSProfileBundle } = require('./servercontrollers/ipsBundleFormatNPSProfile');
 const { getIPSUnifiedBundleSplit } = require('./servercontrollers/ipsBundleFormatUnifiedSplit');
 const { getIPSDataSplitPOC } = require('./servercontrollers/ipsDataSplitPOC');
 const { getIPSXMLBundle } = require('./servercontrollers/ipsXMLBundleFormat');
@@ -59,6 +60,7 @@ const ipsUniValRouter = require('./schema/ipsUniVal');
 const ipsNhsScrValRouter = require('./schema/ipsNhsScrVal');
 const epsValRouter = require('./schema/epsVal');
 const npsProfileValRouter = require('./schema/npsprofileVal');
+const ipsExternalValRouter = require('./schema/ipsExternalVal');
 
 // ----- Middleware ---------
 const binaryDecryptMiddleware = require('./middlewares/binaryDecryptMiddleware');
@@ -234,6 +236,7 @@ api.use('/npsVal', ipsUniValRouter);
 api.use('/npsProfileVal', npsProfileValRouter);
 api.use('/ipsNhsScrVal', ipsNhsScrValRouter);
 api.use('/epsVal', epsValRouter);
+api.use('/ipsexternalVal', ipsExternalValRouter);
 
 // API GET - CRUD Read
 api.get("/ips/all", getAllIPS);
@@ -250,6 +253,7 @@ api.get("/ipsxml/:id", getIPSXMLBundle);
 api.get("/ipslegacy/:id", getIPSLegacyBundle);
 api.get("/ipsunified/:id", getIPSUnifiedBundle);
 api.get("/nps/:id", getIPSUnifiedBundle);
+api.get("/npsprofile/:id", getIPSNPSProfileBundle);
 api.get("/ipsunifiedsplit/:id", getIPSUnifiedBundleSplit);
 api.get("/npsnfc/:id", getIPSUnifiedBundleSplit);
 api.get("/ipsdatasplitpoc/:id", getIPSDataSplitPOC);

@@ -1,6 +1,8 @@
 const express = require('express');
 const Ajv = require('ajv');
 const addFormats = require('ajv-formats');
+const fhirpath = require('fhirpath');
+const fhirpathR4Model = require('fhirpath/fhir-context/r4');
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
@@ -306,6 +308,12 @@ function normalizeTargetProfiles(typeList = []) {
     .map(profileUrl => String(profileUrl).split('|')[0]);
 }
 
+function normalizeTypeProfiles(typeList = []) {
+  return typeList
+    .flatMap(type => asArray(type.profile))
+    .map(profileUrl => String(profileUrl).split('|')[0]);
+}
+
 function parseCanonicalTail(canonical) {
   const bare = String(canonical || '').split('|')[0];
   const parts = bare.split('/').filter(Boolean);
@@ -433,21 +441,134 @@ function validateReferenceTargets(resource, element, pathPrefix, bundleIndex, er
   });
 }
 
-function validateAgainstProfile(resource, expectedProfile, pathPrefix, bundleIndex) {
+function asConstraintBoolean(result) {
+  if (!Array.isArray(result) || result.length === 0) return false;
+  if (result.length === 1 && typeof result[0] === 'boolean') return result[0];
+  return result.every(Boolean);
+}
+
+function validateConstraints(instance, rootResource, element, pathPrefix, errors, warnings) {
+  const constraints = asArray(element?.constraint).filter(constraint => typeof constraint?.expression === 'string');
+  if (constraints.length === 0) return;
+
+  const pathParts = String(element.path || '').split('.');
+  const relativeParts = pathParts.slice(1);
+  const valuesWithPaths = relativeParts.length === 0
+    ? [{ value: instance, path: pathPrefix || '' }]
+    : getContainerNodesWithPaths(rootResource, relativeParts, pathPrefix, element.type || []);
+
+  valuesWithPaths.forEach(({ value, path: valuePath }) => {
+    constraints.forEach(constraint => {
+      try {
+        const result = fhirpath.evaluate(
+          value,
+          {
+            base: element.path,
+            expression: constraint.expression
+          },
+          { resource: rootResource },
+          fhirpathR4Model,
+          { traceFn: () => {} }
+        );
+
+        if (asConstraintBoolean(result)) return;
+
+        const target = String(constraint.severity || '').toLowerCase() === 'warning' ? warnings : errors;
+        addError(target, valuePath || pathPrefix || '', constraint.human || `Constraint ${constraint.key || constraint.expression} failed`);
+      } catch (error) {
+        warnings.push({
+          path: valuePath || pathPrefix || '',
+          message: `Could not evaluate constraint ${constraint.key || constraint.expression}: ${error.message}`
+        });
+      }
+    });
+  });
+}
+
+function getProfileRootType(expectedProfile, instance) {
+  if (expectedProfile?.type) return expectedProfile.type;
+  if (instance && typeof instance === 'object' && typeof instance.resourceType === 'string') {
+    return instance.resourceType;
+  }
+
+  const firstPath = asArray(expectedProfile?.snapshot?.element)
+    .map(element => element?.path)
+    .find(value => typeof value === 'string' && value);
+
+  return firstPath ? String(firstPath).split('.')[0] : null;
+}
+
+function validateNestedTypeProfiles(instance, expectedProfile, pathPrefix, bundleIndex, errors, warnings, profileTrail) {
+  const snapshotElements = asArray(expectedProfile?.snapshot?.element)
+    .filter(element => typeof element.path === 'string')
+    .filter(element => !element.sliceName)
+    .filter(element => !String(element.id || '').includes(':'));
+
+  snapshotElements.forEach(element => {
+    const nestedProfileUrls = normalizeTypeProfiles(element.type);
+    if (nestedProfileUrls.length === 0) return;
+
+    const pathParts = String(element.path || '').split('.');
+    if (pathParts.length <= 1) return;
+
+    const valuesWithPaths = getContainerNodesWithPaths(instance, pathParts.slice(1), pathPrefix, element.type || []);
+    valuesWithPaths.forEach(({ value, path: valuePath }) => {
+      if (!value || typeof value !== 'object') return;
+
+      nestedProfileUrls.forEach(profileUrl => {
+        if (profileTrail.has(profileUrl)) return;
+
+        const nestedProfile = profiles.byCanonical.get(profileUrl);
+        if (!nestedProfile) {
+          warnings.push({
+            path: valuePath,
+            message: `Referenced datatype profile is not available: ${profileUrl}`
+          });
+          return;
+        }
+
+        const nestedResult = validateAgainstProfile(
+          value,
+          nestedProfile,
+          valuePath,
+          bundleIndex,
+          new Set([...profileTrail, profileUrl])
+        );
+
+        errors.push(...nestedResult.errors);
+        warnings.push(...nestedResult.warnings);
+      });
+    });
+  });
+}
+
+function validateAgainstProfile(instance, expectedProfile, pathPrefix, bundleIndex, profileTrail = new Set()) {
   const errors = [];
   const warnings = [];
+  const rootType = getProfileRootType(expectedProfile, instance);
+
+  if (!rootType) {
+    warnings.push({
+      path: pathPrefix || '',
+      message: 'Could not determine profile root type for validation'
+    });
+    return { errors, warnings };
+  }
 
   const snapshotElements = asArray(expectedProfile?.snapshot?.element)
     .filter(element => typeof element.path === 'string')
     .filter(element => !element.sliceName)
     .filter(element => !String(element.id || '').includes(':'))
-    .filter(element => element.path.startsWith(`${resource.resourceType}.`));
+    .filter(element => element.path === rootType || element.path.startsWith(`${rootType}.`));
 
   snapshotElements.forEach(element => {
-    validateElementCardinality(resource, element, pathPrefix, errors);
-    validateFixedValue(resource, element, pathPrefix, errors);
-    validateReferenceTargets(resource, element, pathPrefix, bundleIndex, errors);
+    validateElementCardinality(instance, element, pathPrefix, errors);
+    validateFixedValue(instance, element, pathPrefix, errors);
+    validateReferenceTargets(instance, element, pathPrefix, bundleIndex, errors);
+    validateConstraints(instance, instance, element, pathPrefix, errors, warnings);
   });
+
+  validateNestedTypeProfiles(instance, expectedProfile, pathPrefix, bundleIndex, errors, warnings, profileTrail);
 
   return { errors, warnings };
 }
@@ -564,3 +685,4 @@ router.post('/', (req, res) => {
 });
 
 module.exports = router;
+module.exports.validateBundle = validateBundle;

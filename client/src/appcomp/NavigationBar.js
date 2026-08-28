@@ -68,7 +68,7 @@ return (
           alt="IPS Logo"
           style={{ marginRight: "10px" }}
         />
-        IPS MERN{' '}{hostingEnvironment}{' 0_87'}
+        IPS MERN{' '}{hostingEnvironment}{' 0_88'}
       </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => setExpanded(!expanded)} />
         <Navbar.Collapse id="basic-navbar-nav">
@@ -179,6 +179,10 @@ return (
 
               <NavDropdown.Item as={Link} to="/schemavalidator?mode=eps" onClick={() => handleNavItemSelect(false)}>
                 Validator: EPS
+              </NavDropdown.Item>
+
+              <NavDropdown.Item as={Link} to="/schemavalidator?mode=external" onClick={() => handleNavItemSelect(false)}>
+                Validator: External
               </NavDropdown.Item>
             </NavDropdown>
 
