@@ -19,9 +19,10 @@ const {
 const healthStaqRouter = express.Router();
 const ipsMernRouter = express.Router();
 
-const HEALTHSTAQ_BASE_URL = process.env.STAQ_ENDPOINT;
-const HEALTHSTAQ_TOKEN_URL =
-    `${HEALTHSTAQ_BASE_URL}/realms/healthstaq/protocol/openid-connect/token`;
+const HEALTHSTAQ_BASE_URL_TOKEN = process.env.STAQ_ENDPOINT_TOKEN;
+const HEALTHSTAQ_BASE_URL_API = process.env.STAQ_ENDPOINT_API;
+const HEALTHSTAQ_TOKEN_URL_TOKEN =
+    `${HEALTHSTAQ_BASE_URL_TOKEN}/realms/healthstaq/protocol/openid-connect/token`;
 
 const HEALTHSTAQ_UUID_REGEX =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -45,7 +46,7 @@ const HEALTHSTAQ_DELETE_ORDER = [
 const TOKEN_EXPIRY_BUFFER_MS = 30_000;
 
 const healthStaqApi = axios.create({
-    baseURL: HEALTHSTAQ_BASE_URL,
+    baseURL: HEALTHSTAQ_BASE_URL_API,
     timeout: 30_000,
 });
 
@@ -85,7 +86,7 @@ async function mintAccessToken() {
     });
 
     const response = await axios.post(
-        HEALTHSTAQ_TOKEN_URL,
+        HEALTHSTAQ_TOKEN_URL_TOKEN,
         formBody.toString(),
         {
             auth: {
@@ -155,6 +156,8 @@ async function getAccessToken() {
 async function requestHealthStaq(config, retryAfterUnauthorized = true) {
     const accessToken = await getAccessToken();
 
+    console.log("Trying API" + JSON.stringify(config.headers, null, 4));
+
     try {
         return await healthStaqApi.request({
             ...config,
@@ -196,6 +199,8 @@ async function submitBundleToHealthStaq(sourceBundle) {
     }
 
     const transactionBundle = buildHealthStaqTransaction(sourceBundle);
+
+    console.log("Attempting transaction");
 
     return requestHealthStaq({
         method: 'POST',

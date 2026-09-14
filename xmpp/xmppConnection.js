@@ -160,11 +160,11 @@ async function initXMPP_WebSocket() {
     console.error("XMPP error:", err);
   });
 
-  // xmpp.on("stanza", (stanza) => {
-  //   if (!stanza.is("message")) return;
-  //   const body = stanza.getChildText("body");
-  //   console.log("[XMPP][IN]", stanza.attrs.id, stanza.attrs.from, stanza.attrs.type, body);
-  // });
+  xmpp.on("stanza", (stanza) => {
+    if (!stanza.is("message")) return;
+    const body = stanza.getChildText("body");
+    console.log("[XMPP][IN]", stanza.attrs.id, stanza.attrs.from, stanza.attrs.type, body);
+  });
 
   // Called once the client is online (SASL auth + resource binding complete)
   xmpp.on("online", async (address) => {

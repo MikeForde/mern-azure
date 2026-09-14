@@ -108,7 +108,7 @@ router.post('/pmr/:id', async (req, res) => {
     const surnameSub = (ipsRecord.patient.name || 'UNK').substring(0, 3).toUpperCase();
 
     // Construct the patient ID in the format: IPS-[first 3 letters of first name]-[first 3 letters of surname]01-[year][month][day]Z[hour][minute]-01
-    const patientId = `IPS-${firstNameSub}-${surnameSub}01-${year}${month}${day}Z${hour}${minute}-01`;
+    const patientId = `IPS-${firstNameSub}-${surnameSub}01-${year}${month}${day}Z${hour}${minute}-19`;
 
     // 2. Get an access token from IdentityServer
     function pickTwoDistinct(arr) {
@@ -169,6 +169,9 @@ router.post('/pmr/:id', async (req, res) => {
       }
     );
     const accessToken = tokenResponse.data.access_token;
+
+
+    console.log(accessToken);
 
     //console.log("Access Token", accessToken);
 
