@@ -10,10 +10,20 @@ function UnifiedPostPage() {
     const [data, setData] = useState('');
     const [message, setMessage] = useState('');
     const [showNotification, setShowNotification] = useState(false);
-    const [target, setTarget] = useState('IPS SERN'); // options: "VitalsIQ", "NLD", "IPS SERN"
+    // Server-side allowlist: target keys map to fixed URLs (servercontrollers/puships.js).
+    // The client only ever sends the key, never a URL, to avoid SSRF.
+    const TARGET_URLS = {
+        'ips-sern': 'https://ips-d2s-uksc-medsnomed-medsno.apps.ocp1.azure.dso.digital.mod.uk/ipsbundle',
+        'nld': 'https://medicalcloud-test-int.orange-synapse.nl/api/fhir/1',
+        'vitalsiq': 'https://4202xiwc.offroadapps.dev:62444/Fhir/ips/json',
+    };
+    const TARGET_LABELS = {
+        'ips-sern': 'IPS SERN',
+        'nld': 'NLD',
+        'vitalsiq': 'VitalsIQ',
+    };
+    const [target, setTarget] = useState('ips-sern'); // options: "vitalsiq", "nld", "ips-sern"
     const { startLoading, stopLoading } = useLoading();
-    // Add these state variables at the top of your component:
-    const [endpoint, setEndpoint] = useState('https://ips-d2s-uksc-medsnomed-medsno.apps.ocp1.azure.dso.digital.mod.uk/ipsbundle');
     const [dataFormat, setDataFormat] = useState('ipsunified'); // options: "ipsunified", "ips", "ipslegacy"
     const [hl7Wrapper, setHl7Wrapper] = useState(false);
 
@@ -51,7 +61,7 @@ function UnifiedPostPage() {
         startLoading();
         try {
             const ipsData = JSON.parse(data);
-            await axios.post('/puships', { ipsBundle: ipsData, endpoint, dataFormat, hl7Wrapper });
+            await axios.post('/puships', { ipsBundle: ipsData, target, dataFormat, hl7Wrapper });
             setMessage('IPS data successfully pushed to the external server');
             setShowNotification(false);
         } catch (error) {
@@ -90,26 +100,17 @@ function UnifiedPostPage() {
                 <div className="dropdown-container">
                     <DropdownButton
                         id="dropdown-target"
-                        title={`Target Endpoint: ${target}`}
-                        onSelect={(e) => {
-                            setTarget(e);
-                            if (e === "VitalsIQ") {
-                                setEndpoint("https://4202xiwc.offroadapps.dev:62444/Fhir/ips/json");
-                            } else if (e === "NLD") {
-                                setEndpoint("https://medicalcloud-test-int.orange-synapse.nl/api/fhir/1");
-                            } else if (e === "IPS SERN") {
-                                setEndpoint("https://ips-d2s-uksc-medsnomed-medsno.apps.ocp1.azure.dso.digital.mod.uk/ipsbundle");
-                            }
-                        }}
+                        title={`Target Endpoint: ${TARGET_LABELS[target]}`}
+                        onSelect={(e) => setTarget(e)}
                         className="dropdown-button"
                     >
-                        <Dropdown.Item eventKey="IPS SERN" active={target === "IPS SERN"}>
+                        <Dropdown.Item eventKey="ips-sern" active={target === "ips-sern"}>
                             IPS SERN
                         </Dropdown.Item>
-                        <Dropdown.Item eventKey="NLD" active={target === "NLD"}>
+                        <Dropdown.Item eventKey="nld" active={target === "nld"}>
                             NLD
                         </Dropdown.Item>
-                        <Dropdown.Item eventKey="VitalsIQ" active={target === "VitalsIQ"}>
+                        <Dropdown.Item eventKey="vitalsiq" active={target === "vitalsiq"}>
                             VitalsIQ
                         </Dropdown.Item>
                     </DropdownButton>
@@ -150,8 +151,9 @@ function UnifiedPostPage() {
                         <Form.Label>Endpoint</Form.Label>
                         <Form.Control
                             type="text"
-                            value={endpoint}
-                            onChange={(e) => setEndpoint(e.target.value)}
+                            value={TARGET_URLS[target]}
+                            readOnly
+                            disabled
                         />
                     </Form.Group>
                 </div>
@@ -168,7 +170,7 @@ function UnifiedPostPage() {
                 <div className="button-container">
                     {selectedPatient && data && (
                         <Button className="mb-3" variant="danger" onClick={handlePushIPS}>
-                            Push IPS JSON Data to {target} WebApp
+                            Push IPS JSON Data to {TARGET_LABELS[target]} WebApp
                         </Button>
                     )}
                 </div>
